@@ -293,15 +293,14 @@ const data ={
                 multiple
                 onChange={(event)=> handleFileChange(event, index)}
                 />
-                  <span className='mx-2'>
-                  <Button
+                <span className='mx-2'>
+                  <input
                   accept='image/*'
                   type='file'
-                  capture="enviroment"
+                  capture
                   onChange={(e)=> handelCapture(e.target)}
                   >
-                    <BsCameraFill/>
-                  </Button>
+                  </input>
                 </span>
                 </div>
              

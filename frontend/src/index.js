@@ -13,5 +13,4 @@ root.render(
     </StoreProvider>
   </React.StrictMode>
 );
-ServiceWorkerRegistration.register()
 
