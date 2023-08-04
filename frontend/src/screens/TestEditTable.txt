@@ -5,10 +5,7 @@ import {FaPlusCircle, FaRedo} from 'react-icons/fa'
 import axios from 'axios'
 import {toast} from 'react-toastify'
 import {getError} from '../utils/getError'
-import Dropzone from 'react-dropzone'
 import { Store } from '../utils/Store'
-import {BsFillCameraFill} from 'react-icons/bs'
-
 
 
 
@@ -47,9 +44,7 @@ const [selectedProducts, setSelectedProducts] = useState([]);
 const [totalValue, setTotalValue] = useState(0);
 const [code, setCode] = useState('')
 const [quantity, setQuantity] = useState(0)
-const [unitName, setunitName] = useState('')
-const [images, setImages] = useState([]);
-
+const [arrangement, setArrangement] = useState('')
 
 const [{ loading, error, sale, products}, dispatch] =
     useReducer(reducer, {
@@ -117,42 +112,13 @@ const handleProductChange = (event, index) => {
 };
 
 
-
-//REMOVE ROW
- const handleRemoveRow = (index) => {
-  setSelectedProducts((prevProducts) => prevProducts.filter((_, i) => i !== index));
-  };
-
-
-///photo preview
-
-const handleFileDrop = (acceptedFiles) => {
-  setImages([...images, ...acceptedFiles]);
-};
-
-const removeSelectedFile = (index) => {
-  const updatedFiles = [...images];
-  updatedFiles.splice(index, 1);
-  setImages(updatedFiles);
-};
-
-const renderImagePreviews = () => {
-  return images.map((file, index) => (
-    <Card key={index} className="mb-2 details-image">
-      <Card.Img className='img-fluid p-3' src={URL.createObjectURL(file)} alt="Preview"></Card.Img>
-      <Button variant="danger" onClick={() => removeSelectedFile(index)}>Remove</Button>
-    </Card>
-  ));
-};
-
-
 const handleNewTable = () => {
   setSelectedProducts([]);
   setTotalValue(0);
 };
 //send updated data to backend
-/* const handleSave= async()=> {
-  if(unitName === ''){
+const handleSave= async()=> {
+  if(arrangement === ''){
     toast.error('Please Add arrangemet')
     return
   }
@@ -160,109 +126,39 @@ const handleNewTable = () => {
   if(hasNullValues){
     toast.error('cant record empty fields')
     return
-  } 
-
-  const hasInvalidProducts = selectedProducts.some((row) => {
-    return !row.product || !row.quantity || isNaN(row.quantity);
-  });
-
-  if (hasInvalidProducts) {
-    toast.error('Invalid product data');
-    return;
   }
 
+ try{
+  const {data} = await axios.post(`/api/multiple/${saleId}/add-units`, {
+    selectedProducts, arrangement
+   }) 
+   toast.success('unit added successfully')
+ }catch(error){
+  toast.error(getError(error))
+ }
+console.log(selectedProducts, arrangement)
+}
 
- 
-  try{
-    const {data} = await axios.post(`/api/multiple/${saleId}/add-units`, {
-      selectedProducts, unitName, images
-     }) 
-     toast.success('unit added successfully')
-   }catch(error){
-    toast.error(getError(error))
-    console.log(selectedProducts, unitName, images)
-   }
-  } */
-  const handleSave = async () => {
-    if (unitName === '') {
-      toast.error('Please Add arrangement');
-      return;
-    }
-  
-    const hasInvalidProducts = selectedProducts.some(
-      (row) => !row.product || !row.quantity || isNaN(row.quantity)
-    );
-  
-    if (hasInvalidProducts) {
-      toast.error('Invalid product data');
-      return;
-    }
-  
-    try {
-      const formData = new FormData();
-      formData.append('unitName', unitName);
-      formData.append('selectedProducts', selectedProducts);
-  
-      for (const img of images) {
-        formData.append('images', img);
-      }
-      
-  
-      await axios.post(`/api/multiple/${saleId}/add-units`, {
-        selectedProducts, unitName
-      },{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-  
-      toast.success('unit added successfully');
-    } catch (error) {
-      toast.error(getError(error));
-      console.log(selectedProducts, unitName, images);
-    }
-  };
-  
-  
   return (
 <Container>
         <Stack direction='vertical' gap={2}>
-              <div className='d-flex align-items-center'>
-              <Col md={3} xm={12}>
+              <Col md={3}>
                   <Card.Title className='m-2'>code:{' '}{sale.InvoiceCode}</Card.Title>
                     <Form.Control type='text'
-                    onChange={(e)=> setunitName(e.target.value)}
+                    onChange={(e)=> setArrangement(e.target.value)}
                     name='arrangement'
                     placeholder='add arrangement'
                     />
               </Col>
-              <Col md={8} xm={12} className='px-2'>
-                  <Card.Title className='m-2'>Add Photos</Card.Title>
-                  <Dropzone onDrop={(acceptedFiles) => handleFileDrop(acceptedFiles)}>
-                  {({ getRootProps, getInputProps }) => (
-              <div {...getRootProps()}>
-              <input {...getInputProps()} />
-              <Button>
-                <BsFillCameraFill/>
-              </Button>
-            </div>
-          )}
-        </Dropzone>
-        <div className="mt-2 d-flex">
-        {renderImagePreviews()}
-      </div>
-              </Col>
-              </div>
                 <Button onClick={handleAddRow} className='w-25'>
                   <FaPlusCircle/> Add row
                 </Button>
-          <Col md={6} lg={8}>
+          <Col md={6}>
           <Table striped bordered hover className='mt-4'>
                 <thead>
                 <tr>
                     <th>product</th>
                     <th>quantity</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -273,20 +169,26 @@ const handleNewTable = () => {
                             <Form.Select as="select"  value={selectedProduct.name} onChange={(e)=>handleProductChange(e, index)}>
                               <option value=""> ---select--- </option>
                                 {products.map((product)=> (
-                                  <option key={product._id} value={product._id}>
+                                  <option key={product._id} value={product.name}>
                                     {product.name}
                                   </option>
                                 ))}
                             </Form.Select>
                         </td>
-                       <td>
+                       {/*  <td>
                         <Form.Label>quantity</Form.Label>
                         <Form.Control type='number' name='quantity' value={selectedProduct.quantity}
                         onChange={(e)=> handleQuantityChange(e, index)}
                         />
-                        </td> 
+                        </td> */}
                         <td>
-                          <Button variant='' onClick={()=>handleRemoveRow(index)}>Delete</Button>
+                          <Form.Select value={quantity} onChange={handleQuantityChange}>
+                            {[selectedProduct.inStock].map((selectedProduct)=> (
+                              <option key={selectedProduct.id} value={selectedProduct}>
+                                {selectedProduct.inStock}
+                              </option>
+                            ))}
+                          </Form.Select>
                         </td>
                       </tr>
                 ))}
