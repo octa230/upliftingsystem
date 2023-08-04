@@ -20,3 +20,7 @@ input{
   padding: 4px;
   border-radius: 5px
 }
+.details-image{
+  width: 12rem;
+  height: 300px
+}

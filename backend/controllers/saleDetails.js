@@ -1,9 +1,10 @@
-const MultipleSale = require('../models/MultipleRetail');
+const SaleDetails = require('../models/saleDetails');
 const asyncHandler = require('express-async-handler');
 const Product = require('../models/product');
+const upload = require('../utils/upload')
 
 const makeSale = asyncHandler(async(req, res)=> {
-        const newSale = new MultipleSale({
+        const newSale = new SaleDetails({
             saleItems: req.body.products.map((x)=> ({
                 ...x,
                 quantity: x.quantity,
@@ -36,11 +37,11 @@ const getSales = asyncHandler(async(req, res)=> {
     const page = query.page || 1;
     const pageSize = query.pageSize || PAGE_SIZE
 
-    const sales = await MultipleSale.find().sort({createdAt: -1})   
+    const sales = await SaleDetails.find().sort({createdAt: -1})   
         .skip(pageSize * ( page - 1))
         .limit(pageSize)
 
-    const countSales = await MultipleSale.countDocuments();
+    const countSales = await SaleDetails.countDocuments();
     res.send({
         sales, page,
         countSales,
@@ -50,7 +51,7 @@ const getSales = asyncHandler(async(req, res)=> {
 
 const getsingleSale = asyncHandler(async(req, res)=> {
     const saleId = req.params.id
-    const sale = await MultipleSale.findById(saleId)
+    const sale = await SaleDetails.findById(saleId)
     if(sale){
         res.send(sale)
     }else{
@@ -58,7 +59,7 @@ const getsingleSale = asyncHandler(async(req, res)=> {
     }
 })
 
-const addSaleUnits = asyncHandler(asyncHandler(async(req, res)=> {
+/* const addSaleUnits = asyncHandler(asyncHandler(async(req, res)=> {
     const saleId = req.params.id
     const sale = await MultipleSale.findById(saleId) 
     const {selectedProducts, arrangement} = req.body
@@ -76,6 +77,61 @@ const addSaleUnits = asyncHandler(asyncHandler(async(req, res)=> {
 
     sale.units.push({arrangement, ...newProducts})
 }))
+ */
 
+
+
+
+const addSaleUnits =  asyncHandler(async(req, res)=> {
+    const saleId = req.params.id
+    const {selectedProducts, unitName} = req.body
+    const images = req.files.map((file)=> file.filename)
+
+
+    if(!saleId){
+        res.status(404).send('no sale found');
+        return
+    } 
+    try{
+    
+    const sale = await SaleDetails.findById(saleId)
+    if (!selectedProducts || !Array.isArray(selectedProducts) || selectedProducts.length === 0) {
+        return res.status(400).json({ error: 'No products or quantities submitted' });
+    }
+    if(!sale){
+        return res.status(404).json({ error: 'Sale not found' });
+    }
+    for(const selectedProduct of selectedProducts){
+        const product = await Product.findById(selectedProduct.product)
+        if(!product){
+            res.status(404).send(`product${selectedProduct.product} not found`)
+            return
+        }
+        if(product.inStock < selectedProduct.quantity){
+            res.status(400).send('insufficient stock')
+            return
+        }
+        product.inStock -= selectedProduct.quantity
+        await product.save()
+    }
+    sale.units.push(
+        {arrangement: unitName, images: images,
+        products: selectedProducts.map((x)=> ({
+        ...x,
+        product: x.product,
+        name: x.name,
+        quantity: x.quantity,
+    }))})
+    
+    await sale.save()
+    res.status(200).send({message: 'data added successfully'})
+    }catch(error){
+        console.log(error)
+        res.status(500).send({message: 'something went wrong'})
+
+    }
+
+
+})
 
 module.exports = {getSales, getsingleSale, addSaleUnits, makeSale}

@@ -25,13 +25,12 @@ function ProductTable() {
   const [name, setCustomerName] = useState('')
   const [phone, setPhoneNumber] = useState('')
   const [preparedBy, setPreparedBy]= useState('')
-  const [vat, setVat] = useState(5);
-  const [file, setFile] = useState('')
-  const [source, setSource] = useState("")
+  const [vat, setVat] = useState(0);
+
 
 
   const handleAddRow=()=> {
-    setProducts([...products, {name:"", price: 0, quantity: 0, arrangement:"", file:""}]);
+    setProducts([...products, {name:"", price: 0, quantity: 0, arrangement:""}]);
   }
 
   const handleReset=()=> {
@@ -64,17 +63,17 @@ function ProductTable() {
   };
 
   
-  const handleFileChange=(event, index)=> {
+ /*  const handleFileChange=(event, index)=> {
     const newProducts = [...products];
     newProducts[index].file = event.target.value
     setFile(newProducts)
     console.log(newProducts)
-  }
+  } */
   const calculateSubtotal = () => {
     return products.reduce((accumulator, product) => accumulator + (product.price * product.quantity), 0);
   };
 
-  const handelCapture =(target)=> {
+  /* const handelCapture =(target)=> {
     if(target.files){
       if(target.files.target !== 0){
         const file = target.files[0]
@@ -82,7 +81,7 @@ function ProductTable() {
         setSource(newUrl)
       }
     }
-  }
+  } */
 
 
   const calculateTotal = () => {
@@ -117,12 +116,12 @@ const data ={
           company: 'Uplifting Floral Studio',
           address: 'Business Bay BB02',
           city: 'Dubai',
-          country: 'UAE'
+          country: 'UAE',
         },
 
         client:{
             company: name,
-            address: phone
+            address: phone,
         },
         information: {
             number: "UPDXB_" + Math.floor(100000 + Math.random()* 900000),
@@ -131,7 +130,7 @@ const data ={
         products: products.map((product)=> ({
             quantity: product.quantity,
             description: product.arrangement,
-            "tax-rate": 5,
+            "tax-rate": 0,
             price: product.price,
 
         })),
@@ -140,7 +139,7 @@ const data ={
         subtotal: calculateSubtotal(),
         total: calculateTotal(),  
         'bottom-notice': `
-        Welcome to our Floral Paradise <br/> 
+        <p style={padding: 12px}>WELCOME TO OUR FLORAL PARADISE</p> <br/> 
         <a href='https://www.instagram.com/upliftingdxb/'>instagram</a>
         Facebook <a href='https://www.instagram.com/upliftingdxb/'>Facebook</a>
         Site <a href='https://uplifting.ae'>Website</a>`,
@@ -161,7 +160,7 @@ const data ={
         const {result} = await axios.post('/api/multiple/new-sale', {
           products, paidBy, service,
           name, phone, preparedBy, total,
-          time, invoiceNumber, subTotal, file
+          time, invoiceNumber, subTotal,
         },
         console.log(products, paidBy, service,
           name, phone, preparedBy, subTotal,
@@ -242,7 +241,6 @@ const data ={
             <th>Arrangement</th>
             <th>Price</th>
             <th>Quantity</th>
-            <th>Photo</th>
             <th>Subtotal</th>
           </tr>
         </thead>
@@ -283,27 +281,6 @@ const data ={
                   value={product.quantity || ''}
                   onChange={(event) => handleQuantityChange(index, event)}
                 />
-              </td>
-              <td>
-                <div className='d-flex'>
-                <Form.Control
-                type='file'
-                name='photo'
-                accept='image/*'
-                multiple
-                onChange={(event)=> handleFileChange(event, index)}
-                />
-                <span className='mx-2'>
-                  <input
-                  accept='image/*'
-                  type='file'
-                  capture
-                  onChange={(e)=> handelCapture(e.target)}
-                  >
-                  </input>
-                </span>
-                </div>
-             
               </td>
               <td>{product.price && product.quantity ? product.price * product.quantity : 0}</td>
             </tr>

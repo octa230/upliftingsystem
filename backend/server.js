@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 const userRouter = require('./routes/userRouter')
 const productRouter = require('./routes/productRouter');
 const salesRouter = require('./routes/saleRouter')
-const { multipleSaleRoutes } = require('./routes/multipleSaleRouter');
+const saleDetailsRouter  = require('./routes/saleDetailsRouter');
 const path = require('path');
 
 const app = express();
@@ -20,13 +20,14 @@ const PORT = process.env.PORT
 app.use(express.json());
 app.use(cookieParser())
 app.use(express.urlencoded({extended: false}))
+app.use('/uploads', express.static('uploads'));
 app.use(bodyParser.json())
 
 
 //routes middleware
 app.use('/api/product', productRouter)
 app.use('/api/user', userRouter)
-app.use('/api/multiple', multipleSaleRoutes)
+app.use('/api/multiple', saleDetailsRouter)
 app.use('/api/wholesale', salesRouter)
 
 
