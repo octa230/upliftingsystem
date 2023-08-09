@@ -1,23 +1,18 @@
 import LoginScreen from "./screens/LoginScreen";
-import SaleScreen from "./screens/SaleScreen";
 import 'react-toastify/dist/ReactToastify.css';
-import RegisterUser from "./screens/RegisterUser";
 import ProtectedRoute from "./components/ProtectedRoutes";
-import InventoryScreen from "./screens/InventoryScreen";
 import ProductEdit from "./screens/ProductEdit";
-import SalesHistory from "./screens/SalesHistory";
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import { ToastContainer } from "react-toastify";
 import Nav from "react-bootstrap/Nav";
 import Navbar from 'react-bootstrap/Navbar'
-import RetailScreen from "./screens/RetailScreen";
-import {BsBoxArrowRight, BsFillDatabaseFill, BsFillClipboard2DataFill, BsFillPersonPlusFill, BsGrid1X2Fill} from 'react-icons/bs'
+import {BsBoxArrowRight, BsFillClipboard2DataFill, BsGrid1X2Fill} from 'react-icons/bs'
 import { useContext } from "react";
 import { Store } from "./utils/Store";
 import EditSaleDetails from "./screens/EditSaleDetails";
-import SaleHistoryScreen from "./screens/SaleHistoryScreen"
 import PrintStock from "./screens/PrintStock";
 import StatScreen from "./screens/StatScreen";
+import Dashboard from "./screens/Dashboard";
 
 
 function App() {
@@ -34,7 +29,7 @@ function App() {
   }
   return (
   <BrowserRouter>
-  <Navbar expand='lg' bg="dark" variant="dark" color="black" className="p-4" > 
+  <Navbar expand='lg' bg="dark" variant="dark" className="p-4" > 
       <Navbar.Brand href="/">
         <span className="border p-2">Active as: {userInfoToken? userInfoToken.name: 'Home'}</span>
       </Navbar.Brand>
@@ -47,7 +42,7 @@ function App() {
             </span>
             Dashboard
           </Nav.Link>
-          <Nav.Link href="/inventory">
+{/*           <Nav.Link href="/inventory">
             <span className="p-3">
               <BsFillDatabaseFill />
             </span>
@@ -64,7 +59,7 @@ function App() {
               <BsFillClipboard2DataFill/>
             </span>
             History
-          </Nav.Link>
+          </Nav.Link> */}
           <Nav.Link href="/stats">
             <span className="p-3 mb-2">
               <BsFillClipboard2DataFill/>
@@ -89,38 +84,14 @@ function App() {
       <Route path="/" element={<LoginScreen />} />
       <Route path="/dashboard" element ={
       <ProtectedRoute>
-        <SaleScreen />
+        <Dashboard />
       </ProtectedRoute>}/>
-      <Route path="/inventory" element ={
-        <ProtectedRoute>
-          <InventoryScreen />
-        </ProtectedRoute>
-      } /> 
-      <Route path="/register" element = {
-        <ProtectedRoute>
-          <RegisterUser />
-        </ProtectedRoute>
-      } />
       <Route path="/api/product/update/:id" element={
         <ProtectedRoute>
           <ProductEdit />
         </ProtectedRoute>
       }/>
-      <Route path="/retail" element={
-        <ProtectedRoute>
-          <RetailScreen />
-        </ProtectedRoute>
-      }/>
-      <Route path="/sales" element={
-        <ProtectedRoute>
-          <SalesHistory/>
-        </ProtectedRoute>
-      }/>
-      <Route path="/sale-history-sale" element={
-        <ProtectedRoute>
-          <SaleHistoryScreen/>
-        </ProtectedRoute>
-      }/>
+
       <Route path="/edit-sale/:id" element={
         <ProtectedRoute>
           <EditSaleDetails />

@@ -33,21 +33,12 @@ const makeSale = asyncHandler(async(req, res)=> {
 const PAGE_SIZE = 30
 
 const getSales = asyncHandler(async(req, res)=> {
-    const {query} = req;
-    const page = query.page || 1;
-    const pageSize = query.pageSize || PAGE_SIZE
-    const total = SaleDetails.countDocuments()
 
-    const sales = await SaleDetails.find().sort({createdAt: -1})   
-        .skip(pageSize * ( page - 1))
-        .limit(pageSize)
-
+    const sales = await SaleDetails.find()   
     const countSales = await SaleDetails.countDocuments();
     res.send({
-        sales, page,
+        sales,
         countSales,
-        total,
-        Pages: Math.ceil(countSales / pageSize)
     })
 })
 

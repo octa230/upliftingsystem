@@ -5,12 +5,13 @@ const Product = require ('../models/product');
 
 
 const createProduct = asyncHandler(async(req, res)=> {
+    const {name, code, price, inStock} = req.body
     const newProduct = new Product(
         {
-            name: req.body.name,
-            code: req.body.code,
-            price: req.body.price,
-            inStock: req.body.inStock
+            name: name,
+            price: price,
+            code: code,
+            inStock: inStock
         }
     )
     const product = await newProduct.save();

@@ -32,8 +32,6 @@ const SaleDetailSchema = new mongoose.Schema({
     preparedBy: {type: String, requred: true},
     service: {type: String, required: true},
     units:[unitSchema],
-
-    
 },
 {
     timestamps: true
