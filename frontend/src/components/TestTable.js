@@ -97,6 +97,7 @@ const selectFields =[name, phone, service, paidBy, preparedBy];
 const submitProducts = [...products]
 const hasEmptyValues = selectFields.some((value)=> value === '')
 const hasNullValues = submitProducts.some(row => Object.values(row).some(value => value === ''))
+
 if(hasEmptyValues ){
   toast.error('Check Sale Fields for empty data')
   return
