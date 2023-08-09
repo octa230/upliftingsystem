@@ -198,7 +198,7 @@ export default function ProductEdit() {
         />
         </Form.Group>
 
-        <Form.Group controlId='inStock'>
+{/*         <Form.Group controlId='inStock'>
             <Form.Label>Image</Form.Label>
             <Form.Control
             value={photo}
@@ -207,7 +207,7 @@ export default function ProductEdit() {
             required
         />
         </Form.Group>
-
+ */}
 
         <Form.Check 
         className='my-3'
