@@ -17,6 +17,7 @@ import { Store } from "./utils/Store";
 import EditSaleDetails from "./screens/EditSaleDetails";
 import SaleHistoryScreen from "./screens/SaleHistoryScreen"
 import PrintStock from "./screens/PrintStock";
+import StatScreen from "./screens/StatScreen";
 
 
 function App() {
@@ -63,6 +64,12 @@ function App() {
               <BsFillClipboard2DataFill/>
             </span>
             History
+          </Nav.Link>
+          <Nav.Link href="/stats">
+            <span className="p-3 mb-2">
+              <BsFillClipboard2DataFill/>
+            </span>
+            Stats
           </Nav.Link>
         </Nav>
         
@@ -123,6 +130,12 @@ function App() {
       <Route path="print-inventory" element={
         <ProtectedRoute>
           <PrintStock />
+        </ProtectedRoute>
+      }
+      />
+      <Route path="/stats" element={
+        <ProtectedRoute>
+          <StatScreen/>
         </ProtectedRoute>
       }
       />

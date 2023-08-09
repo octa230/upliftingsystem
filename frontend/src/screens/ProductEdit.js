@@ -1,5 +1,5 @@
 import React, {useEffect, useReducer, useState } from 'react'
-import {Button, Container, Form} from 'react-bootstrap'
+import {Button, Col, Form, Row} from 'react-bootstrap'
 import axios from 'axios'
 import {toast} from 'react-toastify'
 import { getError } from '../utils/getError'
@@ -42,6 +42,13 @@ export default function ProductEdit() {
     const [price, setPrice] = useState('')
     const [inStock, setInStock] = useState('')
     const [code, setCode] = useState('')
+    const [isDamaged, setisDamaged] = useState(false)
+    const [isDisplay, setisDisplay] = useState(false)
+    const [quantity, setQuantity] = useState(0)
+    const [product, setProduct] = useState('')
+    const [totalPrice, setTotalPrice] = useState(0)
+    const [image, setImage] = useState('')
+    
 
     useEffect(()=> {
         const fetchData = async()=> {
@@ -66,7 +73,7 @@ export default function ProductEdit() {
     },[ProductId])
 
 
-    async function submitHadnler(e){
+    async function submitUpdate(e){
         e.preventDefault()
         try{
             dispatch({type: 'UPDATE_REQUEST'})
@@ -85,9 +92,29 @@ export default function ProductEdit() {
             navigate('/inventory')
         }
     }
+
+    async function submitDamages(e){
+        e.preventDefault()
+        try{
+           const {data} = await axios.post('/api/damages/new', {
+                product: ProductId,
+                quantity,
+                isDamaged,
+                isDisplay,
+                totalPrice: price * quantity
+
+            }) 
+            toast.success('Data Recorded successfully')
+            console.log(data)
+        }catch(error){
+            toast.error('unable to add record')
+            console.log(error)
+        }
+    }
   return (
- <Container>
-       <Form onSubmit={submitHadnler} className='mb-3 w-50'>
+ <Row className='py-3'>
+ <Col>
+ <Form onSubmit={submitUpdate} className='mx-3' sm={12}>
       <Form.Text>
         <h2>{`Edit Product: ${ProductId}`}</h2>
       </Form.Text>
@@ -125,6 +152,82 @@ export default function ProductEdit() {
         </Form.Group>
     <Button type='submit' className='mt-2'>Update</Button>
     </Form>
- </Container>
+ </Col>
+
+<Col>
+{/** Form For Damages and Display */}
+<Form onSubmit={submitDamages} className='mx-3 pt-3'>
+
+      <Form.Text>
+        <h2>{`Display / Damaged Product: ${ProductId}`}</h2>
+      </Form.Text>
+
+        <Form.Group controlId='name'>
+            <Form.Label>Product Name</Form.Label>
+            <Form.Control disabled
+            value={name}
+            placeholder={product.name}
+            required
+            />
+        </Form.Group>
+
+        <Form.Group controlId='code'>
+            <Form.Label>Product Code</Form.Label>
+            <Form.Control disabled
+            value={code || ''}
+            placeholder={code}
+            required
+            />
+        </Form.Group>
+
+        <Form.Group controlId='price'>
+            <Form.Label>Total price</Form.Label>
+            <Form.Control
+            value={price * quantity}
+            onChange={(e)=> setTotalPrice(e.target.value)}
+            required
+            />
+        </Form.Group>
+
+        <Form.Group controlId='inStock'>
+            <Form.Label>Quantity</Form.Label>
+            <Form.Control
+            value={quantity}
+            onChange={(e)=> setQuantity(e.target.value)}
+            required
+        />
+        </Form.Group>
+
+        <Form.Group controlId='inStock'>
+            <Form.Label>Image</Form.Label>
+            <Form.Control
+            value={photo}
+            type='file'
+            onChange={handleFileChange}
+            required
+        />
+        </Form.Group>
+
+
+        <Form.Check 
+        className='my-3'
+        type='checkbox'
+        id='isDamaged'
+        label='Damaged'
+        checked={isDamaged}
+        onChange={(e)=> setisDamaged(e.target.checked)}
+        />
+
+        <Form.Check
+        type='checkbox'
+        id='isDisplay'
+        label='Display'
+        checked={isDisplay}
+        onChange={(e)=> setisDisplay(e.target.checked)}
+        />
+    <Button type='submit' className='mt-2'>Submit Record</Button>
+    </Form>
+</Col>
+ </Row>
   )
 }
