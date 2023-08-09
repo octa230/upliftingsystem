@@ -101,7 +101,7 @@ export default function ProductEdit() {
                 quantity,
                 isDamaged,
                 isDisplay,
-                totalPrice: price * quantity
+                totalPrice
 
             }) 
             toast.success('Data Recorded successfully')
