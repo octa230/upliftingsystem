@@ -14,6 +14,6 @@ const saleDetailsRouter = express.Router()
 saleDetailsRouter.post('/new-sale', makeSale)
 saleDetailsRouter.get('/list', getSales)
 saleDetailsRouter.get('/get-sale/:id', getsingleSale)
-saleDetailsRouter.post('/:id/add-units', upload.array('images'), addSaleUnits)
+saleDetailsRouter.post('/:id/add-units', addSaleUnits)
 
 module.exports = saleDetailsRouter

@@ -9,6 +9,7 @@ const productRouter = require('./routes/productRouter');
 const salesRouter = require('./routes/saleRouter')
 const saleDetailsRouter  = require('./routes/saleDetailsRouter');
 const path = require('path');
+const damagesRouter = require('./routes/DamagesRoutes');
 
 const app = express();
 dotenv.config()
@@ -29,14 +30,9 @@ app.use('/api/product', productRouter)
 app.use('/api/user', userRouter)
 app.use('/api/multiple', saleDetailsRouter)
 app.use('/api/wholesale', salesRouter)
+app.use('/api/damages', damagesRouter)
 
 
-//routes
-
-/* app.get('/', asyncHandler(async(req, res)=> {
-    res.send('home page')
-}))
- */
 //errorMiddleware
 app.use(ErrorHandler)
 
