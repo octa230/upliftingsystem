@@ -25,7 +25,6 @@ const newData = asycHandler(async(req, res)=> {
         quantity: quantity,
         totalPrice: totalPrice,
         photos: photos,
-        image: image
     })
     await newDamages.save()
     res.send('Damages recorded successfully')
