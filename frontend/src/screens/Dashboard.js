@@ -59,7 +59,7 @@ export default function Dashboard() {
             </Nav>
 
         </Col>  
-        <Col sm={8}>
+        <Col sm={8} className='dashboard-display'>
                 {content === 'make-sale' && <ProductTable/>}
                 {content === 'new-product' && <AddProduct/>}
                 {content === 'retail' && <SaleScreen/>}

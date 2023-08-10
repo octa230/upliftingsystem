@@ -150,39 +150,7 @@ const handleNewTable = () => {
   setSelectedProducts([]);
   setTotalValue(0);
 };
-//send updated data to backend
-/* const handleSave= async()=> {
-  if(unitName === ''){
-    toast.error('Please Add arrangemet')
-    return
-  }
-  const hasNullValues = selectedProducts.some(row => Object.values(row).some(value => value === ''))
-  if(hasNullValues){
-    toast.error('cant record empty fields')
-    return
-  } 
-
-  const hasInvalidProducts = selectedProducts.some((row) => {
-    return !row.product || !row.quantity || isNaN(row.quantity);
-  });
-
-  if (hasInvalidProducts) {
-    toast.error('Invalid product data');
-    return;
-  }
-
-
- 
-  try{
-    const {data} = await axios.post(`/api/multiple/${saleId}/add-units`, {
-      selectedProducts, unitName, images
-     }) 
-     toast.success('unit added successfully')
-   }catch(error){
-    toast.error(getError(error))
-    console.log(selectedProducts, unitName, images)
-   }
-  } */
+///send data to backend
   const handleSave = async () => {
     if (unitName === '') {
       toast.error('Please Add arrangement');
@@ -199,24 +167,21 @@ const handleNewTable = () => {
     }
   
     try {
-      const formData = new FormData();
+/*       const formData = new FormData();
       formData.append('unitName', unitName);
       formData.append('selectedProducts', selectedProducts);
-  
-      for (const img of images) {
+   */
+    /*   for (const img of images) {
         formData.append('images', img);
-      }
+      } */
       
   
       await axios.post(`/api/multiple/${saleId}/add-units`, {
         selectedProducts, unitName
-      },{
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       });
   
       toast.success('unit added successfully');
+      console.log()
     } catch (error) {
       toast.error(getError(error));
       console.log(selectedProducts, unitName, images);

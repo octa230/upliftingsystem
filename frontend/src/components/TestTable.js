@@ -179,7 +179,7 @@ const data ={
 
 
   return (
-    <Container fluid>
+    <>
     <Row className='d-flex justify-content-between my-2'>
     <Col sm={2}>
     <Form.Label>Paid By</Form.Label>
@@ -320,7 +320,7 @@ const data ={
       </Form.Group>
       <p>Subtotal: {calculateSubtotal()}</p>
       <p>Total: {calculateTotal()}</p>
-    </Container>
+      </>
   );
 }
 
