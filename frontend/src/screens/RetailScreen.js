@@ -37,7 +37,7 @@ export default function RetailScreen() {
     const [counter, setCounter] = useState('')
     
     const RoundTo = (num)=> Math.round(num * 100 + Number.EPSILON) /100 //====> 123.4567 - 123.45 
-    const vat = 0.05/price * 100
+    const vat = 0.00/price * 100
     const total = price + vat
 
     function handleSelectedValue(setState){
