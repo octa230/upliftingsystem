@@ -85,8 +85,6 @@ export default function PrintStock() {
         <Table striped bordered hover className='my-2 w-100'>
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Code</th>
                     <th>Name</th>
                     <th>Price</th>
                 </tr>
@@ -94,8 +92,6 @@ export default function PrintStock() {
             <tbody>
                 {filteredProducts?.map((product)=> (
                     <tr key={product._id}>
-                        <td>{product._id.slice(0, 8)}...</td>
-                        <td>{product.code}</td>
                         <td>{product.name}</td>
                         <td>{product.price}</td>
                     </tr>

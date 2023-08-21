@@ -70,16 +70,16 @@ const getProductsAndDamageCount = asycHandler(async(req, res)=> {
                     month
                 },
             },
-/*             {
+             {
                 $merge: {
                     into: 'monthlyDamages',
                     whenMatched: 'replace',
                     whenNotMatched: 'insert' 
                 }
             }
-             */
+             
         ]).exec()
-//        res.status(200).send(products)
+//       res.status(200).send(products)
 
 
         //MONGO MONTHLY DAMAGES AGGREGATION PIPELINE
