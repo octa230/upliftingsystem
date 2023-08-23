@@ -35,7 +35,7 @@ export default function PrintStock() {
     const [searchTerm, setSearchTerm] = useState('')
 
    
-    const [{loading, error, products, pages}, dispatch] = useReducer(reducer, {
+    const [{products, pages}, dispatch] = useReducer(reducer, {
         loading: true,
         products: [],
         error: ""
@@ -87,6 +87,7 @@ export default function PrintStock() {
                 <tr>
                     <th>Name</th>
                     <th>Price</th>
+                    <th>Stock</th>
                 </tr>
             </thead>
             <tbody>
@@ -94,6 +95,7 @@ export default function PrintStock() {
                     <tr key={product._id}>
                         <td>{product.name}</td>
                         <td>{product.price}</td>
+                        <td>product.inStock</td>
                     </tr>
                 ))}
             </tbody>

@@ -4,12 +4,11 @@ import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
-import Container from 'react-bootstrap/Container';
 import axios from 'axios'
 import {getError} from '../utils/getError'
 import easyinvoice from 'easyinvoice'
 import {toast} from 'react-toastify'
-import {BsBoxArrowDown, BsPlusSquare, BsCameraFill, BsFillTrash3Fill} from 'react-icons/bs'
+import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
 
 
 
@@ -158,14 +157,14 @@ const data ={
         const subTotal = calculateSubtotal()
         const total = calculateTotal()
 
-        const {result} = await axios.post('/api/multiple/new-sale', {
+          await axios.post('/api/multiple/new-sale', {
           products, paidBy, service,
           name, phone, preparedBy, total,
           time, invoiceNumber, subTotal,
         },
         console.log(products, paidBy, service,
           name, phone, preparedBy, subTotal,
-          vat, invoiceNumber, total,
+          vat, invoiceNumber, total, 
         ))
       }catch(error){
         toast.error(getError(error))
