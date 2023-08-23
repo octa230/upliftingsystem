@@ -78,7 +78,7 @@ export default function SaleScreen() {
   
   const RoundTo = (num)=> Math.round(num * 100 + Number.EPSILON) / 100 //====> 123.4567 - 123.45;
   sale.itemsPrice = RoundTo(sale.saleItems.reduce((acc, curr)=> acc + curr.quantity * curr.price, 0))
-  sale.taxPrice = RoundTo(0.15 * sale.itemsPrice)
+  sale.taxPrice = RoundTo(0.00 * sale.itemsPrice)
   sale.totalPrice = sale.itemsPrice + sale.taxPrice;
 
   const makeSale = async()=> {
@@ -159,7 +159,7 @@ export default function SaleScreen() {
 
     const result = await easyinvoice.createInvoice(InvoiceData)
       easyinvoice.render('pdf', result.pdf)
-      easyinvoice.download(`invoice.pdf`, result.pdf)
+      easyinvoice.download(`${InvoiceData.information.number}.pdf`, result.pdf)
   }
 
   const dismissItem = (item)=> {

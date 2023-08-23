@@ -1,7 +1,6 @@
 const SaleDetails = require('../models/saleDetails');
 const asyncHandler = require('express-async-handler');
 const Product = require('../models/product');
-const upload = require('../utils/upload')
 
 const makeSale = asyncHandler(async(req, res)=> {
         const newSale = new SaleDetails({
@@ -52,27 +51,6 @@ const getsingleSale = asyncHandler(async(req, res)=> {
     }
 })
 
-/* const addSaleUnits = asyncHandler(asyncHandler(async(req, res)=> {
-    const saleId = req.params.id
-    const sale = await MultipleSale.findById(saleId) 
-    const {selectedProducts, arrangement} = req.body
-    if(sale){
-        sale.units.push({arrangement, products: selectedProducts.map((x)=> ({
-            ...x,
-            product: x.product,
-            quantity: x.quantity
-        }))})
-    await sale.save();
-    }else{
-        res.status(404).send({message: "unable to add data"})
-    }
-
-
-    sale.units.push({arrangement, ...newProducts})
-}))
- */
-
-
 
 
 const addSaleUnits =  asyncHandler(async(req, res)=> {
@@ -121,8 +99,265 @@ const addSaleUnits =  asyncHandler(async(req, res)=> {
         res.status(500).send({message: 'something went wrong'})
 
     }
-
-
 })
 
-module.exports = {getSales, getsingleSale, addSaleUnits, makeSale}
+
+const salesData = asyncHandler(async (req, res) => {
+    try {
+      // Daily sales aggregation with summary
+      const dailyData = await SaleDetails.aggregate([
+        {
+          $group: {
+            _id: '$date',
+            dailySales: {
+              $push: {
+                InvoiceCode: '$InvoiceCode',
+                date: '$date',
+                name: '$name',
+                total: '$total'
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            date: '$_id',
+            dailySales: 1,
+            dailySummary: {
+              totalSales: { $sum: '$dailySales.total' },
+              numSales: { $size: '$dailySales' }
+            }
+          }
+        }
+      ]);
+  
+      // Monthly sales aggregation with summary
+      const monthlyData = await SaleDetails.aggregate([
+        {
+          $group: {
+            _id: {
+              year: { $year: { $dateFromString: { dateString: '$date' } } },
+              month: { $month: { $dateFromString: { dateString: '$date' } } }
+            },
+            monthlySales: {
+              $push: {
+                InvoiceCode: '$InvoiceCode',
+                date: '$date',
+                name: '$name',
+                total: '$total'
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            period: '$_id',
+            monthlySales: 1,
+            monthlySummary: {
+              totalSales: { $sum: '$monthlySales.total' },
+              numSales: { $size: '$monthlySales' }
+            }
+          }
+        }
+      ]);
+  
+      // Yearly sales aggregation with summary
+      const annualData = await SaleDetails.aggregate([
+        {
+          $group: {
+            _id: { $year: { $dateFromString: { dateString: '$date' } } },
+            yearlySales: {
+              $push: {
+                InvoiceCode: '$InvoiceCode',
+                date: '$date',
+                name: '$name',
+                total: '$total'
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            year: '$_id',
+            yearlySales: 1,
+            yearlySummary: {
+              totalSales: { $sum: '$yearlySales.total' },
+              numSales: { $size: '$yearlySales' }
+            }
+          }
+        }
+      ]);
+  
+      res.send({ dailyData, monthlyData, annualData });
+    } catch (error) {
+      console.log(error);
+    }
+  });
+  
+
+const getSalesData = asyncHandler(async(req, res)=> {
+    const salesData = await SaleDetails.aggregate([
+        {
+          $group: {
+            _id: {
+              year: { $year: { $dateFromString: { dateString: '$date' } } },
+              month: { $month: { $dateFromString: { dateString: '$date' } } },
+              day: { $dayOfMonth: { $dateFromString: { dateString: '$date' } } }
+            },
+            dailySales: { $push: '$$ROOT' }
+          }
+        },
+        {
+          $group: {
+            _id: {
+              year: '$_id.year',
+              month: '$_id.month'
+            },
+            monthlySales: { $push: '$$ROOT' },
+            monthlySummary: {
+              $push: {
+                date: '$_id',
+                totalSales: { $sum: '$dailySales.total' },
+                numSales: { $size: '$dailySales' }
+              }
+            }
+          }
+        },
+        {
+          $group: {
+            _id: '$_id.year',
+            yearlySales: { $push: '$$ROOT' },
+            yearlySummary: {
+              $push: {
+                year: '$_id',
+                totalSales: { $sum: '$monthlySummary.totalSales' },
+                numSales: { $sum: '$monthlySummary.numSales' }
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            period: '$_id',
+            dailySales: 1,
+            monthlySales: 1,
+            yearlySales: 1,
+            dailySummary: '$monthlySales.monthlySummary',
+            monthlySummary: 1,
+            yearlySummary: 1
+          }
+        }
+      ]);
+    res.send(salesData)
+})
+
+
+/* async function aggregateInvoicesDataForPhone(phoneNumber) {
+  const {phone } = req.params.phone
+  phoneNumber = phone
+  try {
+      const pipeline = [
+          {
+              $match: {
+                  "phone": phoneNumber
+              }
+          },
+          {
+              $group: {
+                  _id: "$phone",
+                  invoiceCodes: { $push: "$InvoiceCode" },
+                  names: { $push: "$name" },
+                  totalAmounts: { $push: "$total" },
+                  roundedSum: { $sum: { $round: "$total" } }
+              }
+          }
+      ];
+
+      const results = await SaleDetails.aggregate(pipeline);
+
+      res.send(results);
+  } catch (error) {
+      console.error("Error aggregating data:", error);
+      throw error;
+  }
+} */
+
+/* (async () => {
+  try {
+      const phoneNumber = "4343"; // Replace with the desired phone number
+      const aggregatedData = await aggregateInvoiceDataForPhone(phoneNumber);
+      console.log(aggregatedData);
+  } catch (error) {
+      console.error("Error:", error);
+  }
+})(); */
+
+
+//phone service and preparedBy
+async function aggregateDataIndependently(req, res) {
+    try {
+        const pipeline = [
+            {
+                $facet: {
+                    serviceAggregation: [
+                        {
+                            $group: {
+                                _id: "$service",
+                                totalCount: { $sum: 1 },
+                                totalAmount: { $sum: "$total" },
+                                roundedSum: { $sum: { $round: "$total" } }
+                            }
+                        }
+                    ],
+                    preparedByAggregation: [
+                        {
+                            $group: {
+                                _id: "$preparedBy",
+                                totalCount: { $sum: 1 },
+                                totalAmount: { $sum: "$total" },
+                                roundedSum: { $sum: { $round: "$total" } }
+                            }
+                        }
+                    ],
+                    phoneAggregation: [
+                        {
+                            $group: {
+                                _id: "$phone",
+                                totalCount: { $sum: 1 },
+                                totalAmount: { $sum: "$total" },
+                                roundedSum: { $sum: { $round: "$total" } }
+                            }
+                        }
+                    ]
+                }
+            }
+        ];
+
+        const results = await SaleDetails.aggregate(pipeline);
+
+        res.send(results);
+    } catch (error) {
+        console.error("Error aggregating data:", error);
+        throw error;
+    }
+}
+
+// Example usage
+/* (async () => {
+    try {
+        const aggregatedData = await aggregateDataIndependently();
+        console.log(JSON.stringify( aggregatedData, null, 2));
+    } catch (error) {
+        console.error("Error:", error);
+    }
+})(); */
+
+module.exports = {getSales,
+  getsingleSale, addSaleUnits, 
+  makeSale, salesData, getSalesData, 
+  aggregateDataIndependently
+}
