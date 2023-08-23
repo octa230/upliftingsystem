@@ -34,25 +34,42 @@ const deleteProduct = asyncHandler(async(req, res)=> {
 
 
 //list All Products
-const PageSize = 50
+const PAGE_SIZE  = 3
 const getAll = asyncHandler(async(req, res)=> {
     
-    const {query} = req
-    const page = query.page || 1;
-    const Page_Size = query.Page_Size || PageSize
+//    const {query} = req
+    const page = parseInt(req.query.page) || 1;
+    const startIndex = (page - 1) * PAGE_SIZE
 
+    const totalCount = await Product.countDocuments();
     const products = await Product.find()
-        .skip(PageSize * (page - 1))
-        .limit(PageSize);
+    .skip(startIndex)
+    .limit(PAGE_SIZE)
+    .exec()
 
-    const countProducts = await Product.countDocuments();
+    const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
     res.send({
         products,
-        countProducts,
-        page,
-        Pages: Math.ceil(countProducts / PageSize)
+        totalPages,
     })
 })
+
+
+const searchProducts = asyncHandler(async (req, res) => {
+    const searchName = req.query.searchName || '';
+    console.log(searchName)
+    try {
+      const matchedProducts = await Product.find({
+        name: { $regex: searchName, $options: 'i' }
+      });
+      const products = matchedProducts
+      res.send(products);
+    } catch (error) {
+      console.error('Error searching products:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
 
 
 const updateProduct = asyncHandler(async(req, res)=> {
@@ -83,4 +100,4 @@ if(product){
 }
 })
 
-module.exports = {createProduct, deleteProduct, getAll, updateProduct, getProduct}
+module.exports = {createProduct, deleteProduct, getAll, updateProduct, getProduct, searchProducts}

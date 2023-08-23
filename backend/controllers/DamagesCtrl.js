@@ -1,9 +1,6 @@
 const Damaged = require('../models/Damages')
 const asycHandler = require('express-async-handler');
 const Product = require('../models/product');
-const MonthlyDamages = require('../models/MonthlyReports')
-const AnnualDamages = require('../models/AnnualReports');
-
 
 const newData = asycHandler(async(req, res)=> {
     const {product, isDamaged, isDisplay, totalPrice, quantity, photos} = req.body
@@ -33,87 +30,110 @@ const newData = asycHandler(async(req, res)=> {
   }
 })
 
-const getProductsAndDamageCount = asycHandler(async(req, res)=> {
-    try{
-        const currentDate = new Date();
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth() +1;
 
-        //AGGREGATION PIPELINE FOR MONTHLY DATA REPORT
-        const monthlyDamagesData = Product.aggregate([
-            {
-                $lookup: {
-                    from: 'damaged',
-                    localField: '_id',
-                    foreignField: 'product',
-                    as: 'damagedCount'
-                },
-            },
-            {
-                $addFields: {
-                    damagedCount: {
-                        $size: {
-                            $filter: {
-                                input: '$damagedCount',
-                                as: 'damaged',
-                                cond: {$eq: ['$$damaged.isDamaged', true]}
-                            },
-                        },
-                    },
-                },
-            },
-            {
-                $project: {
-                    _id: 0,
-                    product: '$name',
-                    damagedCount: 1,
-                    month
-                },
-            },
-             {
-                $merge: {
-                    into: 'monthlyDamages',
-                    whenMatched: 'replace',
-                    whenNotMatched: 'insert' 
-                }
-            }
-             
-        ]).exec()
-//       res.status(200).send(products)
+const PAGE_SIZE = 3
+async function getProductsAndDamageCount(req, res) {
+  const page = parseInt(req.query.page) || 1
+  const startIndex = (page - 1) * PAGE_SIZE
 
-
-        //MONGO MONTHLY DAMAGES AGGREGATION PIPELINE
-        const AnnualdamagesData = await MonthlyDamages.aggregate([
-            {
-                $group: {
-                    _id: {product: '$product', year: '$year'},
-                    totalDamagedCount: { $sum: '$damagedCount'}
-                }
-            },
-            {
-                $project:{
-                    _id: 0, 
-                    product: '$_id.product',
-                    totalDamagedCount: 1,
-                    year: '$_id.year',
-                    totalDamagedCount: 1
-                }
-            },
-            {
-                $merge: {
-                    into: 'annualdamages',
-                    whenMatched: 'replace',
-                    whenNotMatched: 'insert'
-                }
-            }
-        ]).exec()
-
-        res.status(200).send({monthlyDamagesData, AnnualdamagesData})
-    } catch(error){
-        console.error(error)
+  const result = await Damaged.aggregate([
+    {
+      $lookup: {
+        from: 'products', // Collection name for Product model
+        localField: 'product',
+        foreignField: '_id',
+        as: 'productInfo'
+      }
+    },
+    {
+      $project: {
+        year: { $year: '$createdAt' },
+        month: { $month: '$createdAt' },
+        day: { $dayOfMonth: '$createdAt' },
+        product: {
+          _id: '$product',
+          name: { $arrayElemAt: ['$productInfo.name', 0] }
+        },
+        totalDamaged: { $cond: ['$isDamaged', '$quantity', 0] },
+        totalDisplay: { $cond: ['$isDisplay', '$quantity', 0] }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          year: '$year',
+          month: '$month',
+          day: '$day',
+          product: '$product'
+        },
+        totalDamaged: { $sum: '$totalDamaged' },
+        totalDisplay: { $sum: '$totalDisplay' }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          year: '$_id.year',
+          month: '$_id.month',
+          day: '$_id.day'
+        },
+        products: {
+          $push: {
+            product: '$_id.product',
+            totalDamaged: '$totalDamaged',
+            totalDisplay: '$totalDisplay'
+          }
+        },
+        totalDayDamaged: { $sum: '$totalDamaged' },
+        totalDayDisplay: { $sum: '$totalDisplay' }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          year: '$_id.year',
+          month: '$_id.month'
+        },
+        days: {
+          $push: {
+            day: '$_id.day',
+            products: '$products',
+            totalDayDamaged: '$totalDayDamaged',
+            totalDayDisplay: '$totalDayDisplay'
+          }
+        },
+        totalMonthDamaged: { $sum: '$totalDayDamaged' },
+        totalMonthDisplay: { $sum: '$totalDayDisplay' }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        months: {
+          $push: {
+            month: '$_id.month',
+            days: '$days',
+            totalMonthDamaged: '$totalMonthDamaged',
+            totalMonthDisplay: '$totalMonthDisplay'
+          }
+        },
+        totalYearDamaged: { $sum: '$totalMonthDamaged' },
+        totalYearDisplay: { $sum: '$totalMonthDisplay' }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        months: 1,
+        totalYearDamaged: 1,
+        totalYearDisplay: 1
+      }
     }
-})
-
-
+  ]).skip(startIndex).limit(PAGE_SIZE).exec();
+  const totalCount = result.length
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+  res.send({result, totalPages})
+ // console.log(result);
+}
 
 module.exports = {newData, getProductsAndDamageCount}
