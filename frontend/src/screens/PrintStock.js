@@ -82,11 +82,11 @@ export default function PrintStock() {
         </span>
         </Button>
         <div ref={PDF}  style={{width:"100%"}}>
+            <h6 style={{padding: '12px', textAlign: 'center'}}>{`Printed On: ${new Date().toLocaleDateString('en-GB')}`}</h6>
         <Table striped bordered hover className='my-2 w-100'>
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Price</th>
                     <th>Stock</th>
                 </tr>
             </thead>
@@ -94,8 +94,7 @@ export default function PrintStock() {
                 {filteredProducts?.map((product)=> (
                     <tr key={product._id}>
                         <td>{product.name}</td>
-                        <td>{product.price}</td>
-                        <td>product.inStock</td>
+                        <td>{product.inStock}</td>
                     </tr>
                 ))}
             </tbody>

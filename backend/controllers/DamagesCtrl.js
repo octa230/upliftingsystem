@@ -31,7 +31,7 @@ const newData = asycHandler(async(req, res)=> {
 })
 
 
-const PAGE_SIZE = 3
+const PAGE_SIZE = 20
 async function getProductsAndDamageCount(req, res) {
   const page = parseInt(req.query.page) || 1
   const startIndex = (page - 1) * PAGE_SIZE

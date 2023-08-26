@@ -1,18 +1,26 @@
-import React from 'react';
-import { Table } from 'react-bootstrap';
-
+import React,{useRef} from 'react';
+import { Table, Button, Container } from 'react-bootstrap';
+import {BsFillFileBreakFill} from 'react-icons/bs'
+import { HandlePrint } from '../utils/Print';
 const AggregatedDamageTable = ({ data }) => {
+const tableRef = useRef()
+
+
   return (
-    <Table striped bordered hover responsive>
+  <>
+    <Button variant='' onClick={()=>HandlePrint(tableRef)}>
+        Print <BsFillFileBreakFill />
+      </Button>
+      <Table striped bordered hover responsive style={{width: '100%'}} ref={tableRef}>
       <thead>
-        <tr>
           <th>Year</th>
           <th>Month</th>
           <th>Day</th>
           <th>Product</th>
           <th>Total Damaged</th>
-          <th>Total Display</th>
-        </tr>
+          <th>
+            Total Display
+          </th>
       </thead>
       <tbody>
         {data.map((yearData) =>
@@ -41,6 +49,7 @@ const AggregatedDamageTable = ({ data }) => {
         </tr>
       </tbody>
     </Table>
+  </>
   );
 };
 

@@ -103,9 +103,8 @@ const navigate = useNavigate()
             <tr>
                 <th>Code</th>
                 <th>Name</th>
-                <th>NEW</th>
-                <th>OLD</th>
-                <th>DAMAGES</th>
+                <th>purchase</th>
+                <th>inStock</th>
                 <th>Price</th>
                 <th className='d-flex justify-content-between'>
                     Actions
@@ -125,6 +124,9 @@ const navigate = useNavigate()
                         </td>
                         <td>
                             {product.name}
+                        </td>
+                        <td>
+                          {product.purchase}
                         </td>
                         <td style={product.inStock < 5 ? {backgroundColor: 'red'}: {backgroundColor: 'green'}}>
                             {product.inStock}
