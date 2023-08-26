@@ -33,34 +33,33 @@ export default function ProductEdit() {
 
 
    // const {state} = useContext(Store)
-    const [{loading, error, loadingUpdate}, dispatch] = useReducer(reducer, {
+    const [{}, dispatch] = useReducer(reducer, {
         loading: true,
         error: ''
     })
 
     const [name, setName]= useState('')
-    const [price, setPrice] = useState('')
-    const [inStock, setInStock] = useState('')
+    const [price, setPrice] = useState(0)
+    const [inStock, setInStock] = useState(0)
+    const [purchase, setPurchase]= useState(0)
     const [code, setCode] = useState('')
     const [isDamaged, setisDamaged] = useState(false)
     const [isDisplay, setisDisplay] = useState(false)
     const [quantity, setQuantity] = useState(0)
     const [product, setProduct] = useState('')
     const [totalPrice, setTotalPrice] = useState(0)
-    const [image, setImage] = useState('')
+    //const [image, setImage] = useState('')
     
 
     useEffect(()=> {
         const fetchData = async()=> {
             try{
-                dispatch({type: 'FETCH_REQUEST'})
                 const {data} = await axios.get(`/api/product/${ProductId}`)
                 setCode(data.code)
                 setInStock(data.inStock)
                 setName(data.name)
                 setPrice(data.price)
                 
-                dispatch({type: 'FETCH_SUCCESS'})
             }catch(err){
                 dispatch({
                     type: 'FETCH_FAIL',
@@ -76,19 +75,17 @@ export default function ProductEdit() {
     async function submitUpdate(e){
         e.preventDefault()
         try{
-            dispatch({type: 'UPDATE_REQUEST'})
             await axios.put(`/api/product/update/${ProductId}`, {
                 _id: ProductId,
                 name,
                 price,
                 inStock,
+                purchase,
                 code
             })
-            dispatch({type: 'UPDATE_SUCCESS'})
             toast.success('product updated successfully')
         }catch(err){
             toast.error(getError(err))
-            dispatch({type: 'UPDATE_FAIL'})
             navigate('/inventory')
         }
     }
@@ -137,17 +134,23 @@ export default function ProductEdit() {
         <Form.Group controlId='price'>
             <Form.Label>Product price</Form.Label>
             <Form.Control
-            value={price|| ''}
+            value={price}
             onChange={(e)=> setPrice(e.target.value)}
             required
+            />
+        </Form.Group>
+        <Form.Group controlId='purchase'>
+            <Form.Label>Purchase</Form.Label>
+            <Form.Control
+            value={purchase}
+            onChange={(e)=> setPurchase(e.target.value)}
             />
         </Form.Group>
         <Form.Group controlId='inStock'>
             <Form.Label>Product inStock</Form.Label>
             <Form.Control
-            value={inStock || ''}
+            value={inStock}
             onChange={(e)=> setInStock(e.target.value)}
-            required
             />
         </Form.Group>
     <Button type='submit' className='mt-2'>Update</Button>

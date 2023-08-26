@@ -42,24 +42,6 @@ function App() {
             </span>
             Dashboard
           </Nav.Link>
-{/*           <Nav.Link href="/inventory">
-            <span className="p-3">
-              <BsFillDatabaseFill />
-            </span>
-            Inventory
-            </Nav.Link>
-          <Nav.Link href="/register">
-            <span className="p-3 mb-2">
-              <BsFillPersonPlusFill/>
-            </span>
-            New User
-          </Nav.Link>
-          <Nav.Link href="/sale-history-sale">
-            <span className="p-3 mb-2">
-              <BsFillClipboard2DataFill/>
-            </span>
-            History
-          </Nav.Link> */}
           <Nav.Link href="/stats">
             <span className="p-3 mb-2">
               <BsFillClipboard2DataFill/>

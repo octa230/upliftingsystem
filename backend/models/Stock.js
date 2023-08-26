@@ -6,7 +6,6 @@ const stockHistory = new mongoose.Schema({
 })
 const stockSchema = new mongoose.Schema({
     product:{ type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
-    oldStock: {type: Number},
     newStock: {type: Number},
     totalStock: {type: Number},
     history:[stockHistory]

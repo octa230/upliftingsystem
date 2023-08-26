@@ -34,7 +34,7 @@ const deleteProduct = asyncHandler(async(req, res)=> {
 
 
 //list All Products
-const PAGE_SIZE  = 3
+const PAGE_SIZE  = 20
 const getAll = asyncHandler(async(req, res)=> {
     
 //    const {query} = req
@@ -74,12 +74,14 @@ const searchProducts = asyncHandler(async (req, res) => {
 
 const updateProduct = asyncHandler(async(req, res)=> {
 const productId = req.params.id
+const {name, price, code, purchase} = req.body
 const product = await Product.findById(productId);
 if(product){
-    product.name= req.body.name,
-    product.price = req.body.price,
-    product.code = req.body.code,
-    product.inStock = req.body.inStock
+    product.name= name,
+    product.price = price,
+    product.code = code,
+    product.inStock += parseInt(purchase)
+    product.purchase = parseInt(purchase)
 
     await product.save()
     res.send({message: 'product updated successfully'})
