@@ -55,6 +55,14 @@ const getAll = asyncHandler(async(req, res)=> {
     })
 })
 
+//getAllproductsByIdAndName
+
+const getAllProducts = asyncHandler(async(req, res)=> {
+    const products = await Product.find({}, "name");
+    //const productNames = products.map(product => product.name); // Extract names from the products
+    res.send(products);
+})
+
 
 const searchProducts = asyncHandler(async (req, res) => {
     const searchName = req.query.searchName || '';
@@ -77,7 +85,7 @@ const productId = req.params.id
 const {name, price, code, purchase} = req.body
 const product = await Product.findById(productId);
 if(product){
-    product.name= name,
+    product.name = name,
     product.price = price,
     product.code = code,
     product.inStock += parseInt(purchase)
@@ -102,4 +110,4 @@ if(product){
 }
 })
 
-module.exports = {createProduct, deleteProduct, getAll, updateProduct, getProduct, searchProducts}
+module.exports = {createProduct, deleteProduct, getAll, updateProduct, getProduct, searchProducts, getAllProducts}
