@@ -1,5 +1,5 @@
 const {getSales, getsingleSale, addSaleUnits, aggregateDataIndependently,
-    makeSale, salesData, getSalesData, aggregateInvoicesDataForPhone
+    makeSale, salesData, getSalesData, aggregateInvoicesDataForPhone, customerData
 } = require('../controllers/saleDetails');
 
 const express = require('express');
@@ -11,7 +11,7 @@ const saleDetailsRouter = express.Router()
 
 ////IMAGE UPLOAD FUNCTION
 
-
+saleDetailsRouter.get('/customer-data', customerData)
 saleDetailsRouter.post('/new-sale', makeSale)
 saleDetailsRouter.get('/list', getSales)
 saleDetailsRouter.get('/get-sale/:id', getsingleSale)

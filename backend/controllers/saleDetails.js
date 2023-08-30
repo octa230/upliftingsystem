@@ -323,7 +323,7 @@ async function aggregateDataIndependently(req, res) {
                             }
                         }
                     ],
-                    phoneAggregation: [
+/*                     phoneAggregation: [
                         {
                             $group: {
                                 _id: "$phone",
@@ -332,7 +332,7 @@ async function aggregateDataIndependently(req, res) {
                                 roundedSum: { $sum: { $round: "$total" } }
                             }
                         }
-                    ]
+                    ] */
                 }
             }
         ];
@@ -346,18 +346,27 @@ async function aggregateDataIndependently(req, res) {
     }
 }
 
-// Example usage
-/* (async () => {
-    try {
-        const aggregatedData = await aggregateDataIndependently();
-        console.log(JSON.stringify( aggregatedData, null, 2));
-    } catch (error) {
-        console.error("Error:", error);
-    }
-})(); */
+const customerData = asyncHandler(async(req, res)=> {
+  try {
+    const summary = await SaleDetails.aggregate([
+        {
+            $group: {
+                _id: '$phone',
+                name: { $first: '$name' },
+                totalInvoices: { $sum: 1 },
+                totalAmount: { $sum: '$total' },
+            }
+        }
+    ]);
+
+    res.send(summary);
+} catch (error) {
+    res.status(500).json({ message: 'Error retrieving invoice summary' });
+}
+})
 
 module.exports = {getSales,
   getsingleSale, addSaleUnits, 
   makeSale, salesData, getSalesData, 
-  aggregateDataIndependently
+  aggregateDataIndependently, customerData
 }
