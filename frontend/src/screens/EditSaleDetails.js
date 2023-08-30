@@ -46,13 +46,13 @@ const [selectedProducts, setSelectedProducts] = useState([]);
 const [totalValue, setTotalValue] = useState(0);
 const [code, setCode] = useState('')
 const [unitName, setunitName] = useState('')
+const [products, setProducts] = useState([])
 const [images, setImages] = useState([]);
 
 
-const [{sale, products}, dispatch] =
+const [{sale}, dispatch] =
     useReducer(reducer, {
       sale:{},
-      products:[],
       loading: true,
       error: '',
     });
@@ -74,10 +74,9 @@ useEffect(()=> {
 
 
 const getProducts = async()=> {
-  dispatch({type: 'FETCH_PRODUCTS_REQUEST'})
   try{
-    const {data} = await axios.get('/api/product/list')
-    dispatch({type:"FETCH_PRODUCTS_SUCCESS", payload: data})
+    const {data} = await axios.get('/api/product/names')
+    setProducts(data)
   } catch(error){
     toast.error(getError(error))
   }

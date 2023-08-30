@@ -151,6 +151,7 @@ export default function ProductEdit() {
             <Form.Control
             value={inStock}
             onChange={(e)=> setInStock(e.target.value)}
+            disabled
             />
         </Form.Group>
     <Button type='submit' className='mt-2'>Update</Button>
