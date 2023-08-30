@@ -50,7 +50,7 @@ const AggregatedSaleDetails = () => {
               </Card.Body>
             </Card>
           ))}
-            <h2>Service Aggregation</h2>
+            <h2>PreparedBy Aggregation</h2>
           {aggregationGroup.preparedByAggregation.map((fieldAggregation, index) => (
             <Card key={index} className="mb-3">
               <Card.Header>{fieldAggregation._id}</Card.Header>
@@ -64,7 +64,7 @@ const AggregatedSaleDetails = () => {
             </Card>
           ))}
 
-            <h2>phoneAggregation</h2>
+    {/*         <h2>phoneAggregation</h2>
           {aggregationGroup.phoneAggregation.map((fieldAggregation, index) => (
             <Card key={index} className="mb-3">
               <Card.Header>{fieldAggregation._id}</Card.Header>
@@ -76,7 +76,7 @@ const AggregatedSaleDetails = () => {
                 </Row>
               </Card.Body>
             </Card>
-          ))}
+          ))} */}
           
           
 
