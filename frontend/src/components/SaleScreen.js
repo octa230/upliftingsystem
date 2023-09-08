@@ -96,7 +96,7 @@ export default function SaleScreen() {
       },
 
       client:{
-          company: name,
+          company: customer,
           address: phone,
       },
       
@@ -105,17 +105,14 @@ export default function SaleScreen() {
         date: time
       },
 
-      products: products.map((product)=> ({
+      products: saleItems.map((product)=> ({
           quantity: product.quantity,
-          description: product.arrangement,
+          description: product.name,
           "tax-rate": 0,
           price: product.price,
 
       })),
-      'vat':vat, preparedBy, 
-      paidBy,service,
-      subtotal: calculateSubtotal(),
-      total: calculateTotal(),  
+      subtotal: sale.saleItemsPrice,
       'bottom-notice': `
       <p style={padding: 12px}>SEASON OF HAPPINESS</p> <br/> 
       <a href='https://www.instagram.com/chateau_des_fleurs.ae/'>instagram</a>
