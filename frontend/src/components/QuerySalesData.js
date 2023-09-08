@@ -1,33 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Table, Form, Button} from 'react-bootstrap';
+import { Container, Row, Col, Table, Form, Button, Alert} from 'react-bootstrap';
 import axios from 'axios';
-import {toast} from 'react-toastify'
 
 function QuerySalesData() {
   // State to store query parameters
   const [query, setQuery] = useState({});
 
   // State to store sales data
-  const [sales, setSales] = useState([]);
-  
+  const [sales, setSales] = useState(null); // Initialize to null
+
   // State to store the total count of results
   const [totalCount, setTotalCount] = useState(0);
 
   // Function to fetch sales data based on query parameters
- /*  async function fetchSales(){
-    try {
-      const response = await axios.get('/api/multiple/for', {
-        params: query,
-      });
-      setSales(response.data);
-      setTotalCount(response.data.length); // Set the total count
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  }; */
-
-  useEffect(() => {
-    async function fetchSales(){
+  async function fetchSales() {
+    if (Object.keys(query).length > 0) {
       try {
         const response = await axios.get('/api/multiple/for', {
           params: query,
@@ -37,7 +24,13 @@ function QuerySalesData() {
       } catch (error) {
         console.error('Error fetching data:', error);
       }
-    };
+    } else {
+      setSales(null); // Set to null when no query is provided
+      setTotalCount(0);
+    }
+  }
+
+  useEffect(() => {
     fetchSales();
   }, [query]);
 
@@ -94,30 +87,45 @@ function QuerySalesData() {
       </Row>
       <Row className="mb-3">
         <Col>
-          <Button variant="primary" onClict={()=> {toast.success('check data table')}}>
+          <Button variant="primary" onClick={fetchSales}>
             Search
           </Button>
         </Col>
       </Row>
       <Row>
         <Col>
-          <p>Total Results: {totalCount}</p> {/* Display the total count */}
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>Invoice Code</th>
-                {/* Add more table headers here */}
-              </tr>
-            </thead>
-            <tbody>
-              {sales.map((sale) => (
-                <tr key={sale._id}>
-                  <td>{sale.InvoiceCode}</td>
-                  {/* Add more table data cells here */}
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+          {sales !== null ? (
+            <div>
+              <p>Total Results: {totalCount}</p>
+              <Table striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>Invoice Code</th>
+                    <th>Date</th>
+                    <th>customer</th>
+                    <th>Total</th>
+
+                    {/* Add more table headers here */}
+                  </tr>
+                </thead>
+                <tbody>
+                  {sales.map((sale) => (
+                    <tr key={sale._id}>
+                      <td>{sale.InvoiceCode}</td>
+                      <td>{sale.date}</td>
+                      <td>Name: {sale.name}
+                      <br/><span><strong>{`Phone:${sale.phone}`}</strong></span>
+                      </td>
+                      <td>{sale.total}</td>
+                      {/* Add more table data cells here */}
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          ) : (
+            <Alert variant='warning'>No data</Alert>
+          )}
         </Col>
       </Row>
     </Container>

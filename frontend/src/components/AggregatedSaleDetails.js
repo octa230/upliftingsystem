@@ -33,7 +33,7 @@ const AggregatedSaleDetails = () => {
   const visibleData = aggregatedData.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <Container>
+    <Container className='mt-3'>
       <h1>Aggregated Data View</h1>
       {visibleData.map((aggregationGroup, index) => (
         <div key={index}>
