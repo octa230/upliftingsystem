@@ -109,24 +109,25 @@ if(hasNullValues){
 const data ={
 
         images:{
-          logo: 'https://uplifting.ae/wp-content/uploads/2022/10/cropped-Uplifting-Floral-Studio-Horizontal-02-600x200.png',
+          logo: 'https://chateaudesfleursuae.com/wp-content/uploads/2023/05/cropped-Chateau-Des-Fleurs-DMCC-Logo-01.png',
         },
 
         sender:{
-          company: 'Uplifting Floral Studio',
-          address: 'Business Bay BB02',
-          city: 'Dubai',
-          country: 'UAE',
+          company: 'CHATEAU DES FLEURS',
+          address: `JUMEIRAH LAKE TOWER <br/>LAKE VIEW TOWER <br/>CLUSTER B`,
+          city: 'Dubai-UAE',
         },
 
         client:{
             company: name,
             address: phone,
         },
+        
         information: {
-            number: "UPDXB_" + Math.floor(100000 + Math.random()* 900000),
-            date: time
+          number: "CDFDXB_" + Math.floor(100000 + Math.random()* 900000),
+          date: time
         },
+
         products: products.map((product)=> ({
             quantity: product.quantity,
             description: product.arrangement,
@@ -139,10 +140,10 @@ const data ={
         subtotal: calculateSubtotal(),
         total: calculateTotal(),  
         'bottom-notice': `
-        <p style={padding: 12px}>WELCOME TO OUR FLORAL PARADISE</p> <br/> 
-        <a href='https://www.instagram.com/upliftingdxb/'>instagram</a>
-        Facebook <a href='https://www.instagram.com/upliftingdxb/'>Facebook</a>
-        Site <a href='https://uplifting.ae'>Website</a>`,
+        <p style={padding: 12px}>SEASON OF HAPPINESS</p> <br/> 
+        <a href='https://www.instagram.com/chateau_des_fleurs.ae/'>instagram</a>
+        Facebook <a href='https://chateaudesfleursuae.com/'>Facebook</a>
+        Site <a href='https://chateaudesfleursuae.com/'>Website</a>`,
         "settings":{
         "currency": 'AED',
         "margin-top": 50,
@@ -207,9 +208,11 @@ const data ={
     <Form.Label>prepared By</Form.Label>
     <Form.Select onChange={handleSelectedValue(setPreparedBy)} required>
       <option>choose..</option>
-      <option>Lynn</option>
-      <option>Allan</option>
       <option>Joe</option>
+      <option>Ahmed</option>
+      <option>Mahel</option>
+      <option>Adel</option>
+      <option>Gladwin</option>
     </Form.Select>
     </Col>
     <Col className='' sm={2}>
