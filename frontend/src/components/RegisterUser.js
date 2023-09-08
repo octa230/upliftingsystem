@@ -16,7 +16,7 @@ export default function RegisterUser() {
     const [confirmPassword, setComfirmPassword] = useState('')
 
     const {state, dispatch: ctxDispatch} = useContext(Store);
-    const {userInfoToken} = state;
+    //const {userInfoToken} = state;
 
     async function submitHandler(e){
         e.preventDefault()

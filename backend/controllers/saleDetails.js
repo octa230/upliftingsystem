@@ -29,7 +29,7 @@ const makeSale = asyncHandler(async(req, res)=> {
 }) 
 
 
-const PAGE_SIZE = 30
+const PAGE_SIZE = 2
 
 const getSales = asyncHandler(async(req, res)=> {
 
@@ -297,6 +297,31 @@ const getSalesData = asyncHandler(async(req, res)=> {
 })(); */
 
 
+// Controller to retrieve sales for a given day and month
+
+async function querySalesData(req, res){
+  const {day, month, year}= req.query;
+  const query = {}
+
+  if (year) {
+    query['date'] = { $regex: `.*${year}` };
+  }
+
+  if (month && day) {
+    query['date'] = { $regex: `^${day}/${month}/` };
+  } else if (month) {
+    query['date'] = { $regex: `^\\d{2}/${month}/` };
+  } else if (day) {
+    query['date'] = { $regex: `^${day}/\\d{2}/` };
+  }
+
+  try{
+    const sales = await SaleDetails.find(query)
+    res.status(200).send(sales)
+  }catch(err){
+    res.status(500).send({err: 'unable to get results'})
+  }
+}
 //phone service and preparedBy
 async function aggregateDataIndependently(req, res) {
     try {
@@ -347,6 +372,8 @@ async function aggregateDataIndependently(req, res) {
 }
 
 const customerData = asyncHandler(async(req, res)=> {
+  const page = parseInt(req.query.page) || 1;
+  const startIndex = (page - 1) * PAGE_SIZE
   try {
     const summary = await SaleDetails.aggregate([
         {
@@ -357,7 +384,8 @@ const customerData = asyncHandler(async(req, res)=> {
                 totalAmount: { $sum: '$total' },
             }
         }
-    ]);
+    ]).skip(startIndex).limit(PAGE_SIZE);
+    const totalPages = Math.ceil(summary.countDocuments / PAGE_SIZE)
 
     res.send(summary);
 } catch (error) {
@@ -365,7 +393,7 @@ const customerData = asyncHandler(async(req, res)=> {
 }
 })
 
-module.exports = {getSales,
+module.exports = {getSales, querySalesData,
   getsingleSale, addSaleUnits, 
   makeSale, salesData, getSalesData, 
   aggregateDataIndependently, customerData

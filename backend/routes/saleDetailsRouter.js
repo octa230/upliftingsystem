@@ -1,5 +1,5 @@
 const {getSales, getsingleSale, addSaleUnits, aggregateDataIndependently,
-    makeSale, salesData, getSalesData, aggregateInvoicesDataForPhone, customerData
+    makeSale, salesData, getSalesData, aggregateInvoicesDataForPhone, customerData, querySalesData
 } = require('../controllers/saleDetails');
 
 const express = require('express');
@@ -19,6 +19,7 @@ saleDetailsRouter.post('/:id/add-units', addSaleUnits)
 saleDetailsRouter.get('/sales-data', salesData)
 saleDetailsRouter.get('/sales-data', getSalesData)
 saleDetailsRouter.get('/aggregated-sale-data', aggregateDataIndependently)
+saleDetailsRouter.get('/for', querySalesData)
 
 
 module.exports = saleDetailsRouter
