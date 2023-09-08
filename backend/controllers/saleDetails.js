@@ -372,8 +372,6 @@ async function aggregateDataIndependently(req, res) {
 }
 
 const customerData = asyncHandler(async(req, res)=> {
-  const page = parseInt(req.query.page) || 1;
-  const startIndex = (page - 1) * PAGE_SIZE
   try {
     const summary = await SaleDetails.aggregate([
         {
@@ -384,9 +382,7 @@ const customerData = asyncHandler(async(req, res)=> {
                 totalAmount: { $sum: '$total' },
             }
         }
-    ]).skip(startIndex).limit(PAGE_SIZE);
-    const totalPages = Math.ceil(summary.countDocuments / PAGE_SIZE)
-
+    ])
     res.send(summary);
 } catch (error) {
     res.status(500).json({ message: 'Error retrieving invoice summary' });
