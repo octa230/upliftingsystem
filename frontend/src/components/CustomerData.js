@@ -72,7 +72,13 @@ const CustomerDataTable = () => {
   };
 
   return (
-    <div>
+    <div className='mt-2'>
+      <h3>Aggregated CustomerData</h3>
+      <ul className='d-flex'>
+        <li className='m-3'><strong>GREEN:</strong> BIGGEST TOTAL</li>
+        <li className='m-3'><strong>ORANGE:</strong> NEXT TOP 5 TOTALS</li>
+        <li className='m-3'><strong>PALE:</strong> NEXT 10 TOTALS</li>
+      </ul>
       <Table striped bordered hover>
         <thead>
           <tr>
