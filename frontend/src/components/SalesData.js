@@ -1,12 +1,12 @@
 import React from 'react'
-import MonthSalesDataGraph from './MonthSalesDataGraph'
 import AggregatedSaleDetails from './AggregatedSaleDetails'
+import QuerySalesData from './QuerySalesData'
 
 export default function SalesData() {
   return (
     <div>
         <h1>Monthly Sales Graph</h1>
-      <MonthSalesDataGraph />
+        <QuerySalesData />
       <AggregatedSaleDetails/>
     </div>
   )

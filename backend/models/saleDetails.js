@@ -33,7 +33,8 @@ const SaleDetailSchema = new mongoose.Schema({
 },
 {
     timestamps: true
-})
+}
+)
 
 const SaleDetails = mongoose.model('SaleDetails', SaleDetailSchema)
 module.exports = SaleDetails

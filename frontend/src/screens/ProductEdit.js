@@ -99,7 +99,6 @@ export default function ProductEdit() {
                 isDamaged,
                 isDisplay,
                 totalPrice
-
             }) 
             toast.success('Data Recorded successfully')
             console.log(data)
