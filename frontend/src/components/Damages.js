@@ -1,5 +1,5 @@
 import React,{useEffect, useState} from 'react'
-import AggregatedDataTable from './AggregatedDamageTable'
+import AggregatedDataTable from './DamagesandDisplay'
 import axios from 'axios';
 import  Button  from 'react-bootstrap/esm/Button';
 
