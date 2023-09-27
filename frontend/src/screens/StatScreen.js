@@ -6,8 +6,8 @@ import Graphs from '../components/Graphs'
 import Charts from '../components/Charts'
 import CustomerData from '../components/CustomerData'
 import ProductsData from '../components/ProductsData'
-import Damages from '../components/Damages'
 import SalesData from '../components/SalesData'
+import Damages from '../components/DamagesandDisplay'
 
 
 export default function StatScreen() {
@@ -19,7 +19,7 @@ export default function StatScreen() {
     }
   return (
     <Row>
-        <Col sm={2}>
+        <Col sm={2} className='dashboard-nav'>
             <Nav justify-variant='tabs'  className='d-flex flex-column'>
                 <Nav.Item onClick={handleSideBarClick('sales')}>
                     <Nav.Link>Sales Data</Nav.Link>
