@@ -10,7 +10,6 @@ const makeSale = asyncHandler(async(req, res)=> {
                 productName: x.name,
                 price: x.price,
                 arrangement: x.arrangement,
-                photo: x.file
             })),
             preparedBy: req.body.preparedBy,
             paidBy: req.body.paidBy,
@@ -55,7 +54,7 @@ const getsingleSale = asyncHandler(async(req, res)=> {
 
 const addSaleUnits =  asyncHandler(async(req, res)=> {
     const saleId = req.params.id
-    const {selectedProducts, unitName} = req.body
+    const {selectedProducts, unitName, images, image} = req.body
 
 
     if(!saleId){
@@ -84,8 +83,10 @@ const addSaleUnits =  asyncHandler(async(req, res)=> {
         product.inStock -= selectedProduct.quantity
         await product.save()
     }
-    sale.units.push(
-        {arrangement: unitName,
+    sale.units.push({
+        arrangement: unitName,
+        photo: image,
+        images: images,
         products: selectedProducts.map((x)=> ({
         ...x,
         product: x.product,
