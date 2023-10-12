@@ -62,25 +62,10 @@ function ProductTable() {
   };
 
   
- /*  const handleFileChange=(event, index)=> {
-    const newProducts = [...products];
-    newProducts[index].file = event.target.value
-    setFile(newProducts)
-    console.log(newProducts)
-  } */
+
   const calculateSubtotal = () => {
     return products.reduce((accumulator, product) => accumulator + (product.price * product.quantity), 0);
   };
-
-  /* const handelCapture =(target)=> {
-    if(target.files){
-      if(target.files.target !== 0){
-        const file = target.files[0]
-        const newUrl = URL.createObjectURL(file)
-        setSource(newUrl)
-      }
-    }
-  } */
 
 
   const calculateTotal = () => {

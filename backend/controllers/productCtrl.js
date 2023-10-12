@@ -88,9 +88,11 @@ if(product){
     product.name = name,
     product.price = price,
     product.code = code,
-    product.inStock += parseInt(purchase)
-    product.purchase = parseInt(purchase)
 
+    purchaseAmount = parseInt(purchase);
+    product.prruchaseHistory.push({purchase: purchaseAmount, total: total})
+    product.inStock += parseInt(purchase)
+    product.purchase = purchaseAmount
     await product.save()
     res.send({message: 'product updated successfully'})
 }else{

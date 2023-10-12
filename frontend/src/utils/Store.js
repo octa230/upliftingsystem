@@ -50,32 +50,6 @@ function reducer(state, action){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export function StoreProvider(props){
     const [state, dispatch] = useReducer(reducer, initialState)
     const value = { state, dispatch};
