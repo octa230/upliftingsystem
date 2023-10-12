@@ -6,7 +6,7 @@ const productSchema = new mongoose.Schema({
     code: {type: String, required: true},
     price: {type: Number, required: true},
     inStock:{type: Number, required: true},
-    prruchaseHistory: [{date:{type: Date, default: Date.now}, purchase:{type: Number}, total: {Number}}]
+    prruchaseHistory: [{date:{type: Date, default: Date.now}, purchase:{type: Number}}]
 })
 
 const Product = mongoose.model('Product', productSchema);
