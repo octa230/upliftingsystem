@@ -33,7 +33,7 @@ export default function ProductEdit() {
 
 
    // const {state} = useContext(Store)
-    const [{}, dispatch] = useReducer(reducer, {
+    const [{state}, dispatch] = useReducer(reducer, {
         loading: true,
         error: ''
     })
