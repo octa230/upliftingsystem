@@ -90,7 +90,7 @@ if(product){
     product.code = code,
 
     purchaseAmount = parseInt(purchase);
-    product.prruchaseHistory.push({purchase: purchaseAmount, total: total})
+    product.prruchaseHistory.push({purchase: purchaseAmount})
     product.inStock += parseInt(purchase)
     product.purchase = purchaseAmount
     await product.save()
