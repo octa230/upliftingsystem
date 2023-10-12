@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useReducer} from 'react'
+import React, { useEffect, useState, useReducer, useContext} from 'react'
 import {useParams} from 'react-router-dom'
 import { Card, Container, Form, Stack, Table, Button, Col } from 'react-bootstrap'
+import {Store} from '../utils/Store'
 import {FaPlusCircle, FaRedo} from 'react-icons/fa'
 import axios from 'axios'
 import {toast} from 'react-toastify'
 import {getError} from '../utils/getError'
-import Dropzone from 'react-dropzone'
-import {BsFillCameraFill} from 'react-icons/bs'
+import MessageBox from '../components/MessageBox'
+import ListGroup from 'react-bootstrap/esm/ListGroup'
+import LoadingBox from '../components/LoadingBox'
 
 
 
@@ -48,7 +50,11 @@ const [code, setCode] = useState('')
 const [unitName, setunitName] = useState('')
 const [products, setProducts] = useState([])
 const [images, setImages] = useState([]);
+const [image, setImage] = useState('')
+const [loadingUpload, setloadingUpload] = useState(false)
 
+const { state} = useContext(Store);
+const { userInfoToken } = state;
 
 const [{sale}, dispatch] =
     useReducer(reducer, {
@@ -84,7 +90,7 @@ const getProducts = async()=> {
 
 
 const handleAddRow = () => {
-  setSelectedProducts([...selectedProducts, { product: '', quantity: 0 }]);
+  setSelectedProducts([...selectedProducts, { product: '', quantity: 0,  }]);
 };
 
 const handleQuantityChange = (event, index) => {
@@ -119,27 +125,40 @@ const handleProductChange = (event, index) => {
   };
 
 
-///photo preview
+////UPLOAD PHOTO/PHOTOS
+const uploadFileHandler = async(e, forImages)=>{
+ try{
+  const file = e.target.files[0]
+  const bodyFormData = new FormData()
+  bodyFormData.append('file', file)
+  const {data} = await axios.post('/api/upload/', bodyFormData, {
+    headers :{
+      'Content-Type': 'multipart/form-data',
+      authorization: `Bearer ${userInfoToken.token}`,
+    }
+  })
+  if(forImages){
+    setImages([...images, data.secure_url])
+    console.log(images)
+  }else{
+    setImage(data.secure_url)
+    console.log(image)
+  }
+ }catch(error){
+  getError(error)
+ }
+}
 
-const handleFileDrop = (acceptedFiles) => {
-  setImages([...images, ...acceptedFiles]);
+
+
+///DELETE PHOTO
+const deleteFileHandler = async (fileName, f) => {
+  console.log(fileName, f);
+  console.log(images);
+  console.log(images.filter((x) => x !== fileName));
+  setImages(images.filter((x) => x !== fileName));
+  toast.success('Image removed successfully. click Update to apply it');
 };
-
-const removeSelectedFile = (index) => {
-  const updatedFiles = [...images];
-  updatedFiles.splice(index, 1);
-  setImages(updatedFiles);
-};
-
-const renderImagePreviews = () => {
-  return images.map((file, index) => (
-    <Card key={index} className="mb-2 details-image">
-      <Card.Img className='img-fluid p-3' src={URL.createObjectURL(file)} alt="Preview"></Card.Img>
-      <Button variant="danger" onClick={() => removeSelectedFile(index)}>Remove</Button>
-    </Card>
-  ));
-};
-
 
 const handleNewTable = () => {
   setSelectedProducts([]);
@@ -161,25 +180,16 @@ const handleNewTable = () => {
       return;
     }
   
-    try {
-/*       const formData = new FormData();
-      formData.append('unitName', unitName);
-      formData.append('selectedProducts', selectedProducts);
-   */
-    /*   for (const img of images) {
-        formData.append('images', img);
-      } */
-      
-  
+    try {  
       await axios.post(`/api/multiple/${saleId}/add-units`, {
-        selectedProducts, unitName
+        selectedProducts, unitName, image, images
       });
   
       toast.success('unit added successfully');
       console.log()
     } catch (error) {
       toast.error(getError(error));
-      console.log(selectedProducts, unitName, images);
+      console.log(selectedProducts, unitName, images, image);
     }
   };
   
@@ -197,20 +207,40 @@ const handleNewTable = () => {
                     />
               </Col>
               <Col md={8} xm={12} className='px-2'>
-                  <Card.Title className='m-2'>Add Photos</Card.Title>
-                  <Dropzone onDrop={(acceptedFiles) => handleFileDrop(acceptedFiles)}>
-                  {({ getRootProps, getInputProps }) => (
-              <div {...getRootProps()}>
-              <input {...getInputProps()} />
-              <Button>
-                <BsFillCameraFill/>
-              </Button>
-            </div>
-          )}
-        </Dropzone>
-        <div className="mt-2 d-flex">
-        {renderImagePreviews()}
-      </div>
+                <Card.Title className='m-2'>Add Photos</Card.Title>
+                <Form.Group className="mb-3" controlId="imageFile">
+            <Form.Label className='productEditScreenText'>Upload Image</Form.Label>
+            <Form.Control type="file" onChange={uploadFileHandler} />
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="additionalImage">
+            <Form.Label className='productEditScreenText'>Additional Images</Form.Label>
+            {images.length === 0 && <MessageBox>No image</MessageBox>}
+            <ListGroup variant="flush">
+              {images.map((x) => (
+                <ListGroup.Item key={x}>
+                  {x}
+                  <Button variant="light" onClick={() => deleteFileHandler(x)}>
+                    <i className="fa fa-times-circle"></i>
+                  </Button>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="imageFile">
+            <Form.Label className='productEditScreenText'>Upload Aditional Image</Form.Label>
+            <Form.Control
+              type="file"
+              onChange={uploadFileHandler}
+            />
+            {loadingUpload && <LoadingBox></LoadingBox>}
+          </Form.Group>
+          <Form.Control  className='my-3'
+        type='file'
+        placeholder='photo(s)'
+        multiple
+        />
               </Col>
               </div>
                 <Button onClick={handleAddRow} className='w-25'>

@@ -9,6 +9,7 @@ const productRouter = require('./routes/productRouter');
 const salesRouter = require('./routes/saleRouter')
 const saleDetailsRouter  = require('./routes/saleDetailsRouter');
 const path = require('path');
+const uploadRouter = require('./controllers/uploadCtrl')
 const damagesRouter = require('./routes/DamagesRoutes');
 
 const app = express();
@@ -31,6 +32,7 @@ app.use('/api/user', userRouter)
 app.use('/api/multiple', saleDetailsRouter)
 app.use('/api/wholesale', salesRouter)
 app.use('/api/damages', damagesRouter)
+app.use('/api/upload', uploadRouter)
 
 
 //errorMiddleware
