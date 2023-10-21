@@ -11,7 +11,6 @@ import { toast } from 'react-toastify'
 import { Link } from 'react-router-dom'
 import Table from 'react-bootstrap/esm/Table'
 import Button from 'react-bootstrap/esm/Button'
-import Invoice from '../utils/Invoice'
 import { PDFViewer } from '@react-pdf/renderer'
 
 
