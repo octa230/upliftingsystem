@@ -124,9 +124,9 @@ const Invoice = ({ sale }) => (
         <Text style={styles.subHeader}>Status: {sale.free ? 'F.O.C' : 'CHARGED'}</Text>
 
         <View style={styles.address}>
-        <Text style={styles.adressText}>UPLIFTING FLORAL STUDIO</Text>
-        <Text style={styles.adressText}>Business Bay Dubai</Text>
-        <Text style={styles.adressText}>BUILDING: BB02</Text>
+        <Text style={styles.adressText}>JUMERIAH DUBAI</Text>
+        <Text style={styles.adressText}>LAKE TOWER</Text>
+        <Text style={styles.adressText}>CLUSTER B</Text>
         </View>
 
         <View style={styles.table}>
@@ -209,13 +209,13 @@ const Invoice = ({ sale }) => (
         
         <View style={styles.footnote}>
             <Text style={styles.footnote}>
-                Welcome To Our Floral Paradise
+                Season Of Happiness
             </Text>
         </View>
         <View style={styles.footer}>
-            <Text style={styles.footer}>WEBSITE: uplifting.ae</Text>
-            <Text style={styles.footer}>INSTAGRAM: Upliftingdxb</Text>
-            <Text style={styles.footer}>WHATSAPP: +971542045427</Text>
+            <Text style={styles.footer}>chateaudesfleursuae.com</Text>
+            <Text style={styles.footer}>INSTAGRAM: chateau Des Fleurs</Text>
+            <Text style={styles.footer}>WHATSAPP: +971542045428</Text>
         </View>
       </View> 
       <Image src="/images/cdf-logo.png" style={styles.logo} />
