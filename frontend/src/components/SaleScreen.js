@@ -6,7 +6,6 @@ import {BsDashSquareFill, BsFillPlusSquareFill, BsXSquareFill, BsTrash3Fill} fro
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import easyinvoice from 'easyinvoice'
-import ProductTable from './TestTable'
 
 
 

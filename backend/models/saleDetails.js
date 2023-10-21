@@ -30,6 +30,13 @@ const SaleDetailSchema = new mongoose.Schema({
     phone: {type: String, required: true},
     preparedBy: {type: String, requred: true},
     service: {type: String, required: true},
+    free:{type: Boolean, default: false},
+    vat:{type: Number},
+    discount: {type: Number},
+    orderedBy: {type: String},
+    deliveredTo: {type: String},
+    recievedBy: {type: String},
+    driver: {type: String},
     units:[unitSchema],
 },
 {

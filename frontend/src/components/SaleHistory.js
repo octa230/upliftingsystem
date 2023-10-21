@@ -9,6 +9,11 @@ import axios from 'axios'
 import { getError } from '../utils/getError'
 import { toast } from 'react-toastify'
 import { Link } from 'react-router-dom'
+import Table from 'react-bootstrap/esm/Table'
+import Button from 'react-bootstrap/esm/Button'
+import { PDFViewer } from '@react-pdf/renderer'
+import Invoice from '../utils/Invoice'
+
 
 
 function reducer(state, action){
@@ -42,6 +47,8 @@ export default function SaleHistory() {
     const [searchCode, setSearchCode] = useState('')
     const [searchPhone, setSearchphone] = useState('')
     const [selectedSale, setSelectedSale] = useState()
+    const [sale, setSale] = useState(null)
+    const [showPDF, setshowPDF] = useState(false)
 
     useEffect(()=> {
         const fetchData =async()=> {
@@ -57,7 +64,7 @@ export default function SaleHistory() {
     },[])
 
     
-    function handleSearch(setState){
+    const handleSearch =(setState)=> {
         return (event)=> {
             const setValue = event.target.value;
             setState(setValue)
@@ -67,11 +74,12 @@ export default function SaleHistory() {
   
     const filteredSale = sales?.filter((x)=> x.InvoiceCode.toLowerCase().includes(searchCode.toLocaleLowerCase()))
     const filteredPhone = sales?.filter((x)=> x.phone.toLowerCase().includes(searchPhone.toLocaleLowerCase()))
+    const filteredSales = sales?.slice(-10)
    
     //const filteredName = sales.filter((x)=> x.name.toLowerCase().includes(searchPrice.toLocaleLowerCase()))
     //const filteredPrice = searchPrice
 
-    async function handleViewSale(saleId){
+    const handleViewSale = async (saleId)=> {
        try{
         const result = await axios.get(`/api/multiple/get-sale/${saleId}`)
         setSelectedSale(result.data)
@@ -80,9 +88,61 @@ export default function SaleHistory() {
        }
     }
 
+    const handlePrint = async(saleId)=> {
+       const sale = await axios.post(`/api/multiple/print-invoice/${saleId}`)
+       setSale(sale)
+    }
+
+    const openPDFVeiwer = (sale)=> {
+        setSale(sale)
+        setshowPDF(true)
+    }
+
   return (
 
         <Row className='p-4'>
+            <h2 className='text-success'>Last {filteredSales.length} Sales</h2>
+            <Table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {filteredSales.map((sale)=> (
+                        <tr key={sale._id}>
+                            <td>{sale.InvoiceCode}</td>
+                            <td>{sale.date}</td>
+                            <td>{sale.total}</td>
+                            <td className='d-flex'>
+                                <Col>
+                                <Button variant='secondary' onClick={()=>openPDFVeiwer(sale)}>
+                                    Print invoice
+                                </Button>
+                                </Col>
+                                <Col >
+                                    <Button variant='warning'>
+                                    <Link to={`/edit-sale/${sale._id}`}>
+                                        Edit Details
+                                    </Link>
+                                    </Button>
+                                </Col>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
+            <div style={{maxWidth:'50%'}}>
+            {showPDF && (
+                    <PDFViewer width="100%" height="600">
+                        <Invoice sale={sale}/>
+                    </PDFViewer>
+                )}
+            </div>
+            <h5>Search Sales Database</h5>
             <Col>
                 <Form.Control
                     type="input"
