@@ -12,7 +12,9 @@ import { Link } from 'react-router-dom'
 import Table from 'react-bootstrap/esm/Table'
 import Button from 'react-bootstrap/esm/Button'
 import { PDFViewer } from '@react-pdf/renderer'
-import Invoice from '../utils/invoice'
+import Invoice from '../utils/Invoice'
+
+
 
 function reducer(state, action){
     switch(action.type){
