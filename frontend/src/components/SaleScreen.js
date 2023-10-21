@@ -6,7 +6,6 @@ import {BsDashSquareFill, BsFillPlusSquareFill, BsXSquareFill, BsTrash3Fill} fro
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import easyinvoice from 'easyinvoice'
-import ProductTable from './TestTable'
 
 
 
@@ -83,48 +82,49 @@ export default function SaleScreen() {
 
   const makeSale = async()=> {
 
-    const InvoiceData = {
+    const InvoiceData ={
+
       images:{
-        logo: 'https://uplifting.ae/wp-content/uploads/2022/10/cropped-Uplifting-Floral-Studio-Horizontal-02-600x200.png',
+        logo: 'https://chateaudesfleursuae.com/wp-content/uploads/2023/05/cropped-Chateau-Des-Fleurs-DMCC-Logo-01.png',
       },
+
       sender:{
-        company: 'Uplifting Floral Studio',
-        address: 'Business Bay BB02',
-        city:'Dubai',
-        country: 'UAE'
-      }, 
-      
-      client: {
-        company: customer,
-        address: phone,
+        company: 'CHATEAU DES FLEURS',
+        address: `JUMEIRAH LAKE TOWER <br/>LAKE VIEW TOWER <br/>CLUSTER B`,
+        city: 'Dubai-UAE',
       },
+
+      client:{
+          company: customer,
+          address: phone,
+      },
+      
       information: {
-        number: ("UPLDXB/W_" + Math.floor(100000 + Math.random() * 900000)),
+        number: "CDFDXB_" + Math.floor(100000 + Math.random()* 900000),
         date: time
       },
 
-      products: saleItems.map((item)=> ({
-        quantity: item.quantity,
-        "tax-rate": 5,
-        description: item.name,
-        price: item.price 
+      products: saleItems.map((product)=> ({
+          quantity: product.quantity,
+          description: product.name,
+          "tax-rate": 0,
+          price: product.price,
+
       })),
       subtotal: sale.saleItemsPrice,
       'bottom-notice': `
-        Welcome to our Floral Paradise <br/>
-         <a href='https://www.instagram.com/upliftingdxb/'>instagram</a>
-        Facebook <a href='https://www.instagram.com/upliftingdxb/'>Facebook</a>
-        Site <a href='https://uplifting.ae'>Website</a>`,
-
-
-        "settings":{
-          "margin-top": 50,
-          "margin-right": 50,
-          "margin-left": 50,
-          "margin-bottom":5
-        },
-
-    }
+      <p style={padding: 12px}>SEASON OF HAPPINESS</p> <br/> 
+      <a href='https://www.instagram.com/chateau_des_fleurs.ae/'>instagram</a>
+      Facebook <a href='https://chateaudesfleursuae.com/'>Facebook</a>
+      Site <a href='https://chateaudesfleursuae.com/'>Website</a>`,
+      "settings":{
+      "currency": 'AED',
+      "margin-top": 50,
+      "margin-right": 50,
+      "margin-left": 50,
+      "margin-bottom":5
+      }
+  } 
 
     try{  
       const {data} = await axios.post('/api/wholesale/make-sale', {
@@ -198,10 +198,12 @@ export default function SaleScreen() {
           <Col>
           <Form.Label>prepared By</Form.Label>
             <Form.Select onChange={handleSelectedValue(setPreparedBy)}>
-              <option>choose..</option>
-              <option>Lynn</option>
-              <option>Allan</option>
-              <option>Joe</option>
+            <option>choose..</option>
+            <option>Joe</option>
+            <option>Ahmed</option>
+            <option>Mahel</option>
+            <option>Adel</option>
+            <option>Gladwin</option>
             </Form.Select>
           </Col>
 

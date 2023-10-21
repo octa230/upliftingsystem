@@ -6,9 +6,10 @@ import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
 import axios from 'axios'
 import {getError} from '../utils/getError'
-import easyinvoice from 'easyinvoice'
+import MessageBox from '../components/MessageBox'
 import {toast} from 'react-toastify'
 import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
+import { PDFViewer } from '@react-pdf/renderer';
 
 
 
@@ -24,7 +25,13 @@ function ProductTable() {
   const [name, setCustomerName] = useState('')
   const [phone, setPhoneNumber] = useState('')
   const [preparedBy, setPreparedBy]= useState('')
-  const [vat, setVat] = useState(0);
+  //const [vat, setVat] = useState(0);
+  const [deliveredTo, setdeliveredTo] = useState('')
+  const [free, setFree] = useState(false)
+  const [driver, setDriver]= useState('')
+  const [orderedBy, setorderedBy]= useState('')
+  const [discount, setDiscount] = useState(0)
+  const [recievedBy, setrecievedBy]= useState('')
 
 
 
@@ -67,12 +74,20 @@ function ProductTable() {
     return products.reduce((accumulator, product) => accumulator + (product.price * product.quantity), 0);
   };
 
+  const calculateVat =()=> {
+    const subtotal = calculateSubtotal()
+    const vat = (subtotal * 0.05)
+    return vat.toFixed(2)
+  }
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
-    const total = subtotal + (subtotal * vat / 100);
-    return total.toFixed(2);
+    const vat = calculateVat()
+    const total = (parseFloat(subtotal) + parseFloat(vat) - parseFloat(discount)).toFixed(2);
+    return total;
   };
+
+  
 
 async function handleSave(e){
 e.preventDefault()
@@ -90,75 +105,29 @@ if(hasNullValues){
   toast.error('check Table Data for empty values')
   return
 }
-
-const data ={
-
-        images:{
-            
-         logo: 'https://uplifting.ae/wp-content/uploads/2022/10/cropped-Uplifting-Floral-Studio-Horizontal-02-600x200.png',
-        },
-
-        sender:{
-          company: 'Uplifting Floral Studio',
-          address: 'Business Bay BB02',
-          city: 'Dubai',
-          country: 'UAE',
-        },
-
-        client:{
-            company: name,
-            address: phone,
-        },
-        information: {
-            number: "UPDXB_" + Math.floor(100000 + Math.random()* 900000),
-            date: time
-        },
-        products: products.map((product)=> ({
-            quantity: product.quantity,
-            description: product.arrangement,
-            "tax-rate": 0,
-            price: product.price,
-
-        })),
-        'vat':vat, preparedBy, 
-        paidBy,service,
-        subtotal: calculateSubtotal(),
-        total: calculateTotal(),  
-        'bottom-notice': `
-        <p style={padding: 12px}>WELCOME TO OUR FLORAL PARADISE</p> <br/> 
-        <a href='https://www.instagram.com/upliftingdxb/'>instagram</a>
-        Facebook <a href='https://www.instagram.com/upliftingdxb/'>Facebook</a>
-        Site <a href='https://uplifting.ae'>Website</a>`,
-        "settings":{
-        "currency": 'AED',
-        "margin-top": 50,
-        "margin-right": 50,
-        "margin-left": 50,
-        "margin-bottom":5
-        }
-    } 
-
       try{
-        const invoiceNumber = data.information.number
+
         const subTotal = calculateSubtotal()
         const total = calculateTotal()
+        const vat = calculateVat()
 
-          await axios.post('/api/multiple/new-sale', {
-          products, paidBy, service,
-          name, phone, preparedBy, total,
-          time, invoiceNumber, subTotal,
+        const data =  await axios.post('/api/multiple/new-sale', {
+          products, discount,
+          paidBy, driver,
+          service, recievedBy,
+          name, deliveredTo,
+          phone, orderedBy,
+          preparedBy, total,
+          time,
+          subTotal,
+          vat, free
         },
-        console.log(products, paidBy, service,
-          name, phone, preparedBy, subTotal,
-          vat, invoiceNumber, total, 
-        ))
+     )
       }catch(error){
         toast.error(getError(error))
       }
-      const result = await easyinvoice.createInvoice(data)
-      easyinvoice.render('pdf', result.pdf)
-      easyinvoice.download(`${data.information.number}.pdf`, result.pdf)  
-  }
+      toast.success('Success')
+}
 
 
 
@@ -268,7 +237,7 @@ const data ={
                   onChange={(event) => handleQuantityChange(index, event)}
                 />
               </td>
-              <td>{product.price && product.quantity ? product.price * product.quantity : 0}</td>
+              <td>{product.price && product.quantity ? product.price * product.quantity - discount : 0}</td>
             </tr>
           ))}
         </tbody>
@@ -294,17 +263,68 @@ const data ={
       <BsFillTrash3Fill/><span className='mx-2'>Reset</span>
       </Button>
       </Col>
-    </Row>
-      <Form.Group className='w-25'>
-        <Form.Label>VAT (%)</Form.Label>
-        <Form.Control
-          type="number"
-          value={vat}
-          onChange={(event) => setVat(parseInt(event.target.value, 10) || 0)}
+      <Col>
+      <Form.Check type='checkbox'
+        label='Free Of Charge(F.O.C)'
+        checked={free}
+        className='py-2 mt-3'
+        onChange={(e)=>setFree(e.target.checked)}
+      />
+      {free ? (
+        <div className='p-2 border'>
+           <Form.Group>
+            <Form.Label>Orderd By</Form.Label>
+            <Form.Control type='input'
+            required
+            value={orderedBy}
+            onChange={(e)=>setorderedBy(e.target.value)}
+            />
+          </Form.Group>
+
+          <Form.Group>
+            <Form.Label>Delivery Area</Form.Label>
+            <Form.Control type='input'
+            required
+            value={deliveredTo}
+            onChange={(e)=> setdeliveredTo(e.target.value)}
         />
-      </Form.Group>
-      <p>Subtotal: {calculateSubtotal()}</p>
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Recieved By</Form.Label>
+            <Form.Control type='input'
+            required
+            value={recievedBy}
+            onChange={(e)=>setrecievedBy(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Driver</Form.Label>
+            <Form.Control type='input'
+            required
+            value={driver}
+            onChange={(e)=>setDriver(e.target.value)}
+            />
+          </Form.Group>
+        </div>
+      ): (<MessageBox variant='warning'>Not F.O.C</MessageBox>)}
+      </Col>
+    </Row>
+      <div className='border p-2'>
+      <p>Subtotal: {calculateSubtotal() - discount}</p>
+      <Col className='d-flex justify-content-between'>
+      <Form.Label>Discount:</Form.Label>
+      <span className='text-danger'>
+        <strong>{discount}</strong>
+      </span>
+      <Form.Control type='number' style={{width:'12rem'}}
+        value={discount}
+        onChange={(e)=> setDiscount(e.target.value)}
+        placeholder='discount'
+      />
+      </Col>
+      <p>vat: {calculateVat()}</p>
       <p>Total: {calculateTotal()}</p>
+      </div>
       </>
   );
 }

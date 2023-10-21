@@ -1,8 +1,14 @@
 const SaleDetails = require('../models/saleDetails');
 const asyncHandler = require('express-async-handler');
 const Product = require('../models/product');
+const { v4: uuidv4 } = require('uuid');
+const PDFDocument = require('pdfkit')
+const fs = require('fs')
 
 const makeSale = asyncHandler(async(req, res)=> {
+
+        const uuid =()=> `UPDXB_${uuidv4().substring(0, 6)}`
+
         const newSale = new SaleDetails({
             saleItems: req.body.products.map((x)=> ({
                 ...x,
@@ -18,9 +24,16 @@ const makeSale = asyncHandler(async(req, res)=> {
             phone: req.body.phone,
             name: req.body.name,
             units:[],
+            free: req.body.free,
+            discount: req.body.discount,
+            deliveredTo: req.body.deliveredTo,
+            orderedBy: req.body.orderedBy,
+            recievedBy: req.body.recievedBy,
+            driver: req.body.driver,
             subTotal: req.body.subTotal,
             total: req.body.total,
-            InvoiceCode: req.body.invoiceNumber,
+            vat: req.body.vat,
+            InvoiceCode: uuid(),
         })
     
         const sale = await newSale.save()
@@ -50,6 +63,54 @@ const getsingleSale = asyncHandler(async(req, res)=> {
     }
 })
 
+
+///GENERATE SALE INVOICE
+
+const generateInvoice = asyncHandler(async(req, res)=> {
+  const saleId = req.params.id
+  const sale = await SaleDetails.findById(saleId)
+
+  if (sale){
+    const doc = new PDFDocument();
+
+    const stream = fs.createWriteStream(`${sale.invoiceCode}.pdf`)
+    doc.pipe(stream)
+
+    doc.fontSize(20).text('Invoice', {align: 'center'})
+
+    doc.fontSize(12);
+    doc.text(`PREPARED BY${sale.preparedBy}`)
+    doc.text(`PAID BY${sale.paidBy}`)
+    doc.text(`DATE${sale.date}`)
+    doc.text(`FOC${sale.free ? 'F.O.C' : 'CHARGED'}`)
+
+
+    doc.fontSize(16).text('PRODUCTS', {underline: true})
+    doc.moveDown(0.5)
+
+    sale.saleItems.forEach((item)=> {
+      doc.text(`Product:${item.productName}`)
+      doc.text(`Quantity:${item.quantity}`)
+      doc.text(`Price: AED-${item.price}`)
+      doc.text(`Arrangement ${item.arrangement}`)
+      doc.moveDown(0.5)
+    })
+
+    doc.moveDown(1)
+    doc.text(`SUBTOTAL:${sale.subTotal}`)
+    doc.text(`DISCOUNT: ${sale.discount}`)
+    doc.text(`VAT:${sale.vat}`)
+    doc.text(`TOTAL:${sale.total}`)
+
+
+    doc.end();
+
+    stream.on('finish', () => {
+      console.log('PDF created successfully')});
+  }else{
+    res.send('sale not found')
+  }
+})
 
 
 const addSaleUnits =  asyncHandler(async(req, res)=> {
@@ -257,47 +318,6 @@ const getSalesData = asyncHandler(async(req, res)=> {
 })
 
 
-/* async function aggregateInvoicesDataForPhone(phoneNumber) {
-  const {phone } = req.params.phone
-  phoneNumber = phone
-  try {
-      const pipeline = [
-          {
-              $match: {
-                  "phone": phoneNumber
-              }
-          },
-          {
-              $group: {
-                  _id: "$phone",
-                  invoiceCodes: { $push: "$InvoiceCode" },
-                  names: { $push: "$name" },
-                  totalAmounts: { $push: "$total" },
-                  roundedSum: { $sum: { $round: "$total" } }
-              }
-          }
-      ];
-
-      const results = await SaleDetails.aggregate(pipeline);
-
-      res.send(results);
-  } catch (error) {
-      console.error("Error aggregating data:", error);
-      throw error;
-  }
-} */
-
-/* (async () => {
-  try {
-      const phoneNumber = "4343"; // Replace with the desired phone number
-      const aggregatedData = await aggregateInvoiceDataForPhone(phoneNumber);
-      console.log(aggregatedData);
-  } catch (error) {
-      console.error("Error:", error);
-  }
-})(); */
-
-
 // Controller to retrieve sales for a given day and month
 
 async function querySalesData(req, res){
@@ -391,7 +411,7 @@ const customerData = asyncHandler(async(req, res)=> {
 })
 
 module.exports = {getSales, querySalesData,
-  getsingleSale, addSaleUnits, 
+  getsingleSale, addSaleUnits, generateInvoice,
   makeSale, salesData, getSalesData, 
   aggregateDataIndependently, customerData
 }
