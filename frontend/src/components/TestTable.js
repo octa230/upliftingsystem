@@ -80,6 +80,12 @@ function ProductTable() {
   };
 
 
+  const calculateVat =()=> {
+    const subtotal = calculateSubtotal()
+    const vat = (subtotal * 0.05)
+    return vat.toFixed(2)
+  }
+  
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     const vat = calculateVat()
@@ -106,55 +112,7 @@ if(hasNullValues){
   return
 }
 
-const data ={
-
-        images:{
-            
-         logo: 'https://uplifting.ae/wp-content/uploads/2022/10/cropped-Uplifting-Floral-Studio-Horizontal-02-600x200.png',
-        },
-
-        sender:{
-          company: 'Uplifting Floral Studio',
-          address: 'Business Bay BB02',
-          city: 'Dubai',
-          country: 'UAE',
-        },
-
-        client:{
-            company: name,
-            address: phone,
-        },
-        information: {
-            number: "UPDXB_" + Math.floor(100000 + Math.random()* 900000),
-            date: time
-        },
-        products: products.map((product)=> ({
-            quantity: product.quantity,
-            description: product.arrangement,
-            "tax-rate": 0,
-            price: product.price,
-
-        })),
-        'vat':vat, preparedBy, 
-        paidBy,service,
-        subtotal: calculateSubtotal(),
-        total: calculateTotal(),  
-        'bottom-notice': `
-        <p style={padding: 12px}>WELCOME TO OUR FLORAL PARADISE</p> <br/> 
-        <a href='https://www.instagram.com/upliftingdxb/'>instagram</a>
-        Facebook <a href='https://www.instagram.com/upliftingdxb/'>Facebook</a>
-        Site <a href='https://uplifting.ae'>Website</a>`,
-        "settings":{
-        "currency": 'AED',
-        "margin-top": 50,
-        "margin-right": 50,
-        "margin-left": 50,
-        "margin-bottom":5
-        }
-    } 
-
       try{
-        const invoiceNumber = data.information.number
         const subTotal = calculateSubtotal()
         const total = calculateTotal()
         const vat = calculateVat()

@@ -218,7 +218,7 @@ const Invoice = ({ sale }) => (
             <Text style={styles.footer}>WHATSAPP: +971542045427</Text>
         </View>
       </View> 
-      <Image src="/images/logo-upl.png" style={styles.logo} />
+      <Image src="/images/cdf-logo.png" style={styles.logo} />
     </Page>
   </Document>
 );
