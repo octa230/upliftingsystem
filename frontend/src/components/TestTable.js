@@ -25,7 +25,7 @@ function ProductTable() {
   const [name, setCustomerName] = useState('')
   const [phone, setPhoneNumber] = useState('')
   const [preparedBy, setPreparedBy]= useState('')
-  //const [vat, setVat] = useState(0);
+  const [vat, setVat] = useState(0);
   const [deliveredTo, setdeliveredTo] = useState('')
   const [free, setFree] = useState(false)
   const [driver, setDriver]= useState('')
@@ -76,14 +76,15 @@ function ProductTable() {
 
   const calculateVat =()=> {
     const subtotal = calculateSubtotal()
-    const vat = (subtotal * 0.05)
-    return vat.toFixed(2)
+    const Calculatedvat = (subtotal * 0.05)
+    return Calculatedvat.toFixed(2)
+
   }
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     const vat = calculateVat()
-    const total = (parseFloat(subtotal) + parseFloat(vat) - parseFloat(discount)).toFixed(2);
+    const total = (parseFloat(subtotal) - parseFloat(discount)).toFixed(2);
     return total;
   };
 
@@ -196,7 +197,7 @@ if(hasNullValues){
             <th>Arrangement</th>
             <th>Price</th>
             <th>Quantity</th>
-            <th>Subtotal</th>
+            <th>Total</th>
           </tr>
         </thead>
         <tbody>
@@ -310,7 +311,7 @@ if(hasNullValues){
       </Col>
     </Row>
       <div className='border p-2'>
-      <p>Subtotal: {calculateSubtotal() - discount}</p>
+      <p>Subtotal: {calculateSubtotal() - calculateVat() - discount}</p>
       <Col className='d-flex justify-content-between'>
       <Form.Label>Discount:</Form.Label>
       <span className='text-danger'>
