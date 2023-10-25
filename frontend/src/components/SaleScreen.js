@@ -356,7 +356,7 @@ export default function SaleScreen() {
       <Row>
       <Col className='my-3'>
         <div style={{ maxHeight: '260px', overflowY: 'auto', border: 'solid 1px'}}>
-          {Array.isArray(sales) && sales.map((s)=> (
+          {sales?.map((s)=> (
             <ListGroup key={s._id}>
               <ListGroup.Item className='d-flex justify-content-between'>
                 <div>{s.InvoiceCode}</div>
