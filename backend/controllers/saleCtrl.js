@@ -14,12 +14,12 @@ const getSales = asyncHandler(async(req, res)=> {
 
 const InvoiceCodes = asyncHandler(async(req, res)=> {
     const codes = await Sale.find({}, ['InvoiceCode', 'totalPrice'])
-    res.send(codes.reverse())
+    res.send(codes)
 }) 
 
 const makeSale = asyncHandler(async(req, res)=> {
     
-    const uuid =()=> `UPDXB_${uuidv4().substring(0, 6)}`
+    const uuid =()=> `UPDXB/W_${uuidv4().substring(0, 6)}`
 
     const newSale = new Sale({
         InvoiceCode: uuid(),
