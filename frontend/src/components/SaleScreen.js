@@ -40,7 +40,6 @@ export default function SaleScreen() {
   const [dispatch ] = useReducer(reducer, {
     loading: false,
     error: '',
-    sales: []
   })
 
   //date converted to locale String in day/month/year format
@@ -58,7 +57,7 @@ export default function SaleScreen() {
   const [discount, setDiscount] = useState(0)
   const [recievedBy, setrecievedBy] = useState('')
   const [deliveredTo, setdeliveredTo] = useState('')
-  const [sales, setSales] = useState([])
+  const [codes, setCodes] = useState([])
   const [printsale, setPrintSale] = useState(null)
   const [showPDF, setshowPDF] = useState(false)
 
@@ -92,7 +91,7 @@ export default function SaleScreen() {
     const fetchData = async()=> {
       try{
         const {data} = await axios.get('/api/wholesale/invoices')
-        setSales(data)
+        setCodes(data)
         //console.log(data)
       }catch(error){
         toast.error(error)
@@ -356,7 +355,7 @@ export default function SaleScreen() {
       <Row>
       <Col className='my-3'>
         <div style={{ maxHeight: '260px', overflowY: 'auto', border: 'solid 1px'}}>
-          {sales?.map((s)=> (
+          {codes && codes.map((s)=> (
             <ListGroup key={s._id}>
               <ListGroup.Item className='d-flex justify-content-between'>
                 <div>{s.InvoiceCode}</div>
