@@ -356,7 +356,7 @@ export default function SaleScreen() {
          {sales ? sales && (
           <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
             <ListGroup>
-            {sales.map((sale)=> (
+            {sales?.map((sale)=> (
               <ListGroup.Item key={sale._id} className='d-flex'>
                 <Col>{sale.InvoiceCode}</Col>
                 <Col>{sale.totalPrice}</Col>
