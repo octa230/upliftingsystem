@@ -1,4 +1,4 @@
-import React, {useContext, useReducer, useState} from 'react'
+import React, {useContext, useEffect, useReducer, useState} from 'react'
 import {Container, Row, Col, ListGroup, Button, Card, Form,} from 'react-bootstrap'
 import { Store } from '../utils/Store'
 import { getError } from '../utils/getError'
@@ -86,7 +86,8 @@ export default function SaleScreen() {
 
   const fetchSales = async()=> {
     const res = await axios.get('/api/wholesale/invoices')
-    setSales(res.data)
+    const result = res.data
+    setSales(result)
     console.log(sales)
   }
 
@@ -99,6 +100,9 @@ export default function SaleScreen() {
     //console.log(printsale)
   }
 
+  useEffect(()=> {
+
+  })
 
   
   const RoundTo = (num)=> Math.round(num * 100 + Number.EPSILON) / 100 //====> 123.4567 - 123.45;
@@ -349,7 +353,7 @@ export default function SaleScreen() {
         </Card>
         </Col>
         <Col>
-         {sales ?(
+         {sales ? sales && (
           <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
             <ListGroup>
             {sales.map((sale)=> (
@@ -357,7 +361,9 @@ export default function SaleScreen() {
                 <Col>{sale.InvoiceCode}</Col>
                 <Col>{sale.totalPrice}</Col>
                 <Col>
-                <Button onClick={()=> getSale(sale)}>Print</Button>
+                <Button onClick={()=> getSale(sale)}>Print invoice</Button>
+                </Col>
+                <Col>
                 </Col>
               </ListGroup.Item>
             ))}
