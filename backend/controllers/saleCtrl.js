@@ -12,10 +12,6 @@ const getSales = asyncHandler(async(req, res)=> {
     res.send(sales)
 })
 
-const InvoiceCodes = asyncHandler(async(req, res)=> {
-    const codes = await Sale.find({}, ['InvoiceCode', 'totalPrice'])
-    res.send(codes)
-}) 
 
 const makeSale = asyncHandler(async(req, res)=> {
     
@@ -113,4 +109,10 @@ const salesSummary = asyncHandler(async(req, res)=> {
     res.send({sales, users, dailySales, units})
 })
 
-module.exports = {getSales, makeSale, getSingleSale, salesSummary, deleteSale, InvoiceCodes}
+const getCodes = asyncHandler(async(req, res)=> {
+    const codes = await Sale.find({}, ['InvoiceCode', 'totalPrice'])
+    res.send(codes)
+    console.log(codes)
+}) 
+
+module.exports = {getSales, makeSale, getSingleSale, salesSummary, deleteSale, getCodes}

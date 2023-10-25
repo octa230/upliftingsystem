@@ -45,7 +45,7 @@ export default function SaleScreen() {
   //date converted to locale String in day/month/year format
   const time = new Date().toLocaleDateString('en-GB')
 
-
+  const [codes, setCodes] = useState([])
   const [preparedBy, setPreparedBy] = useState('')
   const [paidBy, setPaidBy] = useState('')
   const [service, setService] = useState('')
@@ -57,7 +57,6 @@ export default function SaleScreen() {
   const [discount, setDiscount] = useState(0)
   const [recievedBy, setrecievedBy] = useState('')
   const [deliveredTo, setdeliveredTo] = useState('')
-  const [codes, setCodes] = useState([])
   const [printsale, setPrintSale] = useState(null)
   const [showPDF, setshowPDF] = useState(false)
 
@@ -90,15 +89,19 @@ export default function SaleScreen() {
   useEffect(()=> {
     const fetchData = async()=> {
       try{
-        const {data} = await axios.get('/api/wholesale/invoices')
-        setCodes(data)
-        //console.log(data)
+        const response = await axios.get('/api/wholesale/invoices')
+        setCodes(response.data)
+        //console.log(response.data)
       }catch(error){
         toast.error(error)
       }
     }
     fetchData()
   }, [])
+
+  //console.log(codes)
+  const filteredCodes = codes.slice( -10)
+  console.log(filteredCodes)
 
   const getSale = async(x)=> {
     const response = await axios.get(`/api/wholesale/get-sale/${x._id}`)
@@ -355,7 +358,7 @@ export default function SaleScreen() {
       <Row>
       <Col className='my-3'>
         <div style={{ maxHeight: '260px', overflowY: 'auto', border: 'solid 1px'}}>
-          {codes && codes.map((s)=> (
+          {filteredCodes && filteredCodes.map((s)=> (
             <ListGroup key={s._id}>
               <ListGroup.Item className='d-flex justify-content-between'>
                 <div>{s.InvoiceCode}</div>
