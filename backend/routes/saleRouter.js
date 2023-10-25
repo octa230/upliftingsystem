@@ -4,7 +4,7 @@ const {getSales,
     getSingleSale, 
     salesSummary, 
     deleteSale,
-    InvoiceCodes,
+    getCodes
 } = require('../controllers/saleCtrl')
 
 
@@ -12,11 +12,11 @@ const {getSales,
 const salesRouter = express.Router();
 
 salesRouter.get('/get-sale/:id', getSingleSale)
+salesRouter.get('/invoices', getCodes)
 salesRouter.get('/list', getSales)
 salesRouter.post('/make-sale', makeSale)
 salesRouter.get('/summary', salesSummary)
 salesRouter.delete('/delete-sale', deleteSale)
-salesRouter.get('/invoices', InvoiceCodes)
 
 
 module.exports = salesRouter
