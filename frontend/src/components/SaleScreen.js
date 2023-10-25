@@ -23,7 +23,7 @@ function reducer(state, action){
     case 'FETCH_REQUEST':
       return{...state, loading: true}
     case 'FETCH_SUCCESS':
-      return {...state, summary: action.payload, loading: false}
+      return {...state, sales: action.payload, loading: false}
     case 'FETCH_FAIL':
       return {...state, loading: false, error: action.payload}
     default:
@@ -37,9 +37,10 @@ function reducer(state, action){
 
 export default function SaleScreen() {
 
-  const [ {loading}, dispatch ] = useReducer(reducer, {
+  const [dispatch ] = useReducer(reducer, {
     loading: false,
-    error: ''
+    error: '',
+    sales: []
   })
 
   //date converted to locale String in day/month/year format
@@ -84,12 +85,21 @@ export default function SaleScreen() {
     }
   }
 
-  const fetchSales = async()=> {
-    const res = await axios.get('/api/wholesale/invoices')
-    const result = res.data
-    setSales(result)
-    console.log(sales)
-  }
+
+
+
+  useEffect(()=> {
+    const fetchData = async()=> {
+      try{
+        const {data} = await axios.get('/api/wholesale/invoices')
+        setSales(data)
+        //console.log(data)
+      }catch(error){
+        toast.error(error)
+      }
+    }
+    fetchData()
+  }, [])
 
   const getSale = async(x)=> {
     const response = await axios.get(`/api/wholesale/get-sale/${x._id}`)
@@ -97,12 +107,8 @@ export default function SaleScreen() {
     //setSales(sale)
     setPrintSale(fetchedSale)
     setshowPDF(true)
-    //console.log(printsale)
+    console.log(printsale)
   }
-
-  useEffect(()=> {
-
-  })
 
   
   const RoundTo = (num)=> Math.round(num * 100 + Number.EPSILON) / 100 //====> 123.4567 - 123.45;
@@ -112,7 +118,7 @@ export default function SaleScreen() {
 
   const makeSale = async()=> {
     try{  
-      const {data} = await axios.post('/api/wholesale/make-sale', { 
+        await axios.post('/api/wholesale/make-sale', { 
         saleItems: sale.saleItems,
         totalPrice: sale.totalPrice,
         itemsPrice: sale.itemsPrice,
@@ -317,17 +323,11 @@ export default function SaleScreen() {
                 <Col>AED: {sale.taxPrice.toFixed(2).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
               </Row>
               </ListGroup.Item>
-             {/*  <ListGroup.Item>
-                <h3>
-                  SubTotal: ({saleItems.reduce((a, c)=> a+c.quantity, 0)}{' '}: units)
-                  AED: {saleItems.reduce((a, c)=> ((a + c.price * c.quantity) - sale.taxPrice) - discount, 0).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                </h3>
 
-              </ListGroup.Item> */}
               <ListGroup.Item>
               <Row>
                 <Col>Total</Col>
-                <Col>AED: {(sale.totalPrice.toFixed(2) - discount).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
+                <Col>AED: {(sale.itemsPrice + sale.taxPrice - discount).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
                 <Col className='d-flex pt-3'>
               <Form.Label>Discount:</Form.Label>
                 <span className='text-danger'>
@@ -352,35 +352,32 @@ export default function SaleScreen() {
           </Card.Body>
         </Card>
         </Col>
-        <Col>
-         {sales ? sales && (
-          <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
-            <ListGroup>
-            {sales?.map((sale)=> (
-              <ListGroup.Item key={sale._id} className='d-flex'>
-                <Col>{sale.InvoiceCode}</Col>
-                <Col>{sale.totalPrice}</Col>
-                <Col>
-                <Button onClick={()=> getSale(sale)}>Print invoice</Button>
-                </Col>
-                <Col>
-                </Col>
+      </Row> 
+      <Row>
+      <Col className='my-3'>
+        <div style={{ maxHeight: '260px', overflowY: 'auto', border: 'solid 1px'}}>
+          {Array.isArray(sales) && sales.map((s)=> (
+            <ListGroup key={s._id}>
+              <ListGroup.Item className='d-flex justify-content-between'>
+                <div>{s.InvoiceCode}</div>
+                <div>
+                <Button onClick={()=> getSale(s)}>Print</Button>
+                </div>
               </ListGroup.Item>
-            ))}
-          </ListGroup>
-          </div>
-         ): (<MessageBox>Click To View</MessageBox>) }
-          <Button onClick={fetchSales} className='my-2'>View History</Button>
+            </ListGroup>
+          ))}
+         </div>
         </Col>
-        
-        <Row style={{maxWidth: '50%'}}>
+        <Col className='my-3'>
+        <div style={{maxWidth: '100%', border: 'solid 1px'}}>
         {showPDF && printsale &&(
           <PDFViewer width='100%' height='600'>
             <InvoiceTwo sale={printsale}/>
           </PDFViewer>
         )}
+      </div>
+        </Col>
       </Row>
-      </Row> 
     </Container>
   )
 }
