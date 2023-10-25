@@ -9,7 +9,6 @@ import {getError} from '../utils/getError'
 import MessageBox from '../components/MessageBox'
 import {toast} from 'react-toastify'
 import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
-import { PDFViewer } from '@react-pdf/renderer';
 
 
 
@@ -25,7 +24,6 @@ function ProductTable() {
   const [name, setCustomerName] = useState('')
   const [phone, setPhoneNumber] = useState('')
   const [preparedBy, setPreparedBy]= useState('')
-  const [vat, setVat] = useState(0);
   const [deliveredTo, setdeliveredTo] = useState('')
   const [free, setFree] = useState(false)
   const [driver, setDriver]= useState('')
@@ -163,7 +161,7 @@ if(hasNullValues){
     <Form.Label>prepared By</Form.Label>
     <Form.Select onChange={handleSelectedValue(setPreparedBy)} required>
       <option>choose..</option>
-      <option>Lynn</option>
+      <option>Adel</option>
       <option>Allan</option>
       <option>Joe</option>
     </Form.Select>

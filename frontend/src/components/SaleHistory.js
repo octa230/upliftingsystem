@@ -88,15 +88,12 @@ export default function SaleHistory() {
        }
     }
 
-    const handlePrint = async(saleId)=> {
-       const sale = await axios.post(`/api/multiple/print-invoice/${saleId}`)
-       setSale(sale)
-    }
-
     const openPDFVeiwer = (sale)=> {
         setSale(sale)
         setshowPDF(true)
     }
+
+
 
   return (
 
@@ -137,9 +134,9 @@ export default function SaleHistory() {
             </Table>
             <div style={{maxWidth:'50%'}}>
             {showPDF && (
-                    <PDFViewer width="100%" height="600">
-                        <Invoice sale={sale}/>
-                    </PDFViewer>
+                <PDFViewer width="100%" height="600">
+                    <Invoice sale={sale}/>
+                </PDFViewer>
                 )}
             </div>
             <h5>Search Sales Database</h5>

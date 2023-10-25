@@ -17,7 +17,13 @@ const saleSchema = new mongoose.Schema({
     saleItemsPrice: {type: Number, required: true},
     phone: {type: String, required: true},
     customer: {type: String, required: true},
- 
+    free :{type: Boolean, default: false},
+    discount: {type: String},
+    orderedBy: {type: String},
+    discount: {type: Number},
+    recievedBy: {type: String},
+    deliveredTo: {type: String},
+    driver: {type: String}
 },
 {
     timestamps: true
