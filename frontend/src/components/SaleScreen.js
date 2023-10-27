@@ -23,7 +23,7 @@ function reducer(state, action){
     case 'FETCH_REQUEST':
       return{...state, loading: true}
     case 'FETCH_SUCCESS':
-      return {...state, sales: action.payload, loading: false}
+      return {...state, codes: action.payload, loading: false}
     case 'FETCH_FAIL':
       return {...state, loading: false, error: action.payload}
     default:
@@ -37,15 +37,16 @@ function reducer(state, action){
 
 export default function SaleScreen() {
 
-  const [dispatch ] = useReducer(reducer, {
+  const [{codes}, dispatch ] = useReducer(reducer, {
     loading: false,
     error: '',
+    codes:[]
   })
 
   //date converted to locale String in day/month/year format
   const time = new Date().toLocaleDateString('en-GB')
 
-  const [codes, setCodes] = useState([])
+  //const [codes, setCodes] = useState([])
   const [preparedBy, setPreparedBy] = useState('')
   const [paidBy, setPaidBy] = useState('')
   const [service, setService] = useState('')
@@ -88,11 +89,14 @@ export default function SaleScreen() {
 
   useEffect(()=> {
     const fetchData = async()=> {
+      dispatch({type: 'FETCH_REQUEST'})
       try{
-        const response = await axios.get('/api/wholesale/invoices')
-        setCodes(response.data)
+        const {data} = await axios.get('/api/wholesale/invoices')
+        //setCodes(data)
+        dispatch({type: 'FETCH_SUCCESS', payload: data})
         //console.log(response.data)
       }catch(error){
+        dispatch({type: 'FETCH_FAIL', payload: error})
         toast.error(error)
       }
     }
@@ -100,7 +104,7 @@ export default function SaleScreen() {
   }, [])
 
   //console.log(codes)
-  const filteredCodes = codes.slice( -10)
+  const filteredCodes = codes?.slice( -10)
   console.log(filteredCodes)
 
   const getSale = async(x)=> {

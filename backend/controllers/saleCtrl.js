@@ -112,7 +112,7 @@ const salesSummary = asyncHandler(async(req, res)=> {
 const getCodes = asyncHandler(async(req, res)=> {
     const codes = await Sale.find({}, ['InvoiceCode', 'totalPrice'])
     res.send(codes)
-    console.log(codes)
+    //console.log(codes)
 }) 
 
 module.exports = {getSales, makeSale, getSingleSale, salesSummary, deleteSale, getCodes}
