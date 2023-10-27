@@ -110,8 +110,19 @@ const salesSummary = asyncHandler(async(req, res)=> {
 })
 
 const getCodes = asyncHandler(async(req, res)=> {
-    const codes = await Sale.find({}, ['InvoiceCode', 'totalPrice'])
-    res.send(codes)
+    try{
+        const codes = await Sale.find({}, ['InvoiceCode', 'totalPrice'])
+        
+        if(codes){
+            const tenCodes = codes.slice(-10)
+            res.send({tenCodes})
+        }else{
+            res.send('unable to fetch codes')
+        }
+    }catch(error){
+        res.send(error)
+        console.log(error)
+    }
     //console.log(codes)
 }) 
 
