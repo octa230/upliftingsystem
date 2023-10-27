@@ -60,6 +60,7 @@ export default function SaleScreen() {
   const [deliveredTo, setdeliveredTo] = useState('')
   const [printsale, setPrintSale] = useState(null)
   const [showPDF, setshowPDF] = useState(false)
+  //const [filteredCodes, setfilteredCodes]= useState([])
 
 
   const {state, dispatch: ctxDispatch} = useContext(Store)
@@ -85,27 +86,22 @@ export default function SaleScreen() {
   }
 
 
-
-
   useEffect(()=> {
-    const fetchData = async()=> {
-      dispatch({type: 'FETCH_REQUEST'})
+    const getCodes = async()=> {
       try{
         const {data} = await axios.get('/api/wholesale/invoices')
-        //setCodes(data)
-        dispatch({type: 'FETCH_SUCCESS', payload: data})
-        //console.log(response.data)
+        dispatch({type: 'FETCH_SUCCESS', payload: data.tenCodes})
       }catch(error){
         dispatch({type: 'FETCH_FAIL', payload: error})
-        toast.error(error)
+        toast.error(getError(error))
       }
-    }
-    fetchData()
-  }, [])
-
+  }
+  getCodes()
+}, [])
+ 
   //console.log(codes)
-  const filteredCodes = codes?.slice( -10)
-  console.log(filteredCodes)
+  //const filteredCodes = codes?.slice( -10)
+  //console.log(filteredCodes)
 
   const getSale = async(x)=> {
     const response = await axios.get(`/api/wholesale/get-sale/${x._id}`)
@@ -370,8 +366,7 @@ export default function SaleScreen() {
             </tr>
           </thead>
           <tbody style={{ maxHeight: '260px', overflowY: 'auto', border: 'solid 1px'}}>
-            {Array.from(filteredCodes).map((s)=> {
-
+            {codes?.map((s)=> {
               return(
               <tr key={s._id}>
                 <td>{s.InvoiceCode}</td>
