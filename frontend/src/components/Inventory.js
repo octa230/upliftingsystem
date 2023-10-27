@@ -96,8 +96,6 @@ const navigate = useNavigate()
 
   return (
     <>
-
-
     <Table striped bordered hover className='w-100' responsive>
         <thead>
             <tr>

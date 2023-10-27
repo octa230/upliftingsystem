@@ -1,11 +1,13 @@
-import React, {useContext, useReducer, useState} from 'react'
-import {Container, Row, Col, ListGroup, Button, Card, Form,} from 'react-bootstrap'
+import React, {useContext, useEffect, useReducer, useState} from 'react'
+import {Container, Row, Col, ListGroup, Button, Card, Form, Table,} from 'react-bootstrap'
 import { Store } from '../utils/Store'
 import { getError } from '../utils/getError'
 import {BsDashSquareFill, BsFillPlusSquareFill, BsXSquareFill, BsTrash3Fill} from 'react-icons/bs'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import easyinvoice from 'easyinvoice'
+import MessageBox from './MessageBox'
+import { PDFViewer } from '@react-pdf/renderer'
+import InvoiceTwo from '../utils/InvoiceTwo'
 
 
 
@@ -21,7 +23,7 @@ function reducer(state, action){
     case 'FETCH_REQUEST':
       return{...state, loading: true}
     case 'FETCH_SUCCESS':
-      return {...state, summary: action.payload, loading: false}
+      return {...state, codes: action.payload.tenCodes, loading: false}
     case 'FETCH_FAIL':
       return {...state, loading: false, error: action.payload}
     default:
@@ -35,21 +37,31 @@ function reducer(state, action){
 
 export default function SaleScreen() {
 
-  const [ {loading}, dispatch ] = useReducer(reducer, {
+  const [{codes}, dispatch ] = useReducer(reducer, {
     loading: false,
-    error: ''
+    error: '',
+    codes:[]
   })
 
   //date converted to locale String in day/month/year format
   const time = new Date().toLocaleDateString('en-GB')
 
-
+  //const [codes, setCodes] = useState([])
   const [preparedBy, setPreparedBy] = useState('')
   const [paidBy, setPaidBy] = useState('')
   const [service, setService] = useState('')
   const [phone, setPhone] = useState('')
   const [customer, setCustomer ] = useState('')
-  //const [InvoiceCode, setInvoiceCode] = useState('')
+  const [free, setFree]= useState(false)
+  const [driver, setDriver] = useState('')
+  const [orderedBy, setorderedBy] = useState('')
+  const [discount, setDiscount] = useState(0)
+  const [recievedBy, setrecievedBy] = useState('')
+  const [deliveredTo, setdeliveredTo] = useState('')
+  const [printsale, setPrintSale] = useState(null)
+  const [showPDF, setshowPDF] = useState(false)
+  //const [filteredCodes, setfilteredCodes]= useState([])
+
 
   const {state, dispatch: ctxDispatch} = useContext(Store)
   const {sale, sale:{saleItems}, userInfoToken} = state
@@ -74,74 +86,58 @@ export default function SaleScreen() {
   }
 
 
+  useEffect(()=> {
+    const getCodes = async()=> {
+      try{
+        const {data} = await axios.get('/api/wholesale/invoices')
+        dispatch({type: 'FETCH_SUCCESS', payload: data})
+      }catch(error){
+        dispatch({type: 'FETCH_FAIL', payload: error})
+        toast.error(getError(error))
+      }
+  }
+  getCodes()
+}, [])
+ 
+  //console.log(codes)
+  //const filteredCodes = codes?.slice( -10)
+  //console.log(filteredCodes)
+
+  const getSale = async(x)=> {
+    const response = await axios.get(`/api/wholesale/get-sale/${x._id}`)
+    const fetchedSale = response.data
+    //setSales(sale)
+    setPrintSale(fetchedSale)
+    setshowPDF(true)
+    console.log(printsale)
+  }
+
   
   const RoundTo = (num)=> Math.round(num * 100 + Number.EPSILON) / 100 //====> 123.4567 - 123.45;
   sale.itemsPrice = RoundTo(sale.saleItems.reduce((acc, curr)=> acc + curr.quantity * curr.price, 0))
-  sale.taxPrice = RoundTo(0.00 * sale.itemsPrice)
+  sale.taxPrice = RoundTo(0.05 * sale.itemsPrice)
   sale.totalPrice = sale.itemsPrice + sale.taxPrice;
 
   const makeSale = async()=> {
-
-    const InvoiceData ={
-
-      images:{
-        logo: 'https://chateaudesfleursuae.com/wp-content/uploads/2023/05/cropped-Chateau-Des-Fleurs-DMCC-Logo-01.png',
-      },
-
-      sender:{
-        company: 'CHATEAU DES FLEURS',
-        address: `JUMEIRAH LAKE TOWER <br/>LAKE VIEW TOWER <br/>CLUSTER B`,
-        city: 'Dubai-UAE',
-      },
-
-      client:{
-          company: customer,
-          address: phone,
-      },
-      
-      information: {
-        number: "CDFDXB_" + Math.floor(100000 + Math.random()* 900000),
-        date: time
-      },
-
-      products: saleItems.map((product)=> ({
-          quantity: product.quantity,
-          description: product.name,
-          "tax-rate": 0,
-          price: product.price,
-
-      })),
-      subtotal: sale.saleItemsPrice,
-      'bottom-notice': `
-      <p style={padding: 12px}>SEASON OF HAPPINESS</p> <br/> 
-      <a href='https://www.instagram.com/chateau_des_fleurs.ae/'>instagram</a>
-      Facebook <a href='https://chateaudesfleursuae.com/'>Facebook</a>
-      Site <a href='https://chateaudesfleursuae.com/'>Website</a>`,
-      "settings":{
-      "currency": 'AED',
-      "margin-top": 50,
-      "margin-right": 50,
-      "margin-left": 50,
-      "margin-bottom":5
-      }
-  } 
-
     try{  
-      const {data} = await axios.post('/api/wholesale/make-sale', {
-
-        InvoiceCode: InvoiceData.information.number,
+        await axios.post('/api/wholesale/make-sale', { 
         saleItems: sale.saleItems,
         totalPrice: sale.totalPrice,
         itemsPrice: sale.itemsPrice,
         taxPrice: sale.taxPrice,
         preparedBy: preparedBy,
-        paidBy: paidBy,
+        paidBy: paidBy, 
         service: service,
         date: time,
         phone: phone,
+        free: free, 
+        orderedBy: orderedBy,
+        driver: driver,
+        discount: discount,
+        recievedBy: recievedBy,
+        deliveredTo: deliveredTo,
         customer: customer,
       },
-      
       {
         headers:{Authorization: `Bearer${userInfoToken.token}`}
       },
@@ -149,17 +145,11 @@ export default function SaleScreen() {
       ctxDispatch({type: 'CLEAR_SALE_ITEMS'})
       dispatch({type: 'CREATE_SALE_SUCCESS'});
       localStorage.removeItem('saleItems')
-      toast.success('sale added to History')
+      toast.success('Success')
     }catch(err){
       dispatch({type: 'CREATE_SALE_FAIL'})
       toast.error(getError(err))
     }
-
-    //data used by the invoice module
-
-    const result = await easyinvoice.createInvoice(InvoiceData)
-      easyinvoice.render('pdf', result.pdf)
-      easyinvoice.download(`${InvoiceData.information.number}.pdf`, result.pdf)
   }
 
   const dismissItem = (item)=> {
@@ -172,9 +162,6 @@ export default function SaleScreen() {
       ctxDispatch({type:'CLEAR_SALE_ITEMS', payload: saleItems})
     }
   }
-
-
-
 
   return (
     <Container>
@@ -199,9 +186,8 @@ export default function SaleScreen() {
           <Form.Label>prepared By</Form.Label>
             <Form.Select onChange={handleSelectedValue(setPreparedBy)}>
             <option>choose..</option>
-            <option>Joe</option>
+            <option>Allan</option>
             <option>Ahmed</option>
-            <option>Mahel</option>
             <option>Adel</option>
             <option>Gladwin</option>
             </Form.Select>
@@ -276,6 +262,52 @@ export default function SaleScreen() {
           </ListGroup>       
         </Col>
       </Row>
+      <Row>
+      <Form.Check type='checkbox'
+        label='Free Of Charge(F.O.C)'
+        checked={free}
+        className='py-2 mt-3'
+        onChange={(e)=>setFree(e.target.checked)}
+      />
+        {free ? ( 
+        <div>
+           <Form.Group>
+            <Form.Label>Orderd By</Form.Label>
+            <Form.Control type='input'
+            required
+            value={orderedBy}
+            onChange={(e)=>setorderedBy(e.target.value)}
+            />
+          </Form.Group>
+
+          <Form.Group>
+            <Form.Label>Delivery Area</Form.Label>
+            <Form.Control type='input'
+            required
+            value={deliveredTo}
+            onChange={(e)=> setdeliveredTo(e.target.value)}
+        />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Recieved By</Form.Label>
+            <Form.Control type='input'
+            required
+            value={recievedBy}
+            onChange={(e)=>setrecievedBy(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Driver</Form.Label>
+            <Form.Control type='input'
+            required
+            value={driver}
+            onChange={(e)=>setDriver(e.target.value)}
+            />
+          </Form.Group>
+        </div>
+         ) : (<MessageBox variant='warning'>Not F.O.C</MessageBox>)
+         }
+      </Row>
       <Row className='mt-4'>
         <Col>
         <Card>
@@ -283,8 +315,8 @@ export default function SaleScreen() {
             <ListGroup variant='flush'>
               <ListGroup.Item>
               <Row>
-                <Col>Units</Col>
-                <Col>AED: {sale.itemsPrice.toFixed(2).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
+                <Col>SubTotal</Col>
+                <Col>AED: {sale.itemsPrice - sale.taxPrice.toFixed(2).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
               </Row>
               </ListGroup.Item>
               <ListGroup.Item>
@@ -293,17 +325,22 @@ export default function SaleScreen() {
                 <Col>AED: {sale.taxPrice.toFixed(2).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
               </Row>
               </ListGroup.Item>
-              <ListGroup.Item>
-                <h3>
-                  SubTotal: ({saleItems.reduce((a, c)=> a+c.quantity, 0)}{' '}: units)
-                  AED: {saleItems.reduce((a, c)=> a + c.price * c.quantity, 0).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                </h3>
 
-              </ListGroup.Item>
               <ListGroup.Item>
               <Row>
                 <Col>Total</Col>
-                <Col>AED: {sale.totalPrice.toFixed(2).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
+                <Col>AED: {(sale.itemsPrice + sale.taxPrice - discount).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
+                <Col className='d-flex pt-3'>
+              <Form.Label>Discount:</Form.Label>
+                <span className='text-danger'>
+                <strong>{discount}</strong>
+      </span>
+      <Form.Control type='number' style={{width:'6rem'}} className='mx-2'
+        value={discount}
+        onChange={(e)=> setDiscount(e.target.value)}
+        placeholder='discount'
+      />
+      </Col>   
               </Row>
               </ListGroup.Item>
               <ListGroup.Item>
@@ -318,6 +355,40 @@ export default function SaleScreen() {
         </Card>
         </Col>
       </Row> 
+      <Row>
+      <Col className='my-3'>
+        <Table bordered>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Total</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody style={{ maxHeight: '260px', overflowY: 'auto', border: 'solid 1px'}}>
+            {codes?.map((s)=> {
+              return(
+              <tr key={s._id}>
+                <td>{s.InvoiceCode}</td>
+                <td>{s.totalPrice}</td>
+                <td>
+                  <Button onClick={()=> getSale(s)}>Print</Button>
+                </td>
+              </tr>
+            )})}
+          </tbody>
+        </Table>
+        </Col>
+        <Col className='my-3'>
+        <div style={{maxWidth: '100%', border: 'solid 1px'}}>
+        {showPDF && printsale &&(
+          <PDFViewer width='100%' height='600'>
+            <InvoiceTwo sale={printsale}/>
+          </PDFViewer>
+        )}
+      </div>
+        </Col>
+      </Row>
     </Container>
   )
 }

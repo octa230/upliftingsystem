@@ -1,8 +1,9 @@
 const asyncHandler = require ( 'express-async-handler');
-const PDFDocument = require('pdfkit')
-const fs = require('fs')
+//const PDFDocument = require('pdfkit')
+//const fs = require('fs')
 const User = require ( '../models/user');
 const Sale = require('../models/saleModel')
+const { v4: uuidv4} = require('uuid')
 
 
 
@@ -11,10 +12,13 @@ const getSales = asyncHandler(async(req, res)=> {
     res.send(sales)
 })
 
+
 const makeSale = asyncHandler(async(req, res)=> {
     
+    const uuid =()=> `UPDXB/W_${uuidv4().substring(0, 6)}`
+
     const newSale = new Sale({
-        InvoiceCode: req.body.InvoiceCode,
+        InvoiceCode: uuid(),
         saleItems: req.body.saleItems.map((x)=> ({
             ...x, 
             product: x._id,
@@ -32,6 +36,12 @@ const makeSale = asyncHandler(async(req, res)=> {
         saleItemsPrice: req.body.totalPrice,
         phone: req.body.phone,
         customer: req.body.customer,
+        free: req.body.free,
+        orderedBy: req.body.orderedBy,
+        recievedBy: req.body.recievedBy,
+        discount: req.body.discount,
+        driver: req.body.driver,
+        deliveredTo: req.body.deliveredTo
     })
 
     const sale = await newSale.save();
@@ -39,7 +49,7 @@ const makeSale = asyncHandler(async(req, res)=> {
 })
 
 const getSingleSale = asyncHandler(async(req, res)=> {
-    const sale = await Sale.findById(req.params._id)
+    const sale = await Sale.findById(req.params.id)
     if(sale){
         res.send(sale)
     } else {
@@ -99,53 +109,21 @@ const salesSummary = asyncHandler(async(req, res)=> {
     res.send({sales, users, dailySales, units})
 })
 
-
-const makeInvoice = asyncHandler(async(req, res)=> {
-    const saleId = req.params.id;
-    const sale = await Sale.findById(saleId)
-    
-    if(sale){
-        try{
-        const invoice = new PDFDocument({size: 'A4'});
-        const fileName = `invoice_${sale.createdAt.toString()}.pdf`
-        const filePath = `./invoices/${fileName}`
-
-        const address = `
-                        Uplifting Floral Studio
-                        CTRL_NO: ${sale._id}
-                        Tel No: +971-00000000. 
-                        Mail: sales@uplifting.ae,
-                        Site: Uplifting.ae
-                        Date: ${sale.createdAt.toLocaleString()}
-        `
-
-        const customerInfo = `
-        Customer tel:  +971-0000000.
-        Customer Name:  Marvin,
-        Arrangement:  Box,
-        Ivoice Number:  ${sale.InvoiceCode}.
-        `
-    
+const getCodes = asyncHandler(async(req, res)=> {
+    try{
+        const codes = await Sale.find({}, ['InvoiceCode', 'totalPrice'])
         
-        invoice.image('./images/logo.png', 50, 30, {fit:[100, 100], width: '200'} )
-        invoice.moveDown()
-        invoice.text(`${address}`, {align: 'right', lineGap: 4})
-        invoice.moveDown()
-        invoice.text(`${customerInfo}`, {width: 500, align:'left', lineGap:2})
-        invoice.moveDown()
-        invoice.fontSize(12).list(sale.saleItems.map((item)=> (`Name: ${item.name}, Qty: ${item.quantity}, Unit Price: ${item.price}`)), {width: '600', align: 'justify', wordSpacing: 8, lineGap: 20, lineBreak: true}, 400, 300)
-
-    
-        const writeStream = fs.createWriteStream(filePath)
-        
-        invoice.pipe(writeStream)
-        invoice.end()
-        
-        writeStream.on('finish', ()=> {res.json({url: `/${fileName}`})})        
-        }catch(error){
-            res.send(error)
+        if(codes){
+            const tenCodes = codes.slice(-10)
+            res.send({tenCodes})
+        }else{
+            res.send('unable to fetch codes')
         }
+    }catch(error){
+        res.send(error)
+        console.log(error)
     }
-    
-})
-module.exports = {getSales, makeSale, getSingleSale, salesSummary, deleteSale, makeInvoice}
+    //console.log(codes)
+}) 
+
+module.exports = {getSales, makeSale, getSingleSale, salesSummary, deleteSale, getCodes}
