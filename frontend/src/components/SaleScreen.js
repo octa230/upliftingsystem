@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useReducer, useState} from 'react'
-import {Container, Row, Col, ListGroup, Button, Card, Form,} from 'react-bootstrap'
+import {Container, Row, Col, ListGroup, Button, Card, Form, Table,} from 'react-bootstrap'
 import { Store } from '../utils/Store'
 import { getError } from '../utils/getError'
 import {BsDashSquareFill, BsFillPlusSquareFill, BsXSquareFill, BsTrash3Fill} from 'react-icons/bs'
@@ -361,18 +361,26 @@ export default function SaleScreen() {
       </Row> 
       <Row>
       <Col className='my-3'>
-        <div style={{ maxHeight: '260px', overflowY: 'auto', border: 'solid 1px'}}>
-          {filteredCodes && filteredCodes.map((s)=> (
-            <ListGroup key={s._id}>
-              <ListGroup.Item className='d-flex justify-content-between'>
-                <div>{s.InvoiceCode}</div>
-                <div>
-                <Button onClick={()=> getSale(s)}>Print</Button>
-                </div>
-              </ListGroup.Item>
-            </ListGroup>
-          ))}
-         </div>
+        <Table bordered>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Total</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody style={{ maxHeight: '260px', overflowY: 'auto', border: 'solid 1px'}}>
+            {filteredCodes?.map((s)=> (
+              <tr key={s._id}>
+                <td>{s.InvoiceCode}</td>
+                <td>{s.totalPrice}</td>
+                <td>
+                  <Button onClick={()=> getSale(s)}>Print</Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
         </Col>
         <Col className='my-3'>
         <div style={{maxWidth: '100%', border: 'solid 1px'}}>
