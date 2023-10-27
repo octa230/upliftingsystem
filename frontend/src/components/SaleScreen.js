@@ -370,7 +370,9 @@ export default function SaleScreen() {
             </tr>
           </thead>
           <tbody style={{ maxHeight: '260px', overflowY: 'auto', border: 'solid 1px'}}>
-            {filteredCodes?.map((s)=> (
+            {Array.from(filteredCodes).map((s)=> {
+
+              return(
               <tr key={s._id}>
                 <td>{s.InvoiceCode}</td>
                 <td>{s.totalPrice}</td>
@@ -378,7 +380,7 @@ export default function SaleScreen() {
                   <Button onClick={()=> getSale(s)}>Print</Button>
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </Table>
         </Col>
