@@ -23,7 +23,7 @@ function reducer(state, action){
     case 'FETCH_REQUEST':
       return{...state, loading: true}
     case 'FETCH_SUCCESS':
-      return {...state, codes: action.payload, loading: false}
+      return {...state, codes: action.payload.tenCodes, loading: false}
     case 'FETCH_FAIL':
       return {...state, loading: false, error: action.payload}
     default:
@@ -90,7 +90,7 @@ export default function SaleScreen() {
     const getCodes = async()=> {
       try{
         const {data} = await axios.get('/api/wholesale/invoices')
-        dispatch({type: 'FETCH_SUCCESS', payload: data.tenCodes})
+        dispatch({type: 'FETCH_SUCCESS', payload: data})
       }catch(error){
         dispatch({type: 'FETCH_FAIL', payload: error})
         toast.error(getError(error))
