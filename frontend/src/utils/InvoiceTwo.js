@@ -118,7 +118,7 @@ const InvoiceTwo = ({ sale }) => (
     <Page size="A4" style={styles.page}>
       <View style={styles.section}>
         <Text style={styles.header}>Invoice: {sale.InvoiceCode}</Text>
-        <Text style={styles.subHeader}>Name: {sale.name}</Text>
+        <Text style={styles.subHeader}>Name: {sale.customer}</Text>
         <Text style={styles.subHeader}>Paid By: {sale.paidBy}</Text>
         <Text style={styles.subHeader}>Date: {sale.date}</Text>
         <Text style={styles.subHeader}>Status: {sale.free ? 'F.O.C' : 'CHARGED'}</Text>
