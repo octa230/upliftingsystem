@@ -124,9 +124,10 @@ const Invoice = ({ sale }) => (
         <Text style={styles.subHeader}>Status: {sale.free ? 'F.O.C' : 'CHARGED'}</Text>
 
         <View style={styles.address}>
-        <Text style={styles.adressText}>JUMERIAH DUBAI</Text>
-        <Text style={styles.adressText}>LAKE TOWER</Text>
+        <Text style={styles.adressText}>JUMERIAH LAKE TOWERS</Text>
+        <Text style={styles.adressText}>LAKE VIEW TOWER</Text>
         <Text style={styles.adressText}>CLUSTER B</Text>
+        <Text style={styles.adressText}>DUBAI</Text>
         </View>
 
         <View style={styles.table}>
