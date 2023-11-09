@@ -113,7 +113,8 @@ const styles = StyleSheet.create({
   }
 });
 
-const Invoice = ({ sale }) => (
+const Invoice = (sale) => (
+
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.section}>
