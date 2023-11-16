@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom'
 import Table from 'react-bootstrap/esm/Table'
 import Button from 'react-bootstrap/esm/Button'
 import { PDFViewer } from '@react-pdf/renderer'
+import ReactPDF from '@react-pdf/renderer'
 import Invoice from '../utils/Invoice'
 
 
@@ -90,10 +91,9 @@ export default function SaleHistory() {
 
     const openPDFVeiwer = (sale)=> {
         setSale(sale)
-        setshowPDF(true)
+        setshowPDF(true) 
+        ReactPDF.render(<Invoice sale={sale}/>, `${__dirname}/${sale.InvoiceCode}.pdf`)
     }
-
-
 
   return (
 
@@ -120,6 +120,7 @@ export default function SaleHistory() {
                                     Print invoice
                                 </Button>
                                 </Col>
+                               
                                 <Col >
                                     <Button variant='warning'>
                                     <Link to={`/edit-sale/${sale._id}`}>
@@ -135,7 +136,7 @@ export default function SaleHistory() {
             <div style={{maxWidth:'50%'}}>
             {showPDF && (
                 <PDFViewer width="100%" height="600">
-                    <Invoice sale={sale}/>
+                    {Invoice(sale)}
                 </PDFViewer>
                 )}
             </div>
