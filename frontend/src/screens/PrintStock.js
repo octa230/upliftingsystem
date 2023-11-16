@@ -1,6 +1,6 @@
 import React, {useEffect, useReducer, useRef, useState} from 'react'
 import {useReactToPrint} from 'react-to-print'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { Button, Container, Table, Form } from 'react-bootstrap'
 import {BsFillArrowUpRightSquareFill} from 'react-icons/bs'
 import axios from 'axios'
@@ -16,9 +16,8 @@ const reducer = (state, action)=> {
         case 'FETCH_SUCCESS':
             return {
                 ...state, loading: false, 
-                products: action.payload.products, 
+                products: action.payload, 
                 page: action.payload.page, 
-                pages: action.payload.pages,    
             }
         default:
             return state
@@ -35,7 +34,7 @@ export default function PrintStock() {
     const [searchTerm, setSearchTerm] = useState('')
 
    
-    const [{products, pages}, dispatch] = useReducer(reducer, {
+    const [{products}, dispatch] = useReducer(reducer, {
         loading: true,
         products: [],
         error: ""
@@ -45,8 +44,8 @@ export default function PrintStock() {
         const getProducts = async()=> {
             dispatch({type: 'FETCH PRODUCTS'})
             try{
-                const {data} = await axios.get(`/api/product/list?page${page}`)
-                dispatch({type: 'FETCH_SUCCESS', payload: data})
+                const {data} = await axios.get('/api/product/all')
+                dispatch({type: 'FETCH_SUCCESS', payload: data })
             } catch(error){
                 toast.error(getError(error))
             }
@@ -87,6 +86,7 @@ export default function PrintStock() {
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Purchase</th>
                     <th>Stock</th>
                 </tr>
             </thead>
@@ -94,22 +94,13 @@ export default function PrintStock() {
                 {filteredProducts?.map((product)=> (
                     <tr key={product._id}>
                         <td>{product.name}</td>
+                        <td>{product.purchase}</td>
                         <td>{product.inStock}</td>
                     </tr>
                 ))}
             </tbody>
         </Table>
       </div>
-      <div>
-        {[...Array(pages).keys()].map((x)=>(
-            <Link key={x+ 1} 
-            to={`/api/product/list?page${x + 1}`}
-            className={x + 1 === Number(page) ? 'btn text-bold': 'btn'}
-            >
-            {x + 1}
-            </Link>
-        ))}
-    </div>
     </Container>
   )
 }

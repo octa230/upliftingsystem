@@ -55,6 +55,11 @@ const getAll = asyncHandler(async(req, res)=> {
     })
 })
 
+const getProducts = asyncHandler(async(req, res)=> {
+    const products = await Product.find({})
+    res.send(products)
+
+})
 //getAllproductsByIdAndName
 
 const getAllProducts = asyncHandler(async(req, res)=> {
@@ -112,4 +117,4 @@ if(product){
 }
 })
 
-module.exports = {createProduct, deleteProduct, getAll, updateProduct, getProduct, searchProducts, getAllProducts}
+module.exports = {createProduct, deleteProduct, getAll, updateProduct, getProduct, searchProducts, getAllProducts, getProducts}
