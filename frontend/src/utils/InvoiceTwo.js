@@ -145,7 +145,7 @@ const InvoiceTwo = ({ sale }) => (
           {sale.saleItems.map((item, index) => (
             <View key={index} style={styles.tableRow}>
               <View style={styles.tableCell}>
-                <Text style={styles.tableFont}>{item.productName}</Text>
+                <Text style={styles.tableFont}>{item.name}</Text>
               </View>
               <View style={styles.tableCell}>
                 <Text style={styles.tableFont}>{item.quantity}</Text>

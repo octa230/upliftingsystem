@@ -73,7 +73,7 @@ const generateInvoice = asyncHandler(async(req, res)=> {
   if (sale){
     const doc = new PDFDocument();
 
-    const stream = fs.createWriteStream(`${sale.invoiceCode}.pdf`)
+    const stream = fs.createWriteStream(`${sale.InvoiceCode}.pdf`)
     doc.pipe(stream)
 
     doc.fontSize(20).text('Invoice', {align: 'center'})
