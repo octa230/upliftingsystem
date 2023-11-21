@@ -173,7 +173,7 @@ const InvoiceTwo = ({ sale }) => (
             <Text>Subtotal</Text>
           </View>
           <View style={styles.totalTableCell}>
-            <Text>AED {sale.subTotal}</Text>
+            <Text>AED {sale.totalPrice}</Text>
           </View>
         </View>
         <View style={styles.totalTableRow}>
