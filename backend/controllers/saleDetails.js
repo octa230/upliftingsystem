@@ -7,7 +7,7 @@ const fs = require('fs')
 
 const makeSale = asyncHandler(async(req, res)=> {
 
-        const uuid =()=> `UPDXB_${uuidv4().substring(0, 6)}`
+        const uuid =()=> `CDFDXB_${uuidv4().substring(0, 6)}`
 
         const newSale = new SaleDetails({
             saleItems: req.body.products.map((x)=> ({
