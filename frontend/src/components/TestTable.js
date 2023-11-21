@@ -67,10 +67,16 @@ function ProductTable() {
   };
 
   
-
+ /*  const handleFileChange=(event, index)=> {
+    const newProducts = [...products];
+    newProducts[index].file = event.target.value
+    setFile(newProducts)
+    console.log(newProducts)
+  } */
   const calculateSubtotal = () => {
     return products.reduce((accumulator, product) => accumulator + (product.price * product.quantity), 0);
   };
+
 
   const calculateVat =()=> {
     const subtotal = calculateSubtotal()
@@ -78,7 +84,7 @@ function ProductTable() {
     return Calculatedvat.toFixed(2)
 
   }
-
+  
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     const vat = calculateVat()
@@ -104,8 +110,8 @@ if(hasNullValues){
   toast.error('check Table Data for empty values')
   return
 }
-      try{
 
+      try{
         const subTotal = calculateSubtotal()
         const total = calculateTotal()
         const vat = calculateVat()
@@ -161,9 +167,14 @@ if(hasNullValues){
     <Form.Label>prepared By</Form.Label>
     <Form.Select onChange={handleSelectedValue(setPreparedBy)} required>
       <option>choose..</option>
+
       <option>Adel</option>
       <option>Allan</option>
       <option>Joe</option>
+      <option>Ahmed</option>
+      <option>Mahel</option>
+      <option>Adel</option>
+      <option>Gladwin</option>
     </Form.Select>
     </Col>
     <Col className='' sm={2}>
