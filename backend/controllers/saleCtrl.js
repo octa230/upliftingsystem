@@ -3,7 +3,8 @@ const asyncHandler = require ( 'express-async-handler');
 //const fs = require('fs')
 const User = require ( '../models/user');
 const Sale = require('../models/saleModel')
-const { v4: uuidv4} = require('uuid')
+const { v4: uuidv4} = require('uuid');
+const Product = require('../models/product');
 
 
 
@@ -15,6 +16,19 @@ const getSales = asyncHandler(async(req, res)=> {
 
 const makeSale = asyncHandler(async(req, res)=> {
     
+    for(const product of req.body.saleItems){
+        const dbProduct = await Product.findById(product._id)
+
+        if(!dbProduct){
+            return res.status(404).send(`Product ${product} not Found`)
+        }
+        if(dbProduct.inStock < product.quantity){
+            res.status(400).send('inSufficient stock')
+        }
+
+        dbProduct.inStock -= product.quantity
+        await dbProduct.save()
+    }
     const uuid =()=> `CDFDXB/W_${uuidv4().substring(0, 6)}`
 
     const newSale = new Sale({
