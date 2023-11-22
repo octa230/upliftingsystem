@@ -16,6 +16,7 @@ const getSales = asyncHandler(async(req, res)=> {
 
 const makeSale = asyncHandler(async(req, res)=> {
     
+
     for(const product of req.body.saleItems){
         const dbProduct = await Product.findById(product._id)
 
@@ -30,7 +31,6 @@ const makeSale = asyncHandler(async(req, res)=> {
         await dbProduct.save()
     }
     const uuid =()=> `CDFDXB/W_${uuidv4().substring(0, 6)}`
-
     const newSale = new Sale({
         InvoiceCode: uuid(),
         saleItems: req.body.saleItems.map((x)=> ({
@@ -47,7 +47,7 @@ const makeSale = asyncHandler(async(req, res)=> {
         service: req.body.service,
         date: req.body.date,
         taxPrice: req.body.taxPrice,
-        saleItemsPrice: req.body.totalPrice,
+        saleItemsPrice: req.body.itemsPrice,
         phone: req.body.phone,
         customer: req.body.customer,
         free: req.body.free,

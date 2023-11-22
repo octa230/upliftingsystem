@@ -159,6 +159,8 @@ const InvoiceTwo = ({ sale }) => (
           ))}
         </View>
         {/* Table for Subtotal, VAT, Discount, and Total */}
+        <view>
+        </view>
       <View style={styles.totalTable}>
         <View style={styles.totalTableRow}>
           <View style={styles.totalTableHeader}>
@@ -173,7 +175,7 @@ const InvoiceTwo = ({ sale }) => (
             <Text>Subtotal</Text>
           </View>
           <View style={styles.totalTableCell}>
-            <Text>AED {sale.totalPrice}</Text>
+            <Text>AED {sale.saleItemsPrice}</Text>
           </View>
         </View>
         <View style={styles.totalTableRow}>
@@ -208,7 +210,7 @@ const InvoiceTwo = ({ sale }) => (
             </Text>
         </View>
         <View style={styles.footer}>
-            <Text style={styles.footer}>WEBSITE: chateaudesfleursuae.com</Text>
+            <Text style={styles.footer}>chateaudesfleursuae.com</Text>
             <Text style={styles.footer}>INSTAGRAM: Chateau Des Fleurs</Text>
             <Text style={styles.footer}>WHATSAPP: +971542045428</Text>
         </View>

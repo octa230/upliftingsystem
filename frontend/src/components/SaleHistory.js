@@ -11,8 +11,7 @@ import { toast } from 'react-toastify'
 import { Link } from 'react-router-dom'
 import Table from 'react-bootstrap/esm/Table'
 import Button from 'react-bootstrap/esm/Button'
-import { PDFViewer } from '@react-pdf/renderer'
-import ReactPDF from '@react-pdf/renderer'
+import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer'
 import Invoice from '../utils/Invoice'
 
 
@@ -48,7 +47,7 @@ export default function SaleHistory() {
     const [searchCode, setSearchCode] = useState('')
     const [searchPhone, setSearchphone] = useState('')
     const [selectedSale, setSelectedSale] = useState()
-    const [sale, setSale] = useState(null)
+    const [printSale, setPrintSale] = useState(null)
     const [showPDF, setshowPDF] = useState(false)
 
     useEffect(()=> {
@@ -89,10 +88,14 @@ export default function SaleHistory() {
        }
     }
 
-    const openPDFVeiwer = (sale)=> {
-        setSale(sale)
+    const openPDFVeiwer = async(s)=> {
+        const result = await axios.get(`/api/multiple/get-sale/${s}`)
+        const fetchdData = result.data
+        console.log(result.data)
+        console.log(fetchdData)
+        setPrintSale(fetchdData)
         setshowPDF(true) 
-        ReactPDF.render(<Invoice sale={sale}/>, `${__dirname}/${sale.InvoiceCode}.pdf`)
+        console.log(printSale)
     }
 
   return (
@@ -116,7 +119,7 @@ export default function SaleHistory() {
                             <td>{sale.total}</td>
                             <td className='d-flex'>
                                 <Col>
-                                <Button variant='secondary' onClick={()=>openPDFVeiwer(sale)}>
+                                <Button variant='secondary' onClick={()=> openPDFVeiwer(sale._id)}>
                                     Print invoice
                                 </Button>
                                 </Col>
@@ -134,11 +137,20 @@ export default function SaleHistory() {
                 </tbody>
             </Table>
             <div style={{maxWidth:'50%'}}>
-            {showPDF && (
+            <div>
+            {showPDF && printSale &&(
                 <PDFViewer width="100%" height="600">
-                    {Invoice(sale)}
+                    <Invoice sale={printSale}/>
                 </PDFViewer>
                 )}
+                </div>
+                {printSale && (
+                <PDFDownloadLink document={<Invoice sale={printSale} />} fileName={`Invoice_${printSale.InvoiceCode}.pdf`}>
+                {({ blob, url, loading, error }) =>
+                  loading ? 'Loading document...' : <Button onClick={() => openPDFVeiwer(printSale._id)}>Download</Button>
+                }
+              </PDFDownloadLink>
+            )}
             </div>
             <h5>Search Sales Database</h5>
             <Col>
@@ -264,7 +276,7 @@ export default function SaleHistory() {
                     </Card.Body>
                 
             </Card>
-            </Col>
+            </Col> 
         </Row>
   )
 }

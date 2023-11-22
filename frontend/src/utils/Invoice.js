@@ -113,8 +113,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const Invoice = (sale) => (
-
+const Invoice = ({sale}) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.section}>
@@ -215,7 +214,7 @@ const Invoice = (sale) => (
             </Text>
         </View>
         <View style={styles.footer}>
-            <Text style={styles.footer}>WEBSITE: chateaudesfleursuae.com</Text>
+            <Text style={styles.footer}>chateaudesfleursuae.com</Text>
             <Text style={styles.footer}>INSTAGRAM: chateau Des Fleurs</Text>
             <Text style={styles.footer}>WHATSAPP: +971542045428</Text>
         </View>
