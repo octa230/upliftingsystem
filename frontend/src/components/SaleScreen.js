@@ -6,7 +6,7 @@ import {BsDashSquareFill, BsFillPlusSquareFill, BsXSquareFill, BsTrash3Fill} fro
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import MessageBox from './MessageBox'
-import { PDFViewer } from '@react-pdf/renderer'
+import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer'
 import InvoiceTwo from '../utils/InvoiceTwo'
 
 
@@ -104,7 +104,7 @@ export default function SaleScreen() {
   //console.log(filteredCodes)
 
   const getSale = async(x)=> {
-    const response = await axios.get(`/api/wholesale/get-sale/${x._id}`)
+    const response = await axios.get(`/api/wholesale/get-sale/${x}`)
     const fetchedSale = response.data
     //setSales(sale)
     setPrintSale(fetchedSale)
@@ -118,13 +118,21 @@ export default function SaleScreen() {
   sale.taxPrice = RoundTo(0.05 * sale.itemsPrice)
   sale.totalPrice = sale.itemsPrice + sale.taxPrice;
 
+  const subTotal = sale.itemsPrice - sale.taxPrice.toFixed(2)
+  const tax = sale.taxPrice.toFixed(2)
+  const Total = sale.itemsPrice + sale.taxPrice - discount
+
   const makeSale = async()=> {
+    if(!preparedBy || !phone || !customer || !paidBy || !service){
+      toast.error('Check all data Fields')
+      return
+    }
     try{  
         await axios.post('/api/wholesale/make-sale', { 
         saleItems: sale.saleItems,
-        totalPrice: sale.totalPrice,
-        itemsPrice: sale.itemsPrice,
-        taxPrice: sale.taxPrice,
+        totalPrice: Total,
+        itemsPrice: subTotal,
+        taxPrice: tax,
         preparedBy: preparedBy,
         paidBy: paidBy, 
         service: service,
@@ -174,7 +182,7 @@ export default function SaleScreen() {
         <Row className='my-2 py-3'>
           <Col>
           <Form.Label>Paid By</Form.Label>
-          <Form.Select onChange={handleSelectedValue(setPaidBy)}>
+          <Form.Select onChange={handleSelectedValue(setPaidBy)} required>
             <option>Select...</option>
             <option>Card</option>
             <option>Cash</option>
@@ -184,7 +192,7 @@ export default function SaleScreen() {
           </Col>
           <Col>
           <Form.Label>prepared By</Form.Label>
-            <Form.Select onChange={handleSelectedValue(setPreparedBy)}>
+            <Form.Select onChange={handleSelectedValue(setPreparedBy)} required>
             <option>choose..</option>
             <option>Allan</option>
             <option>Ahmed</option>
@@ -195,7 +203,7 @@ export default function SaleScreen() {
 
           <Col>
           <Form.Label>service</Form.Label>
-          <Form.Select onChange={handleSelectedValue(setService)}>
+          <Form.Select onChange={handleSelectedValue(setService)} required>
             <option>Select...</option>
             <option>Delivery</option>
             <option>Store Pick Up</option>
@@ -211,6 +219,7 @@ export default function SaleScreen() {
           <Form.Control
             type='input'
             name='phone'
+            required
             value={phone || ''}
             onChange={(e)=> setPhone(e.target.value)}
             />
@@ -219,6 +228,7 @@ export default function SaleScreen() {
           <Form.Label>Name</Form.Label>
           <Form.Control
             type='input'
+            required
             name='name'
             value={customer || ''}
             onChange={(e)=> setCustomer(e.target.value)}
@@ -316,20 +326,20 @@ export default function SaleScreen() {
               <ListGroup.Item>
               <Row>
                 <Col>SubTotal</Col>
-                <Col>AED: {sale.itemsPrice - sale.taxPrice.toFixed(2).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
+                <Col>AED: {subTotal}</Col>
               </Row>
               </ListGroup.Item>
               <ListGroup.Item>
               <Row>
                 <Col>Tax</Col>
-                <Col>AED: {sale.taxPrice.toFixed(2).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
+                <Col>AED: {tax}</Col>
               </Row>
               </ListGroup.Item>
 
               <ListGroup.Item>
               <Row>
                 <Col>Total</Col>
-                <Col>AED: {(sale.itemsPrice + sale.taxPrice - discount).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
+                <Col>AED: {(Total).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
                 <Col className='d-flex pt-3'>
               <Form.Label>Discount:</Form.Label>
                 <span className='text-danger'>
@@ -372,7 +382,7 @@ export default function SaleScreen() {
                 <td>{s.InvoiceCode}</td>
                 <td>{s.totalPrice}</td>
                 <td>
-                  <Button onClick={()=> getSale(s)}>Print</Button>
+                  <Button onClick={()=> getSale(s._id)}>Print</Button>
                 </td>
               </tr>
             )})}
@@ -387,6 +397,13 @@ export default function SaleScreen() {
           </PDFViewer>
         )}
       </div>
+      {printsale && (
+        <PDFDownloadLink document={<InvoiceTwo sale={printsale}/>} fileName={`Invoice_${printsale.InvoiceCode}.pdf`}>
+           {({ blob, url, loading, error }) =>
+            loading ? 'Loading document...' : <Button onClick={() => getSale(printsale._id)} className='mt-2'>Download</Button>
+          }
+        </PDFDownloadLink>
+      )}
         </Col>
       </Row>
     </Container>
