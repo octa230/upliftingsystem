@@ -47,7 +47,7 @@ const makeSale = asyncHandler(async(req, res)=> {
         service: req.body.service,
         date: req.body.date,
         taxPrice: req.body.taxPrice,
-        saleItemsPrice: req.body.totalPrice,
+        saleItemsPrice: req.body.itemsPrice,
         phone: req.body.phone,
         customer: req.body.customer,
         free: req.body.free,
