@@ -113,14 +113,21 @@ export default function SaleScreen() {
   }
 
   
-  const RoundTo = (num)=> Math.round(num * 100 + Number.EPSILON) / 100 //====> 123.4567 - 123.45;
-  sale.itemsPrice = RoundTo(sale.saleItems.reduce((acc, curr)=> acc + curr.quantity * curr.price, 0))
-  sale.taxPrice = RoundTo(0.05 * sale.itemsPrice)
-  sale.totalPrice = sale.itemsPrice + sale.taxPrice;
+  //const RoundTo = (num)=> Math.round(num * 100 + Number.EPSILON) / 100 //====> 123.4567 - 123.45;
+  const CalcTax = ()=> {
+    return parseFloat((sale.itemsPrice * 0.05).toFixed(2))
+  }
+  const CalcSubTotal = ()=> {
+    const calculateSubtotal = sale.itemsPrice = sale.saleItems.reduce(
+    (acc, curr)=> acc + (curr.price * curr.quantity) - discount, 0)
 
-  const subTotal = sale.itemsPrice - sale.taxPrice.toFixed(2)
-  const tax = sale.taxPrice.toFixed(2)
-  const Total = sale.itemsPrice + sale.taxPrice - discount
+    const subtotal = calculateSubtotal - CalcTax()
+    return subtotal
+  }
+  const CalcTotal = ()=> {
+    return CalcSubTotal() + CalcTax();
+  }
+
 
   const makeSale = async()=> {
     if(!preparedBy || !phone || !customer || !paidBy || !service){
@@ -128,6 +135,12 @@ export default function SaleScreen() {
       return
     }
     try{  
+
+
+        const Total = CalcTotal()
+        const tax = CalcTax()
+        const subTotal = CalcSubTotal()
+
         await axios.post('/api/wholesale/make-sale', { 
         saleItems: sale.saleItems,
         totalPrice: Total,
@@ -195,9 +208,7 @@ export default function SaleScreen() {
             <Form.Select onChange={handleSelectedValue(setPreparedBy)} required>
             <option>choose..</option>
             <option>Allan</option>
-            <option>Ahmed</option>
             <option>Adel</option>
-            <option>Gladwin</option>
             </Form.Select>
           </Col>
 
@@ -326,20 +337,20 @@ export default function SaleScreen() {
               <ListGroup.Item>
               <Row>
                 <Col>SubTotal</Col>
-                <Col>AED: {subTotal}</Col>
+                <Col>AED: {CalcSubTotal()}</Col>
               </Row>
               </ListGroup.Item>
               <ListGroup.Item>
               <Row>
                 <Col>Tax</Col>
-                <Col>AED: {tax}</Col>
+                <Col>AED: {CalcTax()}</Col>
               </Row>
               </ListGroup.Item>
 
               <ListGroup.Item>
               <Row>
                 <Col>Total</Col>
-                <Col>AED: {(Total).toLocaleString(undefined, {maximumFractionDigits: 2})}</Col>
+                <Col>AED: {CalcTotal()}</Col>
                 <Col className='d-flex pt-3'>
               <Form.Label>Discount:</Form.Label>
                 <span className='text-danger'>

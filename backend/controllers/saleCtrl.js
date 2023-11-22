@@ -30,7 +30,7 @@ const makeSale = asyncHandler(async(req, res)=> {
         dbProduct.inStock -= product.quantity
         await dbProduct.save()
     }
-    const uuid =()=> `CDFDXB/W_${uuidv4().substring(0, 6)}`
+    const uuid =()=> `UPLDXB/W_${uuidv4().substring(0, 6)}`
     const newSale = new Sale({
         InvoiceCode: uuid(),
         saleItems: req.body.saleItems.map((x)=> ({

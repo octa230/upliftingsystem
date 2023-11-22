@@ -168,8 +168,6 @@ if(hasNullValues){
     <Form.Select onChange={handleSelectedValue(setPreparedBy)} required>
       <option>choose..</option>
 
-      <option>Adel</option>
-      <option>Allan</option>
       <option>Joe</option>
       <option>Ahmed</option>
       <option>Mahel</option>
