@@ -207,8 +207,11 @@ export default function SaleScreen() {
           <Form.Label>prepared By</Form.Label>
             <Form.Select onChange={handleSelectedValue(setPreparedBy)} required>
             <option>choose..</option>
-            <option>Allan</option>
+            <option>Joe</option>
+            <option>Ahmed</option>
+            <option>Mahel</option>
             <option>Adel</option>
+            <option>Gladwin</option>
             </Form.Select>
           </Col>
 
