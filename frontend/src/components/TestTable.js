@@ -169,8 +169,7 @@ if(hasNullValues){
       <option>choose..</option>
 
       <option>Joe</option>
-      <option>Ahmed</option>
-      <option>Mahel</option>
+      <option>Allan</option>
       <option>Adel</option>
       <option>Gladwin</option>
     </Form.Select>
