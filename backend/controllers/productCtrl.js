@@ -121,62 +121,70 @@ if(product){
 
 ///PURCHASE HOSTORY
 const aggregatePurchaseHistory = asyncHandler(async (req, res) => {
-    const { year, month, name} = req.query;
+  const { year, month, name } = req.query;
 
-    try {
-      let query = {};
-  
-      // Apply filters based on query parameters
-      if (year) {
-        query['prruchaseHistory.date'] = {
-          $gte: new Date(year, 0, 1),
-          $lt: new Date(parseInt(year) + 1, 0, 1),
-        };
-      }
-  
-      if (month) {
-        query['prruchaseHistory.date'] = {
-          $gte: new Date(new Date().getFullYear(), month - 1, 1),
-          $lt: new Date(new Date().getFullYear(), month, 1),
-        };
-      }
-  
-      if (name) {
-        query.name = name;
-      }
-  
-      // Query the database to get total purchase history for all products
-      const products = await Product.find(query);
-  
-      const tableData = [];
-  
-      products.forEach(product => {
-        let productTotalPurchases = 0;
-  
-        const productWisePurchases = product.prruchaseHistory.map(entry => {
-          productTotalPurchases += entry.purchase;
-  
-          return {
-            date: entry.date,
-            purchase: entry.purchase,
-          };
-        });
-  
-        const rowData = {
-          productCode: product.code,
-          productName: product.name,
-          productTotalPurchases,
-          productWisePurchases,
-        };
-  
-        tableData.push(rowData);
-      });
-  
-      res.json(tableData);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+  try {
+    let query = {};
+
+    // Apply filters based on query parameters
+    if (year) {
+      query['prruchaseHistory.date'] = {
+        $gte: new Date(year, 0, 1),
+        $lt: new Date(parseInt(year) + 1, 0, 1),
+      };
     }
+
+    if (month) {
+      // If 'prruchaseHistory.date' already exists in the query, use $and to combine conditions
+      query = {
+        $and: [
+          query,
+          {
+            'prruchaseHistory.date': {
+              $gte: new Date(new Date().getFullYear(), month - 1, 1),
+              $lt: new Date(new Date().getFullYear(), month, 1),
+            },
+          },
+        ],
+      };
+    }
+
+    if (name) {
+      query.name = name;
+    }
+
+    // Query the database to get total purchase history for all products
+    const products = await Product.find(query);
+
+    const tableData = [];
+
+    products.forEach((product) => {
+      let productTotalPurchases = 0;
+
+      const productWisePurchases = product.prruchaseHistory.map((entry) => {
+        productTotalPurchases += entry.purchase;
+
+        return {
+          date: entry.date,
+          purchase: entry.purchase,
+        };
+      });
+
+      const rowData = {
+        productCode: product.code,
+        productName: product.name,
+        productTotalPurchases,
+        productWisePurchases,
+      };
+
+      tableData.push(rowData);
+    });
+
+    res.json(tableData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
   
 
