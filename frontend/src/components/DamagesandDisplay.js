@@ -13,7 +13,7 @@ export default function Damages() {
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
   const [year, setYear] = useState('')
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState({});
   const [products, setProducts] = useState([])
 
 
@@ -32,13 +32,16 @@ export default function Damages() {
           year
         }
       })
-      setResults(response.data)
+      setResults(response.data ? response.data : {})
       console.log(results)
     }catch(error){
       console.log(error)
     }
   }
 
+  const generatePDF = ()=> {
+    window.print()
+  }
 
   ///fetch names useEffect
   useEffect(()=> {
@@ -126,12 +129,15 @@ export default function Damages() {
             </Form.Group>
           </Col>
         </Row>
+        <div className='d-flex justify-content-between'>
         <Button className='my-3' type='submit'>sort</Button>
+        <Button onClick={generatePDF} className='my-3'>Export PDF</Button>
+        </div>
       </Form>
 
 
 {/**results TABLE */}
-      <Table striped bordered hover>
+      <Table striped bordered hover id='printablediv'>
         <thead>
           <tr>
             <th>Product</th>
@@ -143,16 +149,33 @@ export default function Damages() {
         <tbody>
           {results && results.quantityByDayAndMonth?.map((result, index) => (
             <tr key={index}>
-              <td>{product}</td>
+              <td>{result.productName}</td>
               <td>{result.quantity}</td>
               <td>{result.day}</td>
               <td>{result.month}</td>
             </tr>
           ))}
-          <tr>
-          <td>Total: {results.totalQuantity}</td>
-          </tr>
         </tbody>
+        {
+          results.totalPrice ? (
+          <tfoot>
+          <tr>
+            <td colSpan='4'>Total: {results.totalQuantity || 0}</td>
+          </tr>
+          <tr colSpan='4'>
+            <td>Valuation:{results.totalPrice.toFixed(2) || 0}</td>
+          </tr>
+          </tfoot>
+          ): (
+            <tfoot>
+              <tr>
+                <td>
+                no data
+                </td>
+              </tr>
+            </tfoot>
+          )
+        }
       </Table>
       
     </div>
