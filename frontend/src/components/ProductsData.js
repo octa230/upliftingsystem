@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import Form from 'react-bootstrap/esm/Form';
 import Row from 'react-bootstrap/esm/Row';
@@ -12,6 +12,9 @@ export default function ProductsData() {
   const [year, setYear] = useState('')
   const [name, setName]= useState('')
   const [results, setResults] = useState([])
+  const [products, setProducts] = useState([])
+  const [day, setDay] = useState('')
+  const [product, setProduct] = useState('')
 
   const handleSubmit = async(e)=> {
     e.preventDefault()
@@ -21,7 +24,8 @@ export default function ProductsData() {
         params:{
           month, 
           year, 
-          name
+          day,
+          product
         }
       })
       setResults(response.data)
@@ -29,12 +33,23 @@ export default function ProductsData() {
       console.log(err)
     }
   }
+
+  useEffect(()=> {
+    async function getNames(){
+      const res = await axios.get('/api/product/names')
+      setProducts(res.data)
+      console.log(products)
+    }
+    getNames()
+  }, [])
+
+
   return (
     <div>
       <h2>Total purchase</h2>
       <Form onSubmit={handleSubmit}>
         <Row>
-{/*           <Col>
+          <Col>
           <Form.Group controlId="product">
               <Form.Label>Product</Form.Label>
               <Form.Select as='select' value={product} onChange={(e)=> setProduct(e.target.value)}>
@@ -46,7 +61,7 @@ export default function ProductsData() {
                 ))}
               </Form.Select>
             </Form.Group>
-          </Col> */}
+          </Col>
         </Row>
         <Row>
         <Col>
@@ -70,8 +85,7 @@ export default function ProductsData() {
                 onChange={(e) => setYear(e.target.value)}
               />
             </Form.Group>
-          </Col>
-{/*           <Col>
+          </Col>          <Col>
             <Form.Group controlId="day">
               <Form.Label>Day</Form.Label>
               <Form.Control
@@ -81,27 +95,27 @@ export default function ProductsData() {
                 onChange={(e) => setDay(e.target.value)}
               />
             </Form.Group>
-          </Col> */}
+          </Col> 
         </Row>
         <Button className='my-3' type='submit'>sort</Button>
       </Form>
       <Table striped bordered hover>
       <thead>
         <tr>
-          <th>Product Code</th>
           <th>Product Name</th>
-          <th>Total Purchases</th>
-          <th>Details</th>
+          <th>Purchases</th>
+          <th>Total Price</th>
+          <th>Date</th>
         </tr>
       </thead>
       <tbody>
-        {results.map(row => (
-          <tr key={row.productCode}>
-            <td>{row.productCode}</td>
-            <td>{row.productName}</td>
-            <td>{row.productTotalPurchases}</td>
-            <td>
-              {/* Render details or expandable content based on your needs */}
+        {results && results.map(row => (
+          <tr key={row.ProductID}>
+            <td>{row.Name}</td>
+            <td>{row.TotalPurchases}</td>
+            <td>{row.TotalPrice}</td>
+            <td>{row.Date}</td>
+            {/* <td>
               <ul>
                 {row.productWisePurchases && row.productWisePurchases.map(entry => (
                   <li key={entry.date}>
@@ -109,7 +123,7 @@ export default function ProductsData() {
                   </li>
                 ))}
               </ul>
-            </td>
+            </td> */}
           </tr>
         ))}
       </tbody>
