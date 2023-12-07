@@ -2,8 +2,6 @@ const SaleDetails = require('../models/saleDetails');
 const asyncHandler = require('express-async-handler');
 const Product = require('../models/product');
 const { v4: uuidv4 } = require('uuid');
-const PDFDocument = require('pdfkit')
-const fs = require('fs')
 
 const makeSale = asyncHandler(async(req, res)=> {
 
@@ -61,55 +59,6 @@ const getsingleSale = asyncHandler(async(req, res)=> {
     }else{
         res.status(404).send({message: "sale not found"})
     }
-})
-
-
-///GENERATE SALE INVOICE
-
-const generateInvoice = asyncHandler(async(req, res)=> {
-  const saleId = req.params.id
-  const sale = await SaleDetails.findById(saleId)
-
-  if (sale){
-    const doc = new PDFDocument();
-
-    const stream = fs.createWriteStream(`${sale.InvoiceCode}.pdf`)
-    doc.pipe(stream)
-
-    doc.fontSize(20).text('Invoice', {align: 'center'})
-
-    doc.fontSize(12);
-    doc.text(`PREPARED BY${sale.preparedBy}`)
-    doc.text(`PAID BY${sale.paidBy}`)
-    doc.text(`DATE${sale.date}`)
-    doc.text(`FOC${sale.free ? 'F.O.C' : 'CHARGED'}`)
-
-
-    doc.fontSize(16).text('PRODUCTS', {underline: true})
-    doc.moveDown(0.5)
-
-    sale.saleItems.forEach((item)=> {
-      doc.text(`Product:${item.productName}`)
-      doc.text(`Quantity:${item.quantity}`)
-      doc.text(`Price: AED-${item.price}`)
-      doc.text(`Arrangement ${item.arrangement}`)
-      doc.moveDown(0.5)
-    })
-
-    doc.moveDown(1)
-    doc.text(`SUBTOTAL:${sale.subTotal}`)
-    doc.text(`DISCOUNT: ${sale.discount}`)
-    doc.text(`VAT:${sale.vat}`)
-    doc.text(`TOTAL:${sale.total}`)
-
-
-    doc.end();
-
-    stream.on('finish', () => {
-      console.log('PDF created successfully')});
-  }else{
-    res.send('sale not found')
-  }
 })
 
 
@@ -411,7 +360,7 @@ const customerData = asyncHandler(async(req, res)=> {
 })
 
 module.exports = {getSales, querySalesData,
-  getsingleSale, addSaleUnits, generateInvoice,
+  getsingleSale, addSaleUnits,
   makeSale, salesData, getSalesData, 
   aggregateDataIndependently, customerData
 }
