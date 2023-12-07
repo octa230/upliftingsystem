@@ -160,6 +160,82 @@ async function getDataByDate(req, res){
     if (month && day && year) {
       const startDate = new Date(Date.UTC(year, month - 1, day));
       const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 1);
+
+      query.createdAt = {
+        $gte: startDate,
+        $lt: endDate,
+      };
+    } else if (month && year) {
+      // If only month and year are provided, filter by that month and year
+      const startDate = new Date(Date.UTC(year, month - 1, 1));
+      const endDate = new Date(startDate);
+      endDate.setUTCMonth(endDate.getUTCMonth() + 1);
+
+      query.createdAt = {
+        $gte: startDate,
+        $lt: endDate,
+      };
+    } else if (year) {
+      // If only year is provided, filter by that year
+      const startDate = new Date(Date.UTC(year, 0, 1));
+      const endDate = new Date(startDate);
+      endDate.setUTCFullYear(endDate.getUTCFullYear() + 1);
+
+      query.createdAt = {
+        $gte: startDate,
+        $lt: endDate,
+      };
+    }
+
+    // Find all matching Damaged instances based on the query and populate the 'product' field
+    const damages = await Damaged.find(query).populate('product');
+
+    // Calculate the total quantity and total price for all matching instances
+    const { totalQuantity, totalPrice } = damages.reduce(
+      (acc, damage) => ({
+        totalQuantity: acc.totalQuantity + damage.quantity,
+        totalPrice: acc.totalPrice + damage.quantity * damage.product.price,
+      }),
+      { totalQuantity: 0, totalPrice: 0 }
+    );
+
+    // Create an array of objects containing quantity, day, month, product name, and total price for each instance
+    const quantityByDayAndMonth = damages.map((damage) => ({
+      quantity: damage.quantity,
+      day: damage.createdAt.getUTCDate(),
+      month: damage.createdAt.getUTCMonth() + 1,
+      productName: damage.product.name, // Assuming 'name' is the field containing the product name
+      totalPrice: damage.quantity * damage.product.price,
+    }));
+
+    res.send({ totalQuantity, totalPrice, quantityByDayAndMonth });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('Server Error');
+  }
+/*   try {
+    const { product, isDamaged, isDisplay, month, day, year } = req.query;
+    const query = {};
+
+    // If the product parameter is provided, add it to the query
+    if (product) {
+      query.product = product;
+    }
+
+    if (isDamaged !== undefined) {
+      query.isDamaged = isDamaged === 'true'; // Convert to boolean
+    }
+
+    // If isDamaged or isDisplay are provided, add them to the query
+    if (isDisplay !== undefined) {
+      query.isDisplay = isDisplay === 'true'; // Convert to boolean
+    }
+
+    // If both month, day, and year are provided, filter by that specific date
+    if (month && day && year) {
+      const startDate = new Date(Date.UTC(year, month - 1, day));
+      const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + 1); 
       
       //const startDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0)); // Start of the day
@@ -209,7 +285,7 @@ async function getDataByDate(req, res){
   } catch (error) {
     console.log(error);
     res.status(500).send('Server Error');
-  }
+  } */
 }
 
 async function getAll(req, res){

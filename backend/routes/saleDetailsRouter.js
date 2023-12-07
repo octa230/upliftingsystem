@@ -20,7 +20,6 @@ saleDetailsRouter.get('/sales-data', salesData)
 saleDetailsRouter.get('/sales-data', getSalesData)
 saleDetailsRouter.get('/aggregated-sale-data', aggregateDataIndependently)
 saleDetailsRouter.get('/for', querySalesData)
-saleDetailsRouter.post('/print-invoice/:id', generateInvoice)
 
 
 module.exports = saleDetailsRouter
