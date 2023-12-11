@@ -1,14 +1,18 @@
 import React, { useEffect, useState, useReducer, useContext} from 'react'
 import {useParams} from 'react-router-dom'
-import { Card, Container, Form, Stack, Table, Button, Col } from 'react-bootstrap'
+import Card from 'react-bootstrap/esm/Card'
+import Container from 'react-bootstrap/esm/Container'
+import Form from 'react-bootstrap/esm/Form'
+import Stack from 'react-bootstrap/esm/Stack'
+import Table from 'react-bootstrap/esm/Table'
+import Button from 'react-bootstrap/esm/Button'
+import Col from 'react-bootstrap/esm/Col'
 import {Store} from '../utils/Store'
+import MessageBox from '../components/MessageBox'
 import {FaPlusCircle, FaRedo} from 'react-icons/fa'
 import axios from 'axios'
 import {toast} from 'react-toastify'
 import {getError} from '../utils/getError'
-import MessageBox from '../components/MessageBox'
-import ListGroup from 'react-bootstrap/esm/ListGroup'
-import LoadingBox from '../components/LoadingBox'
 
 
 
@@ -51,7 +55,6 @@ const [unitName, setunitName] = useState('')
 const [products, setProducts] = useState([])
 const [images, setImages] = useState([]);
 const [image, setImage] = useState('')
-const [loadingUpload, setloadingUpload] = useState(false)
 
 const { state} = useContext(Store);
 const { userInfoToken } = state;
@@ -137,28 +140,12 @@ const uploadFileHandler = async(e, forImages)=>{
       authorization: `Bearer ${userInfoToken.token}`,
     }
   })
-  if(forImages){
-    setImages([...images, data.secure_url])
-    console.log(images)
-  }else{
-    setImage(data.secure_url)
-    console.log(image)
-  }
+  setImage(data.secure_url)
  }catch(error){
   getError(error)
  }
 }
 
-
-
-///DELETE PHOTO
-const deleteFileHandler = async (fileName, f) => {
-  console.log(fileName, f);
-  console.log(images);
-  console.log(images.filter((x) => x !== fileName));
-  setImages(images.filter((x) => x !== fileName));
-  toast.success('Image removed successfully. click Update to apply it');
-};
 
 const handleNewTable = () => {
   setSelectedProducts([]);
@@ -168,6 +155,10 @@ const handleNewTable = () => {
   const handleSave = async () => {
     if (unitName === '') {
       toast.error('Please Add arrangement');
+      return;
+    }
+    if (image === '') {
+      toast.error('Please Add photo');
       return;
     }
   
@@ -182,11 +173,11 @@ const handleNewTable = () => {
   
     try {  
       await axios.post(`/api/multiple/${saleId}/add-units`, {
-        selectedProducts, unitName, image, images
+        selectedProducts, unitName, image
       });
   
       toast.success('unit added successfully');
-      console.log()
+      //console.log()
     } catch (error) {
       toast.error(getError(error));
       console.log(selectedProducts, unitName, images, image);
@@ -194,7 +185,7 @@ const handleNewTable = () => {
   };
   
   
-  return (
+return (
 <Container>
         <Stack direction='vertical' gap={2}>
               <div className='d-flex align-items-center'>
@@ -207,40 +198,18 @@ const handleNewTable = () => {
                     />
               </Col>
               <Col md={8} xm={12} className='px-2'>
-                <Card.Title className='m-2'>Add Photos</Card.Title>
-                <Form.Group className="mb-3" controlId="imageFile">
-            <Form.Label className='productEditScreenText'>Upload Image</Form.Label>
-            <Form.Control type="file" onChange={uploadFileHandler} />
-          </Form.Group>
+                  <Card.Title className='m-2'>Add Photo</Card.Title>
+                  <Form.Group className="mb-3" controlId="imageFile">
 
-          <Form.Group className="mb-3" controlId="additionalImage">
-            <Form.Label className='productEditScreenText'>Additional Images</Form.Label>
-            {images.length === 0 && <MessageBox>No image</MessageBox>}
-            <ListGroup variant="flush">
-              {images.map((x) => (
-                <ListGroup.Item key={x}>
-                  {x}
-                  <Button variant="light" onClick={() => deleteFileHandler(x)}>
-                    <i className="fa fa-times-circle"></i>
-                  </Button>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
+                  <Form.Label className='productEditScreenText'>Upload Image</Form.Label>
+                  <Form.Control 
+                    type="file" 
+                    onChange={uploadFileHandler} 
+                />
           </Form.Group>
-
-          <Form.Group className="mb-3" controlId="imageFile">
-            <Form.Label className='productEditScreenText'>Upload Aditional Image</Form.Label>
-            <Form.Control
-              type="file"
-              onChange={uploadFileHandler}
-            />
-            {loadingUpload && <LoadingBox></LoadingBox>}
-          </Form.Group>
-          <Form.Control  className='my-3'
-        type='file'
-        placeholder='photo(s)'
-        multiple
-        />
+              {image ? (
+                <Card.Img src={image} style={{width:'200px'}}/>
+              ): (<MessageBox>ADD IMAGE & WAIT</MessageBox>)}
               </Col>
               </div>
                 <Button onClick={handleAddRow} className='w-25'>

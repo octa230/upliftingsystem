@@ -14,6 +14,7 @@ export default function AddProduct() {
     const [code, setProductCode] = useState('')
     const [price, setPrice] = useState('')
     const [inStock, setInStock] = useState('')
+    const [purchasePrice, setpurchasePrice] = useState('')
 
     const createHandler = async()=> {
         try{
@@ -21,7 +22,8 @@ export default function AddProduct() {
                 name,
                 code,
                 price,
-                inStock
+                inStock,
+                purchasePrice,
             })
             toast.success('product added successfully');
             console.log(data)
@@ -56,7 +58,16 @@ export default function AddProduct() {
             </Form.Group>
 
             <Form.Group controlId='price'>
-                <Form.Label>Add Price</Form.Label>
+                <Form.Label>Purchase Price</Form.Label>
+                <Form.Control 
+                onChange={(e)=>setpurchasePrice(e.target.value)} 
+                value={purchasePrice}
+                required
+                />
+            </Form.Group> 
+
+            <Form.Group controlId='price'>
+                <Form.Label>Selling Price</Form.Label>
                 <Form.Control 
                 onChange={(e)=>setPrice(e.target.value)} 
                 value={price}

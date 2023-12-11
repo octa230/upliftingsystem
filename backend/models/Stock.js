@@ -11,5 +11,17 @@ const stockSchema = new mongoose.Schema({
     history:[stockHistory]
 })
 
+const snapShots = new mongoose.Schema({
+    openingStock: {
+        quantity: {type: Number},
+        date: {type: Date, default: Date.now.toLocaleDateString}
+    },
+
+    closingStock: {
+        quantity: {type: Number},
+        date: {type: Date, default: Date.now}
+    }
+})
+
 const Stock = mongoose.Model('Stock', stockSchema)
 module.exports = Stock

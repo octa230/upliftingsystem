@@ -6,6 +6,7 @@ import {useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { getError } from '../utils/getError'
 import { Store } from '../utils/Store'
+import { newDate } from '../utils/Date'
 import axios from 'axios'
 
 
@@ -49,7 +50,7 @@ const navigate = useNavigate()
   async function getProducts(page){
     try{
         const res = await axios.get(`/api/product/list?page=${page}`)
-        setProducts(res.data.products)
+        setProducts(res.data.products || [])
         setTotalPages(res.data.totalPages);
     }catch(error){
         console.error('Error fetching data:', error);
@@ -101,9 +102,11 @@ const navigate = useNavigate()
             <tr>
                 <th>Code</th>
                 <th>Name</th>
-                <th>purchase</th>
-                <th>inStock</th>
-                <th>Price</th>
+                <th>InStock</th>
+                <th>Purchase</th>
+                <th>Sold</th>
+                <th>Waste</th>
+                <th>Closing</th>
                 <th className='d-flex justify-content-between'>
                     Actions
                     <span>
@@ -123,14 +126,20 @@ const navigate = useNavigate()
                         <td>
                             {product.name}
                         </td>
-                        <td>
-                          {product.purchase}
-                        </td>
                         <td style={product.inStock < 5 ? {backgroundColor: 'red'}: {backgroundColor: 'green'}}>
                             {product.inStock}
                         </td>
                         <td>
-                            {product.price}
+                          {product.purchase}
+                        </td>
+                        <td>
+                          {product.sold}
+                        </td>
+                        <td>
+                            {product.waste}
+                        </td>
+                        <td>
+                            {product.closingStock}
                         </td>
                         <td className='d-flex justify-content-end'>
                             <Button variant='' onClick={()=> (navigate(`/api/product/update/${product._id}`))}>                               

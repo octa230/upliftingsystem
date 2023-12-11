@@ -1,13 +1,14 @@
 const express = require('express');
 const {createProduct, 
-    deleteProduct, getAll, 
+    deleteProduct, getAll, insermany,
     updateProduct, getProduct, 
-    searchProducts, getAllProducts, getProducts, aggregatePurchaseHistory} = require('../controllers/productCtrl')
+    searchProducts, getAllProducts, getProducts, aggregatePurchaseHistory, addBulkFields} = require('../controllers/productCtrl')
 
 const productRouter = express.Router();
 
 
 productRouter.get('/names', getAllProducts)
+productRouter.post('/seed', insermany)
 productRouter.post('/new', createProduct)
 productRouter.get('/purchase-history', aggregatePurchaseHistory)
 productRouter.delete('/delete/:id', deleteProduct)

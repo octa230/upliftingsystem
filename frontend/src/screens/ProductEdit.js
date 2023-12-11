@@ -48,6 +48,7 @@ export default function ProductEdit() {
     const [quantity, setQuantity] = useState(0)
     const [product, setProduct] = useState('')
     const [totalPrice, setTotalPrice] = useState(0)
+    const [purchasePrice, setPurchasePrice] = useState(0)
     //const [image, setImage] = useState('')
     
 
@@ -59,7 +60,7 @@ export default function ProductEdit() {
                 setInStock(data.inStock)
                 setName(data.name)
                 setPrice(data.price)
-                
+                setPurchasePrice(data.purchasePrice)
             }catch(err){
                 dispatch({
                     type: 'FETCH_FAIL',
@@ -81,6 +82,7 @@ export default function ProductEdit() {
                 price,
                 inStock,
                 purchase,
+                purchasePrice,
                 code
             })
             toast.success('product updated successfully')
@@ -114,7 +116,7 @@ export default function ProductEdit() {
       <Form.Text>
         <h2>{`Edit Product: ${ProductId}`}</h2>
       </Form.Text>
-        <Form.Group controlId='name'>
+        <Form.Group controlId='name' className='mt-2'>
             <Form.Label>Product Name</Form.Label>
             <Form.Control
             value={name || ''}
@@ -122,7 +124,7 @@ export default function ProductEdit() {
             required
             />
         </Form.Group>
-        <Form.Group controlId='code'>
+        <Form.Group controlId='code' className='mt-2'>
             <Form.Label>Product Code</Form.Label>
             <Form.Control
             value={code || ''}
@@ -130,22 +132,31 @@ export default function ProductEdit() {
             required
             />
         </Form.Group>
-        <Form.Group controlId='price'>
-            <Form.Label>Product price</Form.Label>
+        <Form.Group controlId='price' className='mt-2'>
+            <Form.Label>Selling price</Form.Label>
             <Form.Control
             value={price}
             onChange={(e)=> setPrice(e.target.value)}
             required
             />
         </Form.Group>
-        <Form.Group controlId='purchase'>
-            <Form.Label>Purchase</Form.Label>
+        <Form.Group controlId='price' className='mt-2'>
+            <Form.Label>Purchase price</Form.Label>
+            <Form.Control
+            value={purchasePrice}
+            onChange={(e)=> setPurchasePrice(e.target.value)}
+            required
+            />
+        </Form.Group>
+        <Form.Group controlId='purchase' className='mt-2'>
+            <Form.Label>Purchased Quantity</Form.Label>
             <Form.Control
             value={purchase}
+            placeholder='please use the stock table'
             onChange={(e)=> setPurchase(e.target.value)}
             />
         </Form.Group>
-        <Form.Group controlId='inStock'>
+        <Form.Group controlId='inStock' className='mt-2'>
             <Form.Label>Product inStock</Form.Label>
             <Form.Control
             value={inStock}
@@ -165,7 +176,7 @@ export default function ProductEdit() {
         <h2>{`Display / Damaged Product: ${ProductId}`}</h2>
       </Form.Text>
 
-        <Form.Group controlId='name'>
+        <Form.Group controlId='name' className='mt-2'>
             <Form.Label>Product Name</Form.Label>
             <Form.Control disabled
             value={name}
@@ -174,7 +185,7 @@ export default function ProductEdit() {
             />
         </Form.Group>
 
-        <Form.Group controlId='code'>
+        <Form.Group controlId='code' className='mt-2'>
             <Form.Label>Product Code</Form.Label>
             <Form.Control disabled
             value={code || ''}
@@ -183,7 +194,7 @@ export default function ProductEdit() {
             />
         </Form.Group>
 
-        <Form.Group controlId='price'>
+        <Form.Group controlId='price' className='mt-2'>
             <Form.Label>Total price</Form.Label>
             <Form.Control
             value={price * quantity}
@@ -192,7 +203,7 @@ export default function ProductEdit() {
             />
         </Form.Group>
 
-        <Form.Group controlId='inStock'>
+        <Form.Group controlId='inStock' className='mt-2'>
             <Form.Label>Quantity</Form.Label>
             <Form.Control
             value={quantity}

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import Form from 'react-bootstrap/esm/Form';
-import Row from 'react-bootstrap/esm/Row';
-import Col from 'react-bootstrap/esm/Col';
 import Table from 'react-bootstrap/esm/Table';
 import Button from 'react-bootstrap/esm/Button';
+import Col from 'react-bootstrap/esm/Col'
+import Row from 'react-bootstrap/esm/Row'
 
 export default function ProductsData() {
 
@@ -43,10 +43,13 @@ export default function ProductsData() {
     getNames()
   }, [])
 
+ 
+   
+
+
 
   return (
     <div>
-      <h2>Total purchase</h2>
       <Form onSubmit={handleSubmit}>
         <Row>
           <Col>

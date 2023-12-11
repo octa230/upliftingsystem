@@ -4,7 +4,7 @@ const asyncHandler = require ( 'express-async-handler');
 const User = require ( '../models/user');
 const Sale = require('../models/saleModel')
 const { v4: uuidv4} = require('uuid');
-const Product = require('../models/product');
+const {Product, Transaction} = require('../models/product');
 
 
 
@@ -28,7 +28,20 @@ const makeSale = asyncHandler(async(req, res)=> {
         }
 
         dbProduct.inStock -= product.quantity
+        dbProduct.closingStock -= product.quantity
+        dbProduct.sold += product.quantity
         await dbProduct.save()
+
+        const transaction = new Transaction({
+            product: product._id,
+            productName: dbProduct.name,
+            purchasePrice: dbProduct.purchasePrice,
+            sellingPrice: dbProduct.price,
+            type: 'sale',
+            quantity: product.quantity
+        })
+
+        await transaction.save()
     }
     const uuid =()=> `UPLDXB/W_${uuidv4().substring(0, 6)}`
     const newSale = new Sale({
@@ -79,49 +92,6 @@ const deleteSale = asyncHandler(async(req, res)=> {
     }
 })
 
-const salesSummary = asyncHandler(async(req, res)=> {
-    const sales = await Sale.aggregate([
-        {
-            $group: {
-                _id: null,
-                salesNum: {$num: 1},
-                totalSales: {$num: '$totalPrice'}
-            }
-        }
-    ])
-
-    const users = await User.aggregate([
-        {
-            $group:{
-                _id: null,
-                usersNum: {$num: 1}
-            }
-        }
-    ])
-
-    const dailySales = await Sale.aggregate([
-        {
-            $group:{
-                _id: {dateToString: {format: '%Y-%m-%d', date: 'createdAt'}},
-                orders: {$sum: 1},
-                sales: {$sum: 'totalPrice'}
-            }
-
-        },
-        {$sort:{_id: 1}}
-    ])
-
-    const units = await product.aggregate([
-        {
-            $group: {
-                _id: '$name',
-                count: {$sum: 1}
-            }
-        }
-    ])
-
-    res.send({sales, users, dailySales, units})
-})
 
 const getCodes = asyncHandler(async(req, res)=> {
     try{
@@ -140,4 +110,4 @@ const getCodes = asyncHandler(async(req, res)=> {
     //console.log(codes)
 }) 
 
-module.exports = {getSales, makeSale, getSingleSale, salesSummary, deleteSale, getCodes}
+module.exports = {getSales, makeSale, getSingleSale, deleteSale, getCodes}
