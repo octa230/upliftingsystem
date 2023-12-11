@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Container, Row, Col, Card, Pagination } from 'react-bootstrap';
+import Container from 'react-bootstrap/esm/Container';
+import Col from 'react-bootstrap/esm/Col'
+import Pagination from 'react-bootstrap/esm/Pagination'
+import Row from 'react-bootstrap/esm/Row'
+import Card from 'react-bootstrap/esm/Card'
+
+
+
 
 const AggregatedSaleDetails = () => {
   const [aggregatedData, setAggregatedData] = useState([]);
@@ -63,22 +70,6 @@ const AggregatedSaleDetails = () => {
               </Card.Body>
             </Card>
           ))}
-
-      {/* <h2>phoneAggregation</h2>
-          {aggregationGroup.phoneAggregation.map((fieldAggregation, index) => (
-            <Card key={index} className="mb-3">
-              <Card.Header>{fieldAggregation._id}</Card.Header>
-              <Card.Body>
-                <Row>
-                  <Col>Total Count: {fieldAggregation.totalCount}</Col>
-                  <Col>Total Amount: {fieldAggregation.totalAmount}</Col>
-                  <Col>Rounded Sum: {fieldAggregation.roundedSum}</Col>
-                </Row>
-              </Card.Body>
-            </Card>
-          ))} */}
-          
-          
 
           {/* Similar rendering for preparedByAggregation and phoneAggregation */}
         </div>

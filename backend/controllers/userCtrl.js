@@ -15,8 +15,7 @@ const newUser = new User({
 })
 
 const user = await newUser.save();
-res.send({name: user.name, email: user.email}) 
-token(user)
+res.send({name: user.name, email: user.email, token: token(user)}) 
 })
 
 

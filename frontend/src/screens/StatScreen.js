@@ -8,6 +8,8 @@ import CustomerData from '../components/CustomerData'
 import ProductsData from '../components/ProductsData'
 import SalesData from '../components/SalesData'
 import Damages from '../components/DamagesandDisplay'
+import Analytics from '../components/Analyticts'
+import { newDate } from '../utils/Date'
 
 
 export default function StatScreen() {
@@ -19,10 +21,11 @@ export default function StatScreen() {
     }
   return (
     <Row>
+        <h3>{newDate()}</h3>
         <Col sm={2} className='dashboard-nav'>
             <Nav justify-variant='tabs'  className='d-flex flex-column'>
-                <Nav.Item onClick={handleSideBarClick('sales')}>
-                    <Nav.Link>Sales Data</Nav.Link>
+                <Nav.Item onClick={handleSideBarClick('damages')}>
+                    <Nav.Link>Damages & Display</Nav.Link>
                 </Nav.Item>
                 <Nav.Item onClick={handleSideBarClick('customers')}>
                     <Nav.Link>Customer Data</Nav.Link>
@@ -30,8 +33,11 @@ export default function StatScreen() {
                 <Nav.Item onClick={handleSideBarClick('products')}>
                     <Nav.Link>Product Data</Nav.Link>
                 </Nav.Item>
-                <Nav.Item onClick={handleSideBarClick('damages')}>
-                    <Nav.Link>Damages & Display</Nav.Link>
+                <Nav.Item onClick={handleSideBarClick('sales')}>
+                    <Nav.Link>Sales Data</Nav.Link>
+                </Nav.Item>
+                <Nav.Item onClick={handleSideBarClick('analytics')}>
+                    <Nav.Link>Analytics</Nav.Link>
                 </Nav.Item>
                 <Nav.Item onClick={handleSideBarClick('graphs')}>
                     <Nav.Link>Graphs</Nav.Link>
@@ -43,6 +49,7 @@ export default function StatScreen() {
 
         </Col>  
         <Col sm={8}>
+                {content === 'analytics' && <Analytics/>}
                 {content === 'sales' && <SalesData/>}
                 {content === 'customers' && <CustomerData/>}
                 {content === 'products' && <ProductsData/>}

@@ -1,7 +1,8 @@
 const SaleDetails = require('../models/saleDetails');
 const asyncHandler = require('express-async-handler');
-const Product = require('../models/product');
+const {Product} = require('../models/product');
 const { v4: uuidv4 } = require('uuid');
+const {Transaction} = require('../models/product')
 
 const makeSale = asyncHandler(async(req, res)=> {
 
@@ -64,7 +65,7 @@ const getsingleSale = asyncHandler(async(req, res)=> {
 
 const addSaleUnits =  asyncHandler(async(req, res)=> {
     const saleId = req.params.id
-    const {selectedProducts, unitName, images, image} = req.body
+    const {selectedProducts, unitName, image} = req.body
 
 
     if(!saleId){
@@ -91,12 +92,24 @@ const addSaleUnits =  asyncHandler(async(req, res)=> {
             return
         }
         product.inStock -= selectedProduct.quantity
+        product.closingStock -= selectedProduct.quantity
+        product.sold += parseInt(selectedProduct.quantity)
         await product.save()
+
+        const transaction = new Transaction({
+          product: selectedProduct.product,
+          productName: product.name,
+          purchasePrice: product.purchasePrice,
+          sellingPrice: product.price,
+          type: 'sale',
+          quantity: selectedProduct.quantity
+        })
+
+        await transaction.save()
     }
     sale.units.push({
         arrangement: unitName,
         photo: image,
-        images: images,
         products: selectedProducts.map((x)=> ({
         ...x,
         product: x.product,
@@ -104,6 +117,7 @@ const addSaleUnits =  asyncHandler(async(req, res)=> {
     }))})
     
     await sale.save()
+
     res.status(200).send({message: 'data added successfully'})
     }catch(error){
         console.log(error)
@@ -318,16 +332,6 @@ async function aggregateDataIndependently(req, res) {
                             }
                         }
                     ],
-/*                     phoneAggregation: [
-                        {
-                            $group: {
-                                _id: "$phone",
-                                totalCount: { $sum: 1 },
-                                totalAmount: { $sum: "$total" },
-                                roundedSum: { $sum: { $round: "$total" } }
-                            }
-                        }
-                    ] */
                 }
             }
         ];

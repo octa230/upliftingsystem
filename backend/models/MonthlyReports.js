@@ -1,13 +1,17 @@
 const mongoose = require('mongoose')
 
-const MonthlyDamagesSchema = new mongoose.Schema({
-    product: {type: mongoose.Types.ObjectId, ref: 'Product'},
-    year: {type: Number, required: true},
-    month: {type: Number, required: true},
-    damagedCount: {type: Number, required: true},
-    displayCount: {type: Number, required: true},
-    createdAt: {type: Date, default: Date.now}
+
+
+const MonthlyReportSchema = new mongoose.Schema({
+    month: {type: String, required: true},
+    year: {type: String, required: true},
+    purchases: [{type: mongoose.Schema.Types.ObjectId, ref: 'Transaction'}],
+    sales: [{type: mongoose.Schema.Types.ObjectId, ref: 'Transaction'}],
+    damages: [{type: mongoose.Schema.Types.ObjectId, ref: 'Transaction'}],
+    display: [{type: mongoose.Schema.Types.ObjectId, ref: 'Transaction'}],
 })
 
-const MonthlyDamages = mongoose.model('MonthlyReport', MonthlyDamagesSchema)
-module.exports = MonthlyDamages
+
+
+const MonthlyStock = mongoose.model('MonthlyStockReport', MonthlyReportSchema)
+module.exports = MonthlyStock

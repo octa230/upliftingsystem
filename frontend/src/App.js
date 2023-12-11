@@ -6,7 +6,7 @@ import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import { ToastContainer } from "react-toastify";
 import Nav from "react-bootstrap/Nav";
 import Navbar from 'react-bootstrap/Navbar'
-import {BsBoxArrowRight, BsFillClipboard2DataFill, BsGrid1X2Fill} from 'react-icons/bs'
+import {BsBoxArrowRight, BsFillClipboard2DataFill, BsGrid1X2Fill, BsPieChartFill} from 'react-icons/bs'
 import { useContext } from "react";
 import { Store } from "./utils/Store";
 import EditSaleDetails from "./screens/EditSaleDetails";
@@ -44,7 +44,7 @@ function App() {
           </Nav.Link>
           <Nav.Link href="/stats">
             <span className="p-3 mb-2">
-              <BsFillClipboard2DataFill/>
+              <BsPieChartFill/>
             </span>
             Stats
           </Nav.Link>
