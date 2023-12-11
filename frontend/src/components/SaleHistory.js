@@ -13,6 +13,7 @@ import Table from 'react-bootstrap/esm/Table'
 import Button from 'react-bootstrap/esm/Button'
 import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer'
 import Invoice from '../utils/Invoice'
+import { FaEye, FaPenAlt, FaPrint } from 'react-icons/fa'
 
 
 
@@ -100,9 +101,10 @@ export default function SaleHistory() {
 
   return (
 
-        <Row className='p-4'>
+        <Row className='p-2'>
             <h2 className='text-success'>Last {filteredSales.length} Sales</h2>
-            <Table>
+            <Col>
+            <Table style={{ maxHeight: '500px', overflowY: 'auto' }}>
                 <thead>
                     <tr>
                         <th>Code</th>
@@ -114,20 +116,28 @@ export default function SaleHistory() {
                 <tbody>
                     {filteredSales.map((sale)=> (
                         <tr key={sale._id}>
-                            <td>{sale.InvoiceCode}</td>
+                            <td>
+                                
+                                <Button onClick={()=>handleViewSale(sale._id)} className='bg-primary border'>
+                                <span className='px-1'>
+                                    <FaEye/>
+                                </span>
+                                {sale.InvoiceCode}
+                                </Button>
+                            </td>
                             <td>{sale.date}</td>
                             <td>{sale.total}</td>
                             <td className='d-flex'>
                                 <Col>
                                 <Button variant='secondary' onClick={()=> openPDFVeiwer(sale._id)}>
-                                    Print invoice
+                                    <FaPrint/>
                                 </Button>
                                 </Col>
                                
                                 <Col >
                                     <Button variant='warning'>
                                     <Link to={`/edit-sale/${sale._id}`}>
-                                        Edit Details
+                                        <FaPenAlt/>
                                     </Link>
                                     </Button>
                                 </Col>
@@ -136,6 +146,93 @@ export default function SaleHistory() {
                     ))}
                 </tbody>
             </Table>
+            </Col>
+            <Col>
+            <Card style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                <Card.Header className='d-flex align-items-center justify-content-between'>
+                   <h4>
+                   Sale Details
+                   </h4>
+                    {selectedSale && selectedSale.InvoiceCode ? (
+                    <span className="badge bg-success p-2 m-2">
+                        Processed successfully 
+                    </span>
+                    ): (
+                        <Alert variant='danger'>Invoice Number Not Found</Alert>
+                    )}
+                </Card.Header>
+                <Card.Body>
+                    {selectedSale && (
+                        <>
+                        <Card.Text>
+                            Code: {selectedSale.InvoiceCode}
+                        </Card.Text>
+                        <Card.Text>
+                            prepapredBy: {selectedSale.preparedBy}
+                        </Card.Text>
+                        <Card.Text>
+                            PaidBy: {selectedSale.paidBy}
+                        </Card.Text>
+                        <Card.Text>
+                            Date: {selectedSale.date}
+                        </Card.Text>
+                        <Card.Text>
+                            Service: {selectedSale.service}
+                        </Card.Text>
+                        <Card.Text>
+                            Customer: {selectedSale.name}
+                        </Card.Text>
+                        <Card.Text>
+                            Phone: {selectedSale.phone}
+                        </Card.Text>
+                        <Card.Text>
+                            Subtotal: {selectedSale.subTotal}
+                        </Card.Text>
+                        <Card.Text>
+                            Total: {selectedSale.total}
+                        </Card.Text>
+                    {selectedSale && selectedSale.saleItems.map((item)=>(
+                        <Card key={item._id} className='mt-2'>
+                        <Card.Title className='align-self-center'>{item.productName}</Card.Title>
+                        <Card.Body>
+                            <ListGroup>
+                                <ListGroup.Item>
+                                   price: {item.price}
+                                </ListGroup.Item>
+                                <ListGroup.Item>
+                                   quantity: {item.quantity}
+                                </ListGroup.Item>
+                                <ListGroup.Item>
+                                  arrangement:  {item.arrangement}
+                                </ListGroup.Item>
+                                <ListGroup.Item>
+                                  {selectedSale.units.map((unit, index)=> (
+                                    <Card key={index} className='mb-2 p-1'>
+                                        <Card.Header>{unit.arrangement}</Card.Header>
+                                        <Card.Img src={unit.photo} className='img-thumbnail'/>
+                                        <ul>
+                                        {unit.products.map((x, index)=>(
+                                            <li key={index}>
+                                                {x.quantity}
+                                            </li>
+
+                                        ))}
+                                  </ul>
+                                    </Card>
+                                  ))}
+                                  
+                                </ListGroup.Item>
+                            </ListGroup>
+                        </Card.Body>
+                        </Card>
+                    ))}
+                    </>
+                    )}
+                    </Card.Body>
+                
+            </Card>
+            </Col> 
+
             <div style={{maxWidth:'50%'}}>
             <div>
             {showPDF && printSale &&(
@@ -209,74 +306,6 @@ export default function SaleHistory() {
                     </ListGroup>
                 )}
             </Col>
-            <Col>
-            <Card>
-                <Card.Header className='d-flex align-items-center justify-content-between'>
-                   <h4>
-                   Sale Details
-                   </h4>
-                    {selectedSale && selectedSale.InvoiceCode ? (
-                    <span className="badge bg-success p-2 m-2">
-                        Processed successfully 
-                    </span>
-                    ): (
-                        <Alert variant='danger'>Invoice Number Not Found</Alert>
-                    )}
-                </Card.Header>
-                <Card.Body>
-                    {selectedSale && (
-                        <>
-                        <Card.Text>
-                            Code: {selectedSale.InvoiceCode}
-                        </Card.Text>
-                        <Card.Text>
-                            prepapredBy: {selectedSale.preparedBy}
-                        </Card.Text>
-                        <Card.Text>
-                            PaidBy: {selectedSale.paidBy}
-                        </Card.Text>
-                        <Card.Text>
-                            Date: {selectedSale.date}
-                        </Card.Text>
-                        <Card.Text>
-                            Service: {selectedSale.service}
-                        </Card.Text>
-                        <Card.Text>
-                            Customer: {selectedSale.name}
-                        </Card.Text>
-                        <Card.Text>
-                            Phone: {selectedSale.phone}
-                        </Card.Text>
-                        <Card.Text>
-                            Subtotal: {selectedSale.subTotal}
-                        </Card.Text>
-                        <Card.Text>
-                            Total: {selectedSale.total}
-                        </Card.Text>
-                    {selectedSale && selectedSale.saleItems.map((item)=>(
-                        <Card key={item._id} className='mt-2'>
-                        <Card.Title className='align-self-center'>{item.productName}</Card.Title>
-                        <Card.Body>
-                            <ListGroup>
-                                <ListGroup.Item>
-                                   price: {item.price}
-                                </ListGroup.Item>
-                                <ListGroup.Item>
-                                   quantity: {item.quantity}
-                                </ListGroup.Item>
-                                <ListGroup.Item>
-                                  arrangement:  {item.arrangement}
-                                </ListGroup.Item>
-                            </ListGroup>
-                        </Card.Body>
-                        </Card>
-                    ))}
-                    </>
-                    )}
-                    </Card.Body>
-                
-            </Card>
-            </Col> 
         </Row>
   )
 }

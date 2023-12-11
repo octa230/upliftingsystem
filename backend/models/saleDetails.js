@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const unitSchema = new mongoose.Schema({
     arrangement: {type: String, required: false},
     photo: {type: String},
-    images: [String],
     products: [{
         product: {type: mongoose.Schema.Types.ObjectId, ref: 'Product'},
         quantity: {type: Number, required: true}

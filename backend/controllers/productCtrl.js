@@ -1,20 +1,37 @@
-const express = require ("express");
 const asyncHandler = require("express-async-handler");
-const Product = require ('../models/product'); 
+const {Product} = require ('../models/product'); 
 const mongoose = require('mongoose')
+const {Transaction} = require('../models/product')
 
 
 const createProduct = asyncHandler(async(req, res)=> {
-    const {name, code, price, inStock} = req.body
+    const {name, code, price, inStock, purchasePrice} = req.body
     const newProduct = new Product(
         {
-            name: name,
+            name: name.toUpperCase(),
             price: price,
-            code: code,
-            inStock: inStock
+            code: code.toUpperCase(),
+            inStock: inStock,
+            purchase: inStock,
+            purchasePrice: purchasePrice,
+            closingStock: inStock,
         }
     )
     const product = await newProduct.save();
+    if(product){
+      const transaction = new Transaction({
+        product: product._id,
+        type: 'purchase',
+        productName: product.name,
+        purchasePrice: product.purchasePrice,
+        sellingPrice: product.price,
+        quantity: product.inStock
+      })
+      await transaction.save()
+
+      product.purchaseHistory.push({purchase: product.inStock})
+      await product.save()
+    }
     res.send({message: 'product added', product})
 })
 
@@ -85,26 +102,44 @@ const searchProducts = asyncHandler(async (req, res) => {
   });
 
 
-const updateProduct = asyncHandler(async(req, res)=> {
-const productId = req.params.id
-const {name, price, code, purchase} = req.body
-const product = await Product.findById(productId);
-if(product){
-    product.name = name,
-    product.price = price,
-    product.code = code,
-
-    purchaseAmount = parseInt(purchase);
-    product.prruchaseHistory.push({purchase: purchaseAmount})
-    product.inStock += parseInt(purchase)
-    product.purchase = purchaseAmount
-    await product.save()
-    res.send({message: 'product updated successfully'})
-}else{
-    res.status(404).send({message: 'product not found'})
-}
-})
-
+const updateProduct = asyncHandler(async (req, res) => {
+    const productId = req.params.id;
+    const { name, price, code, purchase, purchasePrice } = req.body;
+    const product = await Product.findById(productId);
+  
+    if (product) {
+      product.name = name;
+      product.price = price;
+      product.code = code.toUpperCase();
+      product.purchasePrice = purchasePrice;
+  
+      if (purchase) {
+        const purchaseAmount = parseInt(purchase);
+        product.purchaseHistory.push({ purchase: purchaseAmount });
+  
+        const transaction = new Transaction({
+          product: product._id,
+          type: 'purchase',
+          productName: product.name,
+          purchasePrice: product.purchasePrice,
+          sellingPrice: product.price,
+          quantity: purchaseAmount,
+        });
+  
+        await transaction.save();
+  
+        product.inStock += purchaseAmount;
+        product.closingStock += purchaseAmount;
+        product.purchase += purchaseAmount;
+      }
+  
+      await product.save();
+  
+      res.send({ message: 'Product updated successfully' });
+    } else {
+      res.status(404).send({ message: 'Product not found' });
+    }
+  });
 
 
 const getProduct = asyncHandler(async(req, res)=> {
@@ -183,7 +218,20 @@ const aggregatePurchaseHistory = asyncHandler(async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-  
+
+const insermany = asyncHandler(async(req, res)=> {
+  try{
+    const data = req.body
+    const savedData = await Product.insertMany(data)
+    res.send(savedData)
+  }catch(error){
+    res.send(error)
+  }
+})
 
 
-module.exports = {createProduct, aggregatePurchaseHistory, deleteProduct, getAll, updateProduct, getProduct, searchProducts, getAllProducts, getProducts}
+
+module.exports = {insermany, createProduct, aggregatePurchaseHistory, deleteProduct, getAll, updateProduct, getProduct, searchProducts, getAllProducts, getProducts}
+
+
+

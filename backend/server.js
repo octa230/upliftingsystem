@@ -11,9 +11,13 @@ const saleDetailsRouter  = require('./routes/saleDetailsRouter');
 const path = require('path');
 const uploadRouter = require('./controllers/uploadCtrl')
 const damagesRouter = require('./routes/DamagesRoutes');
+const stockRouter = require('./routes/StockRoutes')
+const backgroundTasks = require('./utils/backgroundTasks');
+const transactionsRouter = require('./routes/transactionRoutes');
 
 const app = express();
 dotenv.config()
+backgroundTasks()
 const PORT = process.env.PORT
 
 
@@ -33,7 +37,8 @@ app.use('/api/multiple', saleDetailsRouter)
 app.use('/api/wholesale', salesRouter)
 app.use('/api/damages', damagesRouter)
 app.use('/api/upload', uploadRouter)
-
+app.use('/api/stock', stockRouter)
+app.use('/api/transactions', transactionsRouter)
 
 //errorMiddleware
 app.use(ErrorHandler)

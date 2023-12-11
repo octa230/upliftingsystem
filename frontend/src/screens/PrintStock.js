@@ -86,16 +86,20 @@ export default function PrintStock() {
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Purchase</th>
-                    <th>Stock</th>
+                   <th>Purchase</th>
+                    <th>Sold</th>
+                    <th>InStock</th>
+                    <th>Closing</th>
                 </tr>
             </thead>
             <tbody>
                 {filteredProducts?.map((product)=> (
                     <tr key={product._id}>
                         <td>{product.name}</td>
+                        <td>{product.sold || 0}</td>
                         <td>{product.purchase}</td>
                         <td>{product.inStock}</td>
+                        <td>{product.closingStock}</td>
                     </tr>
                 ))}
             </tbody>

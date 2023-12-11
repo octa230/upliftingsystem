@@ -6,7 +6,7 @@ import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
 import axios from 'axios'
 import {getError} from '../utils/getError'
-import MessageBox from '../components/MessageBox'
+import MessageBox from './MessageBox'
 import {toast} from 'react-toastify'
 import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
 
@@ -15,7 +15,7 @@ import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
 
 
 
-function ProductTable() {
+function SaleTable() {
 
   const time = new Date().toLocaleDateString('en-GB');
   const [products, setProducts] = useState([]);
@@ -336,4 +336,4 @@ if(hasNullValues){
   );
 }
 
-export default ProductTable;
+export default SaleTable;
