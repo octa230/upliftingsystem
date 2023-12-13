@@ -86,9 +86,10 @@ export default function PrintStock() {
             <thead>
                 <tr>
                     <th>Name</th>
-                   <th>Purchase</th>
+                    <th>inStock</th>
+                    <th>Purchase</th>
                     <th>Sold</th>
-                    <th>InStock</th>
+                    <th>Waste</th>
                     <th>Closing</th>
                 </tr>
             </thead>
@@ -96,9 +97,10 @@ export default function PrintStock() {
                 {filteredProducts?.map((product)=> (
                     <tr key={product._id}>
                         <td>{product.name}</td>
-                        <td>{product.sold || 0}</td>
-                        <td>{product.purchase}</td>
                         <td>{product.inStock}</td>
+                        <td>{product.purchase}</td>
+                        <th>{product.sold}</th>
+                        <td>{product.waste}</td>
                         <td>{product.closingStock}</td>
                     </tr>
                 ))}
