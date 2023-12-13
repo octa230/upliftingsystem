@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Table from 'react-bootstrap/Table';
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
 import axios from 'axios'
+import { Store } from '../utils/Store';
 import {getError} from '../utils/getError'
+import { BsCamera} from 'react-icons/bs';
+import LoadingBox from '../components/LoadingBox'
 import MessageBox from './MessageBox'
 import {toast} from 'react-toastify'
 import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
@@ -18,6 +21,8 @@ import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
 function SaleTable() {
 
   const time = new Date().toLocaleDateString('en-GB');
+
+
   const [products, setProducts] = useState([]);
   const [paidBy,  setPaidBy]= useState('')
   const [service, setService]= useState('')
@@ -27,14 +32,19 @@ function SaleTable() {
   const [deliveredTo, setdeliveredTo] = useState('')
   const [free, setFree] = useState(false)
   const [driver, setDriver]= useState('')
+  const [photoFile, setPhotoFile] = useState('')
   const [orderedBy, setorderedBy]= useState('')
   const [discount, setDiscount] = useState(0)
+  const [loading, setLoading] = useState(false);
   const [recievedBy, setrecievedBy]= useState('')
 
 
+const { state} = useContext(Store);
+const { userInfoToken } = state;
+
 
   const handleAddRow=()=> {
-    setProducts([...products, {name:"", price: 0, quantity: 0, arrangement:""}]);
+    setProducts([...products, {name:"", price: 0, quantity: 0, arrangement:"", photo: ""}]);
   }
 
   const handleReset=()=> {
@@ -66,13 +76,37 @@ function SaleTable() {
     setProducts(newProducts);
   };
 
-  
- /*  const handleFileChange=(event, index)=> {
-    const newProducts = [...products];
-    newProducts[index].file = event.target.value
-    setFile(newProducts)
-    console.log(newProducts)
-  } */
+  ////UPLOAD PHOTO/PHOTOS
+  const uploadFileHandler = async(file)=>{
+  try{
+    setLoading(true)
+   const bodyFormData = new FormData()
+   bodyFormData.append('file', file)
+   const {data} = await axios.post('/api/upload/', bodyFormData, {
+     headers :{
+       'Content-Type': 'multipart/form-data',
+       authorization: `Bearer ${userInfoToken.token}`,
+     }
+   })
+   setPhotoFile(data.secure_url)
+   setLoading(false)
+  }catch(error){
+    setLoading(false)
+   getError(error)
+  }
+ }
+
+
+ const handleCaptureImage = async (index, image) => {
+  const newProducts = [...products];
+
+  if(image){
+    await uploadFileHandler(image);
+    newProducts[index].photo = photoFile;
+  }
+  setProducts(newProducts);
+};
+ 
   const calculateSubtotal = () => {
     return products.reduce((accumulator, product) => accumulator + (product.price * product.quantity), 0);
   };
@@ -125,7 +159,7 @@ if(hasNullValues){
           preparedBy, total,
           time,
           subTotal,
-          vat, free
+          vat, free, 
         },
      )
       }catch(error){
@@ -206,6 +240,7 @@ if(hasNullValues){
             <th>Price</th>
             <th>Quantity</th>
             <th>Total</th>
+            <th>Photo</th>
           </tr>
         </thead>
         <tbody>
@@ -247,7 +282,21 @@ if(hasNullValues){
                 />
               </td>
               <td>{product.price && product.quantity ? product.price * product.quantity - discount : 0}</td>
-            </tr>
+              <td>
+          <label htmlFor={`fileInput-${index}`}>
+            <BsCamera size={20} />
+          </label>
+          <input
+            id={`fileInput-${index}`}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={(event) => handleCaptureImage(index, event.target.files[0])}
+            style={{ display: 'none' }}
+          />
+          {loading ? (<span><LoadingBox/></span>) : (<span>{photoFile && (<p>done</p>)}</span>)}
+        </td>
+        </tr>
           ))}
         </tbody>
       </Table>

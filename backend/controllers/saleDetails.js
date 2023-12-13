@@ -15,6 +15,7 @@ const makeSale = asyncHandler(async(req, res)=> {
                 productName: x.name,
                 price: x.price,
                 arrangement: x.arrangement,
+                photo: x.photo
             })),
             preparedBy: req.body.preparedBy,
             paidBy: req.body.paidBy,
