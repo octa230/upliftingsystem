@@ -66,7 +66,7 @@ const getsingleSale = asyncHandler(async(req, res)=> {
 
 const addSaleUnits =  asyncHandler(async(req, res)=> {
     const saleId = req.params.id
-    const {selectedProducts, unitName, image} = req.body
+    const {selectedProducts, unitName} = req.body
 
 
     if(!saleId){
@@ -110,7 +110,6 @@ const addSaleUnits =  asyncHandler(async(req, res)=> {
     }
     sale.units.push({
         arrangement: unitName,
-        photo: image,
         products: selectedProducts.map((x)=> ({
         ...x,
         product: x.product,
