@@ -17,7 +17,7 @@ const transactionsRouter = require('./routes/transactionRoutes');
 
 const app = express();
 dotenv.config()
-backgroundTasks()
+backgroundTasks.start()
 const PORT = process.env.PORT
 
 

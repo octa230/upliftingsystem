@@ -54,7 +54,7 @@ export default function ProductsData() {
     <div>
       <Form onSubmit={handleSubmit}>
         <Row>
-          <Col>
+          {/* <Col>
           <Form.Group controlId="product">
               <Form.Label>Product</Form.Label>
               <Form.Select as='select' value={product} onChange={(e)=> setProduct(e.target.value)}>
@@ -66,7 +66,7 @@ export default function ProductsData() {
                 ))}
               </Form.Select>
             </Form.Group>
-          </Col>
+          </Col> */}
         </Row>
         <Row>
         <Col>
@@ -127,15 +127,6 @@ export default function ProductsData() {
             <td>{row.type}</td>
             <td>{row.quantity}</td>
             <td>{new Date(row.createdAt).toLocaleString()}</td>
-            {/* <td>
-              <ul>
-                {row.productWisePurchases && row.productWisePurchases.map(entry => (
-                  <li key={entry.date}>
-                    On: {entry.date}: QTY: {entry.purchase}
-                  </li>
-                ))}
-              </ul>
-            </td> */}
           </tr>
         ))}
       </tbody>

@@ -14,10 +14,6 @@ import {toast} from 'react-toastify'
 import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
 
 
-
-
-
-
 function SaleTable() {
 
   const time = new Date().toLocaleDateString('en-GB');
@@ -32,10 +28,9 @@ function SaleTable() {
   const [deliveredTo, setdeliveredTo] = useState('')
   const [free, setFree] = useState(false)
   const [driver, setDriver]= useState('')
-  const [photoFile, setPhotoFile] = useState('')
   const [orderedBy, setorderedBy]= useState('')
   const [discount, setDiscount] = useState(0)
-  const [loading, setLoading] = useState(false);
+  //const [loading, setLoading] = useState(false);
   const [recievedBy, setrecievedBy]= useState('')
 
 
@@ -44,7 +39,7 @@ const { userInfoToken } = state;
 
 
   const handleAddRow=()=> {
-    setProducts([...products, {name:"", price: 0, quantity: 0, arrangement:"", photo: ""}]);
+    setProducts([...products, {name:"", price: 0, quantity: 0, arrangement:"", photo: "", loading: false}]);
   }
 
   const handleReset=()=> {
@@ -79,7 +74,7 @@ const { userInfoToken } = state;
   ////UPLOAD PHOTO/PHOTOS
   const uploadFileHandler = async(file)=>{
   try{
-    setLoading(true)
+    //setLoading(true)
    const bodyFormData = new FormData()
    bodyFormData.append('file', file)
    const {data} = await axios.post('/api/upload/', bodyFormData, {
@@ -88,10 +83,9 @@ const { userInfoToken } = state;
        authorization: `Bearer ${userInfoToken.token}`,
      }
    })
-   setPhotoFile(data.secure_url)
-   setLoading(false)
+   return data.secure_url
   }catch(error){
-    setLoading(false)
+  //    setLoading(false)
    getError(error)
   }
  }
@@ -99,13 +93,21 @@ const { userInfoToken } = state;
 
  const handleCaptureImage = async (index, image) => {
   const newProducts = [...products];
-
   if(image){
-    await uploadFileHandler(image);
-    newProducts[index].photo = photoFile;
-  }
-  setProducts(newProducts);
-};
+    try{
+    newProducts[index].loading = true
+    //setProducts(newProducts)
+
+    const photoUrl = await uploadFileHandler(image)
+    newProducts[index].photo = photoUrl
+    //newProducts[index].loading = false
+  }catch(error){
+    toast.error(error || 'error occured')
+    console.log(error)
+  }finally{
+    newProducts[index].loading = false;
+    setProducts(newProducts)
+  }}};
  
   const calculateSubtotal = () => {
     return products.reduce((accumulator, product) => accumulator + (product.price * product.quantity), 0);
@@ -280,7 +282,7 @@ if(hasNullValues){
                 />
               </td>
               <td>{product.price && product.quantity ? product.price * product.quantity - discount : 0}</td>
-              <td>
+            <td>
           <label htmlFor={`fileInput-${index}`}>
             <BsCamera size={20} />
           </label>
@@ -292,7 +294,7 @@ if(hasNullValues){
             onChange={(event) => handleCaptureImage(index, event.target.files[0])}
             style={{ display: 'none' }}
           />
-          {loading ? (<span><LoadingBox/></span>) : (<span>{photoFile && (<p>done</p>)}</span>)}
+          {product.loading ? (<span>wait..</span>) : (product.photo && !product.loading &&(<span>Done</span>))}
         </td>
         </tr>
           ))}
