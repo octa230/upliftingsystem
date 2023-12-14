@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useReducer, useContext} from 'react'
+import React, { useEffect, useState, useReducer} from 'react'
 import {useParams} from 'react-router-dom'
 import Card from 'react-bootstrap/esm/Card'
 import Container from 'react-bootstrap/esm/Container'
@@ -7,8 +7,6 @@ import Stack from 'react-bootstrap/esm/Stack'
 import Table from 'react-bootstrap/esm/Table'
 import Button from 'react-bootstrap/esm/Button'
 import Col from 'react-bootstrap/esm/Col'
-import {Store} from '../utils/Store'
-import MessageBox from '../components/MessageBox'
 import {FaPlusCircle, FaRedo} from 'react-icons/fa'
 import axios from 'axios'
 import {toast} from 'react-toastify'
@@ -53,11 +51,7 @@ const [totalValue, setTotalValue] = useState(0);
 const [code, setCode] = useState('')
 const [unitName, setunitName] = useState('')
 const [products, setProducts] = useState([])
-const [images, setImages] = useState([]);
-const [image, setImage] = useState('')
 
-const { state} = useContext(Store);
-const { userInfoToken } = state;
 
 const [{sale}, dispatch] =
     useReducer(reducer, {
@@ -128,25 +122,6 @@ const handleProductChange = (event, index) => {
   };
 
 
-////UPLOAD PHOTO/PHOTOS
-const uploadFileHandler = async(e, forImages)=>{
- try{
-  const file = e.target.files[0]
-  const bodyFormData = new FormData()
-  bodyFormData.append('file', file)
-  const {data} = await axios.post('/api/upload/', bodyFormData, {
-    headers :{
-      'Content-Type': 'multipart/form-data',
-      authorization: `Bearer ${userInfoToken.token}`,
-    }
-  })
-  setImage(data.secure_url)
- }catch(error){
-  getError(error)
- }
-}
-
-
 const handleNewTable = () => {
   setSelectedProducts([]);
   setTotalValue(0);
@@ -155,10 +130,6 @@ const handleNewTable = () => {
   const handleSave = async () => {
     if (unitName === '') {
       toast.error('Please Add arrangement');
-      return;
-    }
-    if (image === '') {
-      toast.error('Please Add photo');
       return;
     }
   
@@ -173,14 +144,14 @@ const handleNewTable = () => {
   
     try {  
       await axios.post(`/api/multiple/${saleId}/add-units`, {
-        selectedProducts, unitName, image
+        selectedProducts, unitName,
       });
   
       toast.success('unit added successfully');
       //console.log()
     } catch (error) {
       toast.error(getError(error));
-      console.log(selectedProducts, unitName, images, image);
+      console.log(selectedProducts, unitName,);
     }
   };
   
@@ -196,20 +167,6 @@ return (
                     name='arrangement'
                     placeholder='add arrangement'
                     />
-              </Col>
-              <Col md={8} xm={12} className='px-2'>
-                  <Card.Title className='m-2'>Add Photo</Card.Title>
-                  <Form.Group className="mb-3" controlId="imageFile">
-
-                  <Form.Label className='productEditScreenText'>Upload Image</Form.Label>
-                  <Form.Control 
-                    type="file" 
-                    onChange={uploadFileHandler} 
-                />
-          </Form.Group>
-              {image ? (
-                <Card.Img src={image} style={{width:'200px'}}/>
-              ): (<MessageBox>ADD IMAGE & WAIT</MessageBox>)}
               </Col>
               </div>
                 <Button onClick={handleAddRow} className='w-25'>

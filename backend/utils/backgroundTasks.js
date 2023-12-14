@@ -9,11 +9,12 @@ Product.schema.virtual("nextWasteResetTime").get(function () {
 
 const resetWasteValues = async()=> {
     try{
-        const productsToUpdate = await Product.find({waste: { $exists: true}})
+        const productsToUpdate = await Product.find({waste: { $exists: true}, sold: {$exists: true}})
 
         for(const product of productsToUpdate){
             product.waste = 0;
             product.purchase = 0;
+            product.sold = 0
             await product.save()
         }
     }catch(error){
@@ -23,4 +24,4 @@ const resetWasteValues = async()=> {
 
   const backgroundTasks = cronJob.schedule("0 0 * * *", resetWasteValues);
 
-module.exports = resetWasteValues
+module.exports = backgroundTasks

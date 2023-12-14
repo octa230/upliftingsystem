@@ -205,6 +205,9 @@ export default function SaleHistory() {
                                 <ListGroup.Item>
                                   arrangement:  {item.arrangement}
                                 </ListGroup.Item>
+                                <ListGroup.Item style={{maxWidth: '255px'}}>
+                                    {item.photo && (<img src={item.photo} className='img-thumbnail' alt='product'/>)}
+                                </ListGroup.Item>
                                 <ListGroup.Item>
                                   {selectedSale.units.map((unit, index)=> (
                                     <Card key={index} className='mb-2 p-1'>
