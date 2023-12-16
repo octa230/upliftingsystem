@@ -115,7 +115,7 @@ export default function SaleScreen() {
   
   //const RoundTo = (num)=> Math.round(num * 100 + Number.EPSILON) / 100 //====> 123.4567 - 123.45;
   const CalcTax = ()=> {
-    return parseFloat((sale.itemsPrice * 0.05).toFixed(2))
+    return parseInt((sale.itemsPrice * 0.05).toFixed(2))
   }
   const CalcSubTotal = ()=> {
     const calculateSubtotal = sale.itemsPrice = sale.saleItems.reduce(
@@ -125,7 +125,7 @@ export default function SaleScreen() {
     return subtotal
   }
   const CalcTotal = ()=> {
-    return CalcSubTotal() + CalcTax();
+    return parseInt(CalcSubTotal() + CalcTax());
   }
 
 

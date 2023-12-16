@@ -8,7 +8,6 @@ import axios from 'axios'
 import { Store } from '../utils/Store';
 import {getError} from '../utils/getError'
 import { BsCamera} from 'react-icons/bs';
-import LoadingBox from '../components/LoadingBox'
 import MessageBox from './MessageBox'
 import {toast} from 'react-toastify'
 import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
@@ -110,7 +109,12 @@ const { userInfoToken } = state;
   }}};
  
   const calculateSubtotal = () => {
-    return products.reduce((accumulator, product) => accumulator + (product.price * product.quantity), 0);
+    const itemsTotal = products.reduce((accumulator, product) => accumulator + (product.price * product.quantity), 0)
+    if(discount){
+      return itemsTotal - discount
+    }else{
+      return itemsTotal
+    }
   };
 
 
@@ -123,8 +127,7 @@ const { userInfoToken } = state;
   
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
-    const vat = calculateVat()
-    const total = (parseFloat(subtotal) - parseFloat(discount)).toFixed(2);
+    const total = (parseFloat(subtotal));
     return total;
   };
 
@@ -151,14 +154,14 @@ if(hasNullValues){
         const subTotal = calculateSubtotal()
         const total = calculateTotal()
         const vat = calculateVat()
-
-        const data =  await axios.post('/api/multiple/new-sale', {
-          products, discount,
-          paidBy, driver,
-          service, recievedBy,
-          name, deliveredTo,
-          phone, orderedBy,
-          preparedBy, total,
+        
+        await axios.post('/api/multiple/new-sale', {
+        products, discount,
+        paidBy, driver,
+        service, recievedBy,
+        name, deliveredTo,
+        phone, orderedBy,
+        preparedBy, total,
           time,
           subTotal,
           vat, free, 
@@ -370,7 +373,7 @@ if(hasNullValues){
       </Col>
     </Row>
       <div className='border p-2'>
-      <p>Subtotal: {calculateSubtotal() - calculateVat() - discount}</p>
+      <p>Subtotal: {calculateSubtotal()}</p>
       <Col className='d-flex justify-content-between'>
       <Form.Label>Discount:</Form.Label>
       <span className='text-danger'>
