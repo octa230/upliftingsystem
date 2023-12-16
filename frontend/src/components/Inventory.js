@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useContext} from 'react'
 import Axios from 'axios'
-import { Button, Table, Form } from 'react-bootstrap'
+import { Button, Table} from 'react-bootstrap'
 import {BsFillPencilFill, BsCheck2Circle, BsXCircle, BsFillFileBreakFill} from 'react-icons/bs'
 import {useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { getError } from '../utils/getError'
 import { Store } from '../utils/Store'
-import { newDate } from '../utils/Date'
 import axios from 'axios'
 
 
@@ -72,12 +71,7 @@ const navigate = useNavigate()
     }
 
   }
-
-  function handleSearch(event){
-    setSearchName(event.target.value)
-   // setSearchPrice(event.target.value)
-  }
-
+  
   const filteredProducts = products.filter((x)=> x.name.toLowerCase().includes(searchName.toLocaleLowerCase()))
   //const filteredPrice = products.filter((x)=> x.price)
 
@@ -102,6 +96,8 @@ const navigate = useNavigate()
             <tr>
                 <th>Code</th>
                 <th>Name</th>
+                <th>Buy</th>
+                <th>Sell</th>
                 <th>InStock</th>
                 <th>Purchase</th>
                 <th>Sold</th>
@@ -125,6 +121,12 @@ const navigate = useNavigate()
                         </td>
                         <td>
                             {product.name}
+                        </td>
+                        <td>
+                          {product.purchasePrice}
+                        </td>
+                        <td>
+                            {product.price}
                         </td>
                         <td style={product.inStock < 5 ? {backgroundColor: 'red'}: {backgroundColor: 'green'}}>
                             {product.inStock}

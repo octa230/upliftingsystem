@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState} from 'react'
 import axios from 'axios'
 import Form from 'react-bootstrap/esm/Form';
 import Table from 'react-bootstrap/esm/Table';
@@ -11,12 +11,10 @@ export default function ProductsData() {
 
   const [month, setMonth] = useState('')
   const [year, setYear] = useState('')
-  //const [name, setName]= useState('')
   const [results, setResults] = useState([])
-  const [products, setProducts] = useState([])
   const [summary, setSummary] = useState({})
   const [day, setDay] = useState('')
-  const [product, setProduct] = useState('')
+  const [type, setType] = useState('')
 
   const handleSubmit = async(e)=> {
     e.preventDefault()
@@ -26,6 +24,7 @@ export default function ProductsData() {
         params:{
           month, 
           year, 
+          type,
           day,
         }
       })
@@ -35,43 +34,50 @@ export default function ProductsData() {
       console.log(err)
     }
   }
-
-  useEffect(()=> {
-    async function getNames(){
-      const res = await axios.get('/api/product/names')
-      setProducts(res.data)
-      //console.log(products)
-    }
-    getNames()
-  }, [])
-
  
-   
+   const types = ['sale', 'display', 'damage', 'purchase']
+   const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
 
-
+    if (printWindow) {
+      printWindow.document.write('<html><head><title>Print</title>');
+      // Add any print-specific styles here if needed
+      printWindow.document.write(
+        '<link rel="stylesheet" type="text/css" href="path-to-your-print-style.css">'
+      );
+      printWindow.document.write('</head><body>');
+      printWindow.document.write('<h1>TRANSACTIONS DATA TABLE</h1>');
+      printWindow.document.write(document.getElementById('data-table').outerHTML);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.print();
+    } else {
+      console.error('Failed to open a new window for printing.');
+    }
+  };
 
   return (
     <div>
       <Form onSubmit={handleSubmit}>
-        <Row>
-          {/* <Col>
-          <Form.Group controlId="product">
-              <Form.Label>Product</Form.Label>
-              <Form.Select as='select' value={product} onChange={(e)=> setProduct(e.target.value)}>
+        <Row className='my-3'>
+          <Col lg={4}>
+          <Form.Group controlId="type">
+              <h3>Transaction Type</h3>
+              <Form.Select as='select' value={type} onChange={(e)=> setType(e.target.value)}>
                 <option value="">---select---</option>
-                {products.map((x)=> (
-                  <option key={x._id} value={x._id}>
-                    {x.name}
+                {types.map((x, index)=> (
+                  <option key={index} value={x}>
+                    {x}
                   </option>
                 ))}
               </Form.Select>
             </Form.Group>
-          </Col> */}
+          </Col>
         </Row>
         <Row>
         <Col>
             <Form.Group controlId="month">
-              <Form.Label>Month</Form.Label>
+              <h4>Month</h4>
               <Form.Control
                 type="number"
                 placeholder="Enter month"
@@ -82,7 +88,7 @@ export default function ProductsData() {
           </Col>
           <Col>
             <Form.Group controlId="year">
-              <Form.Label>year</Form.Label>
+              <h4>year</h4>
               <Form.Control
                 type="number"
                 placeholder="Enter year"
@@ -92,7 +98,7 @@ export default function ProductsData() {
             </Form.Group>
           </Col>          <Col>
             <Form.Group controlId="day">
-              <Form.Label>Day</Form.Label>
+              <h4>Day</h4>
               <Form.Control
                 type="number"
                 placeholder="Enter day"
@@ -111,19 +117,30 @@ export default function ProductsData() {
         ))}
       </Row>
       </div>
-      <Table striped bordered hover style={{ maxHeight: '500px', overflowY: 'auto' }}>
+      <Table striped bordered hover style={{ maxHeight: '500px', overflowY: 'auto' }} id='data-table'>
       <thead>
         <tr>
           <th>Product Name</th>
-          <th>Transaction Type</th>
-          <th>QTY</th>
-          <th>Date</th>
+          <th>Buying</th>
+          <th>Selling</th>
+          <th>Type</th>
+          <th>Qty</th>
+          <th className='d-flex justify-content-between'>
+            <span>
+              Date
+            </span>
+            <span>
+              <Button variant='' onClick={()=>handlePrint()}>Print</Button>
+            </span>
+          </th>
         </tr>
       </thead>
       <tbody>
         {results && results.map(row => (
           <tr key={row._id}>
             <td>{row.productName}</td>
+            <td>{row.purchasePrice}</td>
+            <td>{row.sellingPrice}</td>
             <td>{row.type}</td>
             <td>{row.quantity}</td>
             <td>{new Date(row.createdAt).toLocaleString()}</td>

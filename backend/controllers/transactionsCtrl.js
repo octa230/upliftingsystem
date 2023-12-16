@@ -81,15 +81,15 @@ const queryRecords = asyncHandler(async(req, res)=> {
         endDate.setDate(day)
     }
 
-    if(type){
-      getRecords.type = type  
-    }
-
     const getRecords ={
         createdAt: {
             $gte: startDate || new Date(0),
             $lte: endDate || new Date()
         }
+    }
+
+    if(type){
+        getRecords.type = type  
     }
 
     try{
