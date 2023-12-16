@@ -1,4 +1,3 @@
-const express = require('express')
 const asyncHandler = require('express-async-handler')
 const {Product, Transaction} = require('../models/product')
 
@@ -20,9 +19,9 @@ const recordStock = asyncHandler(async(req, res)=> {
             ///UPDATE STOCK QUANTITIES
             newProduct.inStock += parseInt(selectedProduct.purchase);
             newProduct.closingStock += parseInt(selectedProduct.purchase);
-            newProduct.purchase = selectedProduct.purchase
+            newProduct.purchase += parseInt(selectedProduct.purchase)
 
-            newProduct.prruchaseHistory.push({ date: new Date(), purchase: selectedProduct.purchase });
+            newProduct.purchaseHistory.push({ date: new Date(), purchase: selectedProduct.purchase });
 
             await newProduct.save()
 
@@ -30,6 +29,8 @@ const recordStock = asyncHandler(async(req, res)=> {
 
             const transaction = new Transaction({
                 product: selectedProduct.product,
+                purchasePrice: newProduct.purchasePrice,
+                sellingPrice: newProduct.price,
                 productName: newProduct.name,
                 type: 'purchase',
                 quantity: parseInt(selectedProduct.purchase)
