@@ -82,6 +82,7 @@ export default function RecordStock() {
             await axios.post('/api/stock/purchase', {
                 selectedProducts
             })
+            toast.success('SUCCESSFULLY ADDED')
         }catch(error){
             toast.error(getError(error))
             console.log(error)
@@ -135,7 +136,7 @@ export default function RecordStock() {
         </Table>
        </Col>
        <Col md={3} className='d-flex justify-content-between'> 
-       <Button onClick={handleSave}>Record</Button>
+       <Button onClick={()=>handleSave()}>Record</Button>
        <Button onClick={handleNewTable}>
         <FaRedo/>
        </Button>
