@@ -161,7 +161,7 @@ const renderSummaryCard = (type, quantity, valuation) => (
         <Card.Title>{type.toUpperCase()}</Card.Title>
         <Card.Text>
           Quantity: {quantity}<br />
-          Valuation: {valuation}
+          Valuation: {valuation.toFixed(2)}
         </Card.Text>
       </Card.Body>
     </Card>
