@@ -45,12 +45,8 @@ const PAGE_SIZE = 2
 
 const getSales = asyncHandler(async(req, res)=> {
 
-    const sales = await SaleDetails.find()   
-    const countSales = await SaleDetails.countDocuments();
-    res.send({
-        sales,
-        countSales,
-    })
+    const sales = await SaleDetails.find({}).sort({createdAt: -1}).limit(10)  
+    res.send(sales)
 })
 
 const getsingleSale = asyncHandler(async(req, res)=> {
