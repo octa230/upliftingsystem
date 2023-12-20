@@ -24,9 +24,7 @@ function reducer(state, action){
         case 'FETCH_SUCCESS':
             return{
                 ...state, 
-                sales: action.payload.sales, 
-                page: action.payload.page,
-                pages: action.payload.pages,
+                sales: action.payload, 
                 loading: false
             }
         case 'FETCH_FAIL':
@@ -53,6 +51,7 @@ export default function SaleHistory() {
 
     useEffect(()=> {
         const fetchData =async()=> {
+            dispatch({type: 'FETCH_REQUEST'})
             try{
                 const {data} = await axios.get(`/api/multiple/list`)
                 dispatch({type: 'FETCH_SUCCESS', payload: data}) 
@@ -75,7 +74,6 @@ export default function SaleHistory() {
   
     const filteredSale = sales?.filter((x)=> x.InvoiceCode.toLowerCase().includes(searchCode.toLocaleLowerCase()))
     const filteredPhone = sales?.filter((x)=> x.phone.toLowerCase().includes(searchPhone.toLocaleLowerCase()))
-    const filteredSales = sales?.slice(-10)
    
     //const filteredName = sales.filter((x)=> x.name.toLowerCase().includes(searchPrice.toLocaleLowerCase()))
     //const filteredPrice = searchPrice
@@ -102,7 +100,7 @@ export default function SaleHistory() {
   return (
 
         <Row className='p-2'>
-            <h2 className='text-success'>Last {filteredSales.length} Sales</h2>
+            <h2 className='text-success'>Last {sales.length} Sales</h2>
             <Col>
             <Table style={{ maxHeight: '500px', overflowY: 'auto' }}>
                 <thead>
@@ -114,7 +112,7 @@ export default function SaleHistory() {
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredSales.map((sale)=> (
+                    {sales && sales.map((sale)=> (
                         <tr key={sale._id}>
                             <td>
                                 

@@ -1,22 +1,41 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useReducer, useEffect } from 'react';
 import Table from 'react-bootstrap/Table';
-import Form from 'react-bootstrap/Form'
-import Button from 'react-bootstrap/Button'
-import Col from 'react-bootstrap/Col'
-import Row from 'react-bootstrap/Row'
+import Form from 'react-bootstrap/esm/Form'
+import Button from 'react-bootstrap/esm/Button'
+import Col from 'react-bootstrap/esm/Col'
+import ListGroup from 'react-bootstrap/esm/ListGroup'
+import Row from 'react-bootstrap/esm/Row'
 import axios from 'axios'
 import { Store } from '../utils/Store';
 import {getError} from '../utils/getError'
+import Invoice from '../utils/Invoice';
 import { BsCamera} from 'react-icons/bs';
 import MessageBox from './MessageBox'
 import {toast} from 'react-toastify'
+import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer'
 import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
 
 
+
+
+function reducer(state, action){
+  switch(action.type){
+      case 'FETCH_REQUEST':
+          return{...state, loading: false}
+      case 'FETCH_SUCCESS':
+          return{
+              ...state, 
+              sales: action.payload, 
+              loading: false
+          }
+      case 'FETCH_FAIL':
+          return{...state, loading: false, error: action.payload}
+      default:
+          return state
+  }
+}
+
 function SaleTable() {
-
-  const time = new Date().toLocaleDateString('en-GB');
-
 
   const [products, setProducts] = useState([]);
   const [paidBy,  setPaidBy]= useState('')
@@ -29,8 +48,40 @@ function SaleTable() {
   const [driver, setDriver]= useState('')
   const [orderedBy, setorderedBy]= useState('')
   const [discount, setDiscount] = useState(0)
-  //const [loading, setLoading] = useState(false);
   const [recievedBy, setrecievedBy]= useState('')
+  const [printSale, setPrintSale] = useState(null)
+  const [showPDF, setshowPDF] = useState(false)
+  const [refresh, setRefresh] = useState(false)
+
+  const time = new Date().toLocaleDateString('en-GB');
+  const [{sales}, dispatch] = useReducer(reducer, {
+    loading: true,
+    error: '',
+    sales: []
+  })
+
+  useEffect(()=> {
+    const fetchData =async()=> {
+        try{
+            const {data} = await axios.get(`/api/multiple/list`)
+            dispatch({type: 'FETCH_SUCCESS', payload: data}) 
+        }catch(error){
+            dispatch({type: 'FETCH_FAIL', payload: error})
+            toast.error(getError(error))
+        }
+    }
+    fetchData()
+},[refresh])
+
+const openPDFVeiwer = async(s)=> {
+  const result = await axios.get(`/api/multiple/get-sale/${s}`)
+  const fetchdData = result.data
+  console.log(result.data)
+  console.log(fetchdData)
+  setPrintSale(fetchdData)
+  setshowPDF(true) 
+  console.log(printSale)
+}
 
 
 const { state} = useContext(Store);
@@ -131,8 +182,6 @@ const { userInfoToken } = state;
     return total;
   };
 
-  
-
 async function handleSave(e){
 e.preventDefault()
 
@@ -150,7 +199,7 @@ if(hasNullValues){
   return
 }
 
-      try{
+    try{
         const subTotal = calculateSubtotal()
         const total = calculateTotal()
         const vat = calculateVat()
@@ -162,15 +211,17 @@ if(hasNullValues){
         name, deliveredTo,
         phone, orderedBy,
         preparedBy, total,
-          time,
-          subTotal,
-          vat, free, 
-        },
+        time,
+        subTotal,
+        vat, free, 
+      },
+      toast.success('Success'),
+      setRefresh((prevRefresh)=> !prevRefresh)
      )
       }catch(error){
         toast.error(getError(error))
       }
-      toast.success('Success')
+      
 }
 
 
@@ -386,6 +437,35 @@ if(hasNullValues){
       <p>vat: {calculateVat()}</p>
       <p>Total: {calculateTotal()}</p>
       </div>
+      <Row className='my-2 px-3'>
+        <Col style={{ maxHeight: '600px', overflowY: 'auto', border: 'solid 1px'}}>
+          <ListGroup>
+            {sales && sales.map((sale)=>(
+              <ListGroup.Item key={sale._id} onClick={()=> openPDFVeiwer(sale._id)}>
+                <Button variant='light'>
+                {sale.InvoiceCode}
+                </Button>
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+        </Col>
+        <Col style={{maxWidth:'50%'}}>
+            <div>
+            {showPDF && printSale &&(
+                <PDFViewer width="100%" height="600">
+                    <Invoice sale={printSale}/>
+                </PDFViewer>
+                )}
+                </div>
+                {printSale && (
+                <PDFDownloadLink document={<Invoice sale={printSale} />} fileName={`Invoice_${printSale.InvoiceCode}.pdf`}>
+                {({ blob, url, loading, error }) =>
+                  loading ? 'Loading document...' : <Button onClick={() => openPDFVeiwer(printSale._id)}>Download</Button>
+                }
+              </PDFDownloadLink>
+            )}
+        </Col>
+      </Row>
       </>
   );
 }
