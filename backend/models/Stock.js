@@ -1,27 +1,23 @@
 const mongoose = require('mongoose')
 
-const stockHistory = new mongoose.Schema({
-    quantity: {type: Number, required: true},
-    timestamps: {type: Date, default: Date.now}
-})
 const stockSchema = new mongoose.Schema({
-    product:{ type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
-    newStock: {type: Number},
-    totalStock: {type: Number},
-    history:[stockHistory]
+    date: {type: String},
+    products:[
+        {
+            productId: {type: mongoose.Schema.Types.ObjectId, ref: "Product"},
+            productName: {type: String},
+            closingStock: {type: Number},
+            sold: {type: Number},
+            purchase: {type: Number},
+            damaged: {type: Number},
+            price: {type: Number},
+            Total: {type: Number}
+        }
+    ],
+    closingStockvalue: {type: Number},
+    TotalDamagesvalue: {type: Number},
+    TotalSoldvalue: {type: Number}
 })
 
-const snapShots = new mongoose.Schema({
-    openingStock: {
-        quantity: {type: Number},
-        date: {type: Date, default: Date.now.toLocaleDateString}
-    },
-
-    closingStock: {
-        quantity: {type: Number},
-        date: {type: Date, default: Date.now}
-    }
-})
-
-const Stock = mongoose.Model('Stock', stockSchema)
-module.exports = Stock
+const StockRecord = mongoose.model('Stock', stockSchema)
+module.exports = StockRecord
