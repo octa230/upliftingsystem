@@ -11,7 +11,6 @@ import {toast} from 'react-toastify'
 export default function RecordDamages() {
     
     const [products, setProducts] = useState([])
-    //const [value, setTotalValue] = useState(0)
     const [damages, setDamages] = useState(false)
     const [display, setDisplay] = useState(false)
     const [selectedProducts, setSelectedProducts] = useState([])

@@ -6,6 +6,7 @@ import {useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { getError } from '../utils/getError'
 import { Store } from '../utils/Store'
+import Badge from 'react-bootstrap/esm/Badge'
 import axios from 'axios'
 
 
@@ -20,6 +21,7 @@ const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [products, setProducts] = useState([]);
+  const [totalValue, setotalValue] = useState(0)
 
 
 
@@ -48,8 +50,9 @@ const navigate = useNavigate()
   //get all products by page split
   async function getProducts(page){
     try{
-        const res = await axios.get(`/api/product/list?page=${page}`)
+        const res = await axios.get(`/api/product/list`)
         setProducts(res.data.products || [])
+        setotalValue(res.data.totalValue)
         setTotalPages(res.data.totalPages);
     }catch(error){
         console.error('Error fetching data:', error);
@@ -91,7 +94,17 @@ const navigate = useNavigate()
 
   return (
     <>
-    <Table striped bordered hover className='w-100' responsive>
+    <Badge variant='success' className='p-3 mb-2'>Total value:{totalValue}{' '}</Badge>
+    <Table striped bordered hover className='w-100'
+     style={{
+      overflowY: 'auto',
+      maxHeight: '700px',
+      //margin: 'auto',
+      width: '100%',
+      display: 'block', // Important for table layout
+      //borderCollapse: 'collapse', // Optional styling for table borders
+    }} 
+    >
         <thead>
             <tr>
                 <th>Code</th>
@@ -159,13 +172,6 @@ const navigate = useNavigate()
             }
         </tbody>      
     </Table>
-    <div>
-        {Array.from({ length: totalPages }, (_, index) => (
-          <Button key={index} onClick={() => handlePageChange(index + 1)} variant='success' className='m-2 btn-sm'>
-            {index + 1}
-          </Button>
-        ))}
-    </div>
 </>
 )
 }
