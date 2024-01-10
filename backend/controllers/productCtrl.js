@@ -51,26 +51,53 @@ const deleteProduct = asyncHandler(async(req, res)=> {
 
 
 //list All Products
-const PAGE_SIZE  = 20
-const getAll = asyncHandler(async(req, res)=> {
-    
-//    const {query} = req
-    const page = parseInt(req.query.page) || 1;
-    const startIndex = (page - 1) * PAGE_SIZE
+const PAGE_SIZE = 20;
 
-    const totalCount = await Product.countDocuments();
-    const products = await Product.find()
+const getAll = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const startIndex = (page - 1) * PAGE_SIZE;
+
+  const totalCount = await Product.countDocuments();
+  const products = await Product.find()
     .skip(startIndex)
     .limit(PAGE_SIZE)
-    .exec()
+    .exec();
 
-    const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const totalValue = products.reduce(
+    (accumulator, product) =>
+      accumulator + (product.purchasePrice || 0) * (product.inStock || 0),
+    0
+  );
 
-    res.send({
-        products,
-        totalPages,
-    })
-})
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  res.send({
+    products,
+    totalPages,
+    totalValue,
+  });
+});
+
+ 
+
+/* ///LIST ALL PRODUCTS
+const getAll = asyncHandler(async (req, res) => {
+  const totalCount = await Product.countDocuments();
+
+  // Fetch all products
+  const products = await Product.find();
+
+  // Calculate total value for all products
+  
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  res.send({
+    products,
+    totalPages,
+    totalValue,
+  });
+}); */
 
 const getProducts = asyncHandler(async(req, res)=> {
     const products = await Product.find({})
@@ -83,6 +110,11 @@ const getAllProducts = asyncHandler(async(req, res)=> {
     const products = await Product.find({}, "name");
     //const productNames = products.map(product => product.name); // Extract names from the products
     res.send(products);
+})
+
+const namesandprice = asyncHandler(async(req, res)=> {
+  const products = await Product.find().select(["name", "price", "purchasePrice"])
+  res.send(products)
 })
 
 
@@ -231,7 +263,7 @@ const insermany = asyncHandler(async(req, res)=> {
 
 
 
-module.exports = {insermany, createProduct, aggregatePurchaseHistory, deleteProduct, getAll, updateProduct, getProduct, searchProducts, getAllProducts, getProducts}
+module.exports = {namesandprice, insermany, createProduct, aggregatePurchaseHistory, deleteProduct, getAll, updateProduct, getProduct, searchProducts, getAllProducts, getProducts}
 
 
 

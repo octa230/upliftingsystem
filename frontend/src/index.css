@@ -34,7 +34,8 @@ input{
 }
 .dashboard-display{
   overflow: Scroll;
-  white-space: nowrap
+  white-space: nowrap;
+  width: 100%
 }
 
 

@@ -2,11 +2,13 @@ const express = require('express');
 const {createProduct, 
     deleteProduct, getAll, insermany,
     updateProduct, getProduct, 
-    searchProducts, getAllProducts, getProducts, aggregatePurchaseHistory, addBulkFields} = require('../controllers/productCtrl')
+    searchProducts, getAllProducts, getProducts, aggregatePurchaseHistory, addBulkFields, namesandprice} = require('../controllers/productCtrl')
 
 const productRouter = express.Router();
 
 
+
+productRouter.get('/prices', namesandprice)
 productRouter.get('/names', getAllProducts)
 productRouter.post('/seed', insermany)
 productRouter.post('/new', createProduct)

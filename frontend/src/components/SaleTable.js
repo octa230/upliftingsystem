@@ -103,6 +103,7 @@ const { userInfoToken } = state;
       setState(selectedValue)
     }
   }
+  
   const handleProductChange = (index, event) => {
     const newProducts = [...products];
     newProducts[index] = { ...newProducts[index], [event.target.name]: event.target.value };
