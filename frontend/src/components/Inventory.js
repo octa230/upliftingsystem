@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useContext} from 'react'
-import Axios from 'axios'
 import { Button, Table} from 'react-bootstrap'
 import {BsFillPencilFill, BsCheck2Circle, BsXCircle, BsFillFileBreakFill} from 'react-icons/bs'
 import {useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { getError } from '../utils/getError'
 import { Store } from '../utils/Store'
+import Form from 'react-bootstrap/esm/Form'
 import Badge from 'react-bootstrap/esm/Badge'
 import axios from 'axios'
 
@@ -27,19 +27,23 @@ const navigate = useNavigate()
 
 
   useEffect(() => {
-    if (searchName.trim() === '') {
-      getProducts(currentPage);
-    } else {
-      searchProducts(searchName);
-    }
+    const delaySearch = setTimeout(() => {
+      if (searchName.trim() === '') {
+        getProducts(currentPage);
+      } else {
+        searchProducts(searchName);
+      }
+    }, 300); // Adjust the delay as needed (300ms in this example)
+  
+    return () => clearTimeout(delaySearch);
   }, [currentPage, searchName]);
 
 
 
   //get products by search input
-  async function searchProducts(searchTerm) {
+  const searchProducts= async(searchTerm)=> {
     try {
-      const response = await axios.get(`/api/product/search?searchName=${searchTerm}`);
+      const response = await axios.get(`/api/product/list?${searchTerm}`);
       setProducts(response.data.products);
       setTotalPages(1); // Reset total pages since we're filtering
     } catch (error) {
@@ -66,7 +70,7 @@ const navigate = useNavigate()
   async function deleteHandler(product){
     if(window.confirm('Are you sure?')){
         try{
-            await Axios.delete(`/api/product/delete/${product._id}`,)
+            await axios.delete(`/api/product/delete/${product._id}`,)
             toast.success('product deleted')
         }catch(error){
             toast.error(getError(error))
@@ -75,14 +79,17 @@ const navigate = useNavigate()
 
   }
   
-  const filteredProducts = products.filter((x)=> x.name.toLowerCase().includes(searchName.toLocaleLowerCase()))
+
+  const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
+  const filteredProducts = products?.filter((x) => x.name.toUpperCase().includes(searchName.toLowerCase())) || [];
+
   //const filteredPrice = products.filter((x)=> x.price)
 
   const addSaleProduct = async(item)=> {
     toast.success('unit added to sale')
     const existItem =  saleItems.find((x)=> x._id === item._id)
     const quantity = existItem ? existItem.quantity + 1 : 1
-    const {data} = await Axios.get(`/api/product/${item._id}`)
+    const {data} = await axios.get(`/api/product/${item._id}`)
 
     if(data.inStock < quantity){
         window.alert('product outsold')
@@ -94,7 +101,7 @@ const navigate = useNavigate()
 
   return (
     <>
-    <Badge variant='success' className='p-3 mb-2'>Total value:{totalValue}{' '}</Badge>
+    <Badge variant='success' className='p-3 mb-2'>Total value:{round2(totalValue)}{' '}</Badge>
     <Table striped bordered hover className='w-100'
      style={{
       overflowY: 'auto',
