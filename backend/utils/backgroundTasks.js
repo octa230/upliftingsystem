@@ -27,11 +27,12 @@ const getstockSnapShot = async () => {
   
       for (const pdct of products) {
         // Calculate the total value for the product
-  
+        
+        const productTotalValue = (pdct.closingStock || 0) * (pdct.purchasePrice || 0);
         // Aggregate total closing stock, damages, and sold
         totalClosingStock += productTotalValue;
-        totalDamages += (pdct.waste || 0) * (pdct.price || 0);
-        totalSold += (pdct.sold || 0) * (pdct.price || 0);
+        totalDamages += (pdct.waste || 0) * (pdct.purchasePrice || 0);
+        totalSold += (pdct.sold || 0) * (pdct.purchasePrice || 0);
   
         // Create a separate object for product details to avoid modifying the original function
         const productDetailObject = {
@@ -42,7 +43,7 @@ const getstockSnapShot = async () => {
           purchase: pdct.purchase,
           damaged: pdct.waste,
           price: pdct.purchasePrice,
-          Total: (pdct.closingStock) * (pdct.price),
+          Total: (pdct.closingStock) * (pdct.purchasePrice),
         };
   
         // Push the product details object to the array
@@ -85,8 +86,8 @@ const resetWasteValues = async()=> {
 
   const backgroundTasks={
     start: ()=> {
-      cronJob.schedule('0 0 * * *', getstockSnapShot);
-      cronJob.schedule('0 0 * * *', resetWasteValues)
+      cronJob.schedule('0 0 * * * *', getstockSnapShot);
+      cronJob.schedule('0 0 * * * *', resetWasteValues)
     }
   }
 

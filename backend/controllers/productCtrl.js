@@ -51,29 +51,31 @@ const deleteProduct = asyncHandler(async(req, res)=> {
 
 
 //list All Products
-const PAGE_SIZE = 20;
+//const PAGE_SIZE = 20;
 
 const getAll = asyncHandler(async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const startIndex = (page - 1) * PAGE_SIZE;
 
+  const {searchName} = req.query
   const totalCount = await Product.countDocuments();
-  const products = await Product.find()
-    .skip(startIndex)
-    .limit(PAGE_SIZE)
-    .exec();
+  let products;
 
+
+  if(searchName){
+    const searchRegex = new RegExp(searchName, 'i')
+    products = await Product.find({name: {$regex: searchRegex}})
+  } else {
+    products = await Product.find()
+  }
+  
   const totalValue = products.reduce(
     (accumulator, product) =>
       accumulator + (product.purchasePrice || 0) * (product.inStock || 0),
     0
   );
 
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-
   res.send({
     products,
-    totalPages,
+    totalCount,
     totalValue,
   });
 });

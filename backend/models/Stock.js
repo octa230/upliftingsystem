@@ -17,6 +17,8 @@ const stockSchema = new mongoose.Schema({
     closingStockvalue: {type: Number},
     TotalDamagesvalue: {type: Number},
     TotalSoldvalue: {type: Number}
+},{
+    timestamps: true
 })
 
 const StockRecord = mongoose.model('Stock', stockSchema)
