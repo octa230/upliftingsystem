@@ -21,5 +21,5 @@ const stockSchema = new mongoose.Schema({
     timestamps: true
 })
 
-const StockRecord = mongoose.model('Stock', stockSchema)
+const StockRecord = mongoose.model('StockRecord', stockSchema)
 module.exports = StockRecord

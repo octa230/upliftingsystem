@@ -25,14 +25,20 @@ const getstockSnapShot = async () => {
       let totalSold = 0;
       const productDetails = [];
   
-      for (const pdct of products) {
-        // Calculate the total value for the product
+    for (const pdct of products) {
         
-        const productTotalValue = (pdct.closingStock || 0) * (pdct.purchasePrice || 0);
-        // Aggregate total closing stock, damages, and sold
-        totalClosingStock += productTotalValue;
-        totalDamages += (pdct.waste || 0) * (pdct.purchasePrice || 0);
-        totalSold += (pdct.sold || 0) * (pdct.purchasePrice || 0);
+      const waste = pdct.waste || 0;
+      const sold = pdct.sold || 0;
+      const purchasePrice = pdct.purchasePrice || 0;
+
+      //console.log(`Product: ${pdct.name}, Waste: ${waste}, Sold: ${sold}, Purchase Price: ${purchasePrice}`);
+
+      totalDamages += waste * purchasePrice;
+      totalSold += sold * purchasePrice;
+
+      const productTotalValue = pdct.closingStock * purchasePrice;
+      // Aggregate total closing stock, damages, and sold
+      totalClosingStock += productTotalValue;
   
         // Create a separate object for product details to avoid modifying the original function
         const productDetailObject = {
@@ -43,7 +49,7 @@ const getstockSnapShot = async () => {
           purchase: pdct.purchase,
           damaged: pdct.waste,
           price: pdct.purchasePrice,
-          Total: (pdct.closingStock) * (pdct.purchasePrice),
+          Total: productTotalValue,
         };
   
         // Push the product details object to the array
@@ -86,8 +92,8 @@ const resetWasteValues = async()=> {
 
   const backgroundTasks={
     start: ()=> {
-      cronJob.schedule('0 0 * * * *', getstockSnapShot);
-      cronJob.schedule('0 0 * * * *', resetWasteValues)
+      cronJob.schedule('0 0 * * * ', getstockSnapShot);
+      cronJob.schedule('10 0 * * * ', resetWasteValues)
     }
   }
 
