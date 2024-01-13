@@ -297,7 +297,11 @@ async function querySalesData(req, res){
 
   try{
     const sales = await SaleDetails.find(query)
-    res.status(200).send(sales)
+
+    const totalCount = sales.length; // Total number of sales
+    const totalValue = sales.reduce((acc, sale) => acc + (isNaN(sale.total) ? 0 : sale.total), 0); // Total value
+    res.status(200).send({ sales, totalCount, totalValue });
+    //console.log({ sales, totalCount, totalValue })
   }catch(err){
     res.status(500).send({err: 'unable to get results'})
   }

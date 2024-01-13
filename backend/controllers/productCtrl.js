@@ -80,27 +80,6 @@ const getAll = asyncHandler(async (req, res) => {
   });
 });
 
- 
-
-/* ///LIST ALL PRODUCTS
-const getAll = asyncHandler(async (req, res) => {
-  const totalCount = await Product.countDocuments();
-
-  // Fetch all products
-  const products = await Product.find();
-
-  // Calculate total value for all products
-  
-
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-
-  res.send({
-    products,
-    totalPages,
-    totalValue,
-  });
-}); */
-
 const getProducts = asyncHandler(async(req, res)=> {
     const products = await Product.find({})
     res.send(products)
