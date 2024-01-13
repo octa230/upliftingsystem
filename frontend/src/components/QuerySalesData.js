@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Table, Form, Button, Alert} from 'react-bootstrap';
 import axios from 'axios';
 
-function QuerySalesData() {
+export default function QuerySalesData (){
   // State to store query parameters
   const [query, setQuery] = useState({});
 
@@ -11,16 +11,19 @@ function QuerySalesData() {
 
   // State to store the total count of results
   const [totalCount, setTotalCount] = useState(0);
+  const [totalValue, setTotalValue] = useState(0);
+
 
   // Function to fetch sales data based on query parameters
-  async function fetchSales() {
+  const fetchSales =async()=> {
     if (Object.keys(query).length > 0) {
       try {
         const response = await axios.get('/api/multiple/for', {
           params: query,
         });
-        setSales(response.data);
-        setTotalCount(response.data.length); // Set the total count
+        setSales(response.data.sales);
+        setTotalCount(response.data.totalCount); // Set the total count
+        setTotalValue(response.data.totalValue)
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -39,6 +42,7 @@ function QuerySalesData() {
     const { name, value } = e.target;
     setQuery({ ...query, [name]: value });
   };
+  const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
 
   return (
     <Container>
@@ -96,7 +100,8 @@ function QuerySalesData() {
         <Col>
           {sales !== null ? (
             <div>
-              <p>Total Results: {totalCount}</p>
+              <Alert>Total Results: {totalCount}</Alert>
+              <Alert>Total value: {round2(totalValue)}</Alert>
               <Table striped bordered hover>
                 <thead>
                   <tr>
@@ -131,5 +136,3 @@ function QuerySalesData() {
     </Container>
   );
 }
-
-export default QuerySalesData;

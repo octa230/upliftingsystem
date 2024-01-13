@@ -1,6 +1,6 @@
 const cronJob = require('node-cron')
 const {Product} = require('../models/product')
-const StockRecord = require('../models/Stock')
+const StockRecord = require('../models/StockRecord')
 
 
 Product.schema.virtual("nextWasteResetTime").get(function () {

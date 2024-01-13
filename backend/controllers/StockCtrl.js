@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler')
 const {Product, Transaction} = require('../models/product')
+const StockRecord = require('../models/StockRecord')
 
 
 const recordStock = asyncHandler(async(req, res)=> {
@@ -45,6 +46,39 @@ const recordStock = asyncHandler(async(req, res)=> {
     }
 })
 
-module.exports = recordStock
+const getStockRecord = asyncHandler(async(req, res)=> {
+
+    try {
+        const { day, month, year } = req.query;
+        const DAY = parseInt(day);
+        const MONTH = parseInt(month);
+        const YEAR = parseInt(year);
+
+        //console.log(YEAR, DAY, MONTH);
+
+        const startDate = new Date(YEAR, MONTH - 1, DAY);
+        const endDate = new Date(YEAR, MONTH - 1, DAY + 1);
+
+        const data = await StockRecord.find({
+            createdAt: {
+                $gte: startDate,
+                $lt: endDate,
+            }
+        });
+
+        res.send(data);
+        //console.log(record);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+})
+
+
+const getAllRecords = asyncHandler(async(req, res)=> {
+    const data = await StockRecord.find({})
+    res.send(data)
+})
+module.exports = {recordStock, getStockRecord, getAllRecords}
 
 
