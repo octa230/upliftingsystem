@@ -45,7 +45,8 @@ const PAGE_SIZE = 2
 
 const getSales = asyncHandler(async(req, res)=> {
 
-    const sales = await SaleDetails.find({}).sort({createdAt: -1}).limit(10)  
+    const sales = await SaleDetails.find({}).sort({createdAt: -1})
+    //.limit(10)  
     res.send(sales)
 })
 
@@ -109,6 +110,7 @@ const addSaleUnits =  asyncHandler(async(req, res)=> {
         products: selectedProducts.map((x)=> ({
         ...x,
         product: x.product,
+        productName: x.productName,
         quantity: x.quantity,
     }))})
     
@@ -122,102 +124,6 @@ const addSaleUnits =  asyncHandler(async(req, res)=> {
     }
 })
 
-
-const salesData = asyncHandler(async (req, res) => {
-    try {
-      // Daily sales aggregation with summary
-      const dailyData = await SaleDetails.aggregate([
-        {
-          $group: {
-            _id: '$date',
-            dailySales: {
-              $push: {
-                InvoiceCode: '$InvoiceCode',
-                date: '$date',
-                name: '$name',
-                total: '$total'
-              }
-            }
-          }
-        },
-        {
-          $project: {
-            _id: 0,
-            date: '$_id',
-            dailySales: 1,
-            dailySummary: {
-              totalSales: { $sum: '$dailySales.total' },
-              numSales: { $size: '$dailySales' }
-            }
-          }
-        }
-      ]);
-  
-      // Monthly sales aggregation with summary
-      const monthlyData = await SaleDetails.aggregate([
-        {
-          $group: {
-            _id: {
-              year: { $year: { $dateFromString: { dateString: '$date' } } },
-              month: { $month: { $dateFromString: { dateString: '$date' } } }
-            },
-            monthlySales: {
-              $push: {
-                InvoiceCode: '$InvoiceCode',
-                date: '$date',
-                name: '$name',
-                total: '$total'
-              }
-            }
-          }
-        },
-        {
-          $project: {
-            _id: 0,
-            period: '$_id',
-            monthlySales: 1,
-            monthlySummary: {
-              totalSales: { $sum: '$monthlySales.total' },
-              numSales: { $size: '$monthlySales' }
-            }
-          }
-        }
-      ]);
-  
-      // Yearly sales aggregation with summary
-      const annualData = await SaleDetails.aggregate([
-        {
-          $group: {
-            _id: { $year: { $dateFromString: { dateString: '$date' } } },
-            yearlySales: {
-              $push: {
-                InvoiceCode: '$InvoiceCode',
-                date: '$date',
-                name: '$name',
-                total: '$total'
-              }
-            }
-          }
-        },
-        {
-          $project: {
-            _id: 0,
-            year: '$_id',
-            yearlySales: 1,
-            yearlySummary: {
-              totalSales: { $sum: '$yearlySales.total' },
-              numSales: { $size: '$yearlySales' }
-            }
-          }
-        }
-      ]);
-  
-      res.send({ dailyData, monthlyData, annualData });
-    } catch (error) {
-      console.log(error);
-    }
-  });
-  
 
 const getSalesData = asyncHandler(async(req, res)=> {
     const salesData = await SaleDetails.aggregate([
@@ -363,8 +269,12 @@ const customerData = asyncHandler(async(req, res)=> {
 }
 })
 
+
+
+
+
 module.exports = {getSales, querySalesData,
   getsingleSale, addSaleUnits,
-  makeSale, salesData, getSalesData, 
+  makeSale, getSalesData,
   aggregateDataIndependently, customerData
 }
