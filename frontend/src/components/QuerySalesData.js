@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Table, Form, Button, Alert} from 'react-bootstrap';
 import axios from 'axios';
+import { getError } from '../utils/getError'
+import { toast } from 'react-toastify'
+import { FaEye } from 'react-icons/fa'
+import SaleDetailsModal from './SaleDetailsModal'
+
 
 export default function QuerySalesData (){
   // State to store query parameters
@@ -8,6 +13,8 @@ export default function QuerySalesData (){
 
   // State to store sales data
   const [sales, setSales] = useState(null); // Initialize to null
+  const [selectedSale, setSelectedSale] = useState({})
+  const [showModal, setShowModal] = useState(false)
 
   // State to store the total count of results
   const [totalCount, setTotalCount] = useState(0);
@@ -32,6 +39,17 @@ export default function QuerySalesData (){
       setTotalCount(0);
     }
   }
+
+  const handleViewSale = async (saleId)=> {
+    try{
+     const result = await axios.get(`/api/multiple/get-sale/${saleId}`)
+     setSelectedSale(result.data)
+     setShowModal(true)
+    } catch(error){
+     toast.error(getError(error))
+    }
+ }
+
 
   useEffect(() => {
     fetchSales();
@@ -116,7 +134,14 @@ export default function QuerySalesData (){
                 <tbody>
                   {sales.map((sale) => (
                     <tr key={sale._id}>
-                      <td>{sale.InvoiceCode}</td>
+                      <td>
+                      <Button onClick={()=>handleViewSale(sale._id)} className='bg-primary border'>
+                          <span className='px-1'>
+                              <FaEye/>
+                            </span>
+                          {sale.InvoiceCode}
+                        </Button>
+                      </td>
                       <td>{sale.date}</td>
                       <td>Name: {sale.name}
                       <br/><span><strong>{`Phone:${sale.phone}`}</strong></span>
@@ -127,6 +152,7 @@ export default function QuerySalesData (){
                   ))}
                 </tbody>
               </Table>
+              <SaleDetailsModal show={showModal} onHide={()=>setShowModal(false)} selectedSale={selectedSale}/>
             </div>
           ) : (
             <Alert variant='warning'>No data</Alert>
