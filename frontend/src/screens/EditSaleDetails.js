@@ -87,14 +87,14 @@ const getProducts = async()=> {
 
 
 const handleAddRow = () => {
-  setSelectedProducts([...selectedProducts, { product: '', quantity: 0,  }]);
+  setSelectedProducts([...selectedProducts, { product: '', quantity: 0,  productName:""}]);
 };
 
 const handleQuantityChange = (event, index) => {
   const quantity = event.target.value;
   const newSelectedProducts = selectedProducts.map((selectedProduct, i) => {
     if (i === index) {
-      return { ...selectedProduct, quantity };
+      return { ...selectedProduct, quantity};
     } else {
       return selectedProduct;
     }
@@ -103,15 +103,16 @@ const handleQuantityChange = (event, index) => {
 };
 
 const handleProductChange = (event, index) => {
-  const product = event.target.value
-  const newSelectedProducts = selectedProducts.map((selectedProduct, i)=> {
-    if(i === index){
-      return{...selectedProduct, product}
-    }else{
-      return selectedProduct
+  const productId = event.target.value; // Rename variable to productId for clarity
+  const selectedProductName = products.find(product => product._id === productId)?.name; // Rename variable to selectedProductName
+  const newSelectedProducts = selectedProducts.map((selectedProduct, i) => {
+    if (i === index) {
+      return { ...selectedProduct, product: productId, productName: selectedProductName }; // Use selectedProductName
+    } else {
+      return selectedProduct;
     }
   });
-   setSelectedProducts(newSelectedProducts)
+  setSelectedProducts(newSelectedProducts);
 };
 
 

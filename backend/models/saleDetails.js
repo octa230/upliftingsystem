@@ -5,7 +5,8 @@ const unitSchema = new mongoose.Schema({
     photo: {type: String},
     products: [{
         product: {type: mongoose.Schema.Types.ObjectId, ref: 'Product'},
-        quantity: {type: Number, required: true}
+        quantity: {type: Number, required: true},
+        productName: {type: String}
     }],
 },
 {
