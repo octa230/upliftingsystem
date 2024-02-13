@@ -170,9 +170,9 @@ const navigate = useNavigate()
                             <Button variant='' onClick={()=> deleteHandler(product)}>
                                Delete <BsXCircle/>
                             </Button>
-                            <Button variant='' onClick={()=> addSaleProduct(product)}>
+{/*                             <Button variant='' onClick={()=> addSaleProduct(product)}>
                                Add <BsCheck2Circle/>
-                            </Button>
+                            </Button> */}
                         </td>
                     </tr>                    
                 ))
