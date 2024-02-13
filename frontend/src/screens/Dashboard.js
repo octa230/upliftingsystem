@@ -60,11 +60,6 @@ export default function Dashboard() {
                       <span><BsFillCreditCardFill/></span>  Make Sale
                     </Nav.Link>
                 </Nav.Item>
-                <Nav.Item onClick={handleSideBarClick('retail')}>
-                    <Nav.Link className='nav-link'>
-                      <span><BsFillTagFill/></span>  Sale retail
-                    </Nav.Link>
-                </Nav.Item>
                 <Nav.Item onClick={handleSideBarClick('new-user')}>
                     <Nav.Link className='nav-link'>
                        <span><BsFillPersonPlusFill/></span> New User
@@ -77,7 +72,6 @@ export default function Dashboard() {
         <Col sm={8} className='dashboard-display'>
                 {content === 'make-sale' && <SaleTable/>}
                 {content === 'new-product' && <AddProduct/>}
-                {content === 'retail' && <SaleScreen/>}
                 {content === 'new-user' && <RegisterUser/>}
                 {content === 'records' && <SaleHistory />} 
                 {content === 'inventory' && <InventoryScreen/>}
