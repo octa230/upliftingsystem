@@ -121,4 +121,62 @@ const queryRecords = asyncHandler(async(req, res)=> {
     }
 })
 
-module.exports = {queryRecords, monthlySummary}
+const visualizeTransactions = asyncHandler(async (req, res) => {
+    try {
+        const { startDate, endDate, type } = req.query;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const results = [];
+
+        // Loop through each day within the date range
+        for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+            const nextDay = new Date(date);
+            nextDay.setDate(nextDay.getDate() + 1);
+
+            let match = {
+                createdAt: {
+                    $gte: date,
+                    $lt: nextDay,
+                },
+            };
+
+            // If a specific type is passed, add type to the match condition
+            if (type) {
+                match.type = type;
+            }
+
+            const transactions = await Transaction.aggregate([
+                {
+                    $match: match,
+                },
+                {
+                    $group: {
+                        _id: '$type',
+                        totalQuantity: { $sum: '$quantity' },
+                        totalPrice: { $sum: { $multiply: ['$quantity', '$purchasePrice'] } },
+                    },
+                },
+            ]);
+
+            // Push the aggregated transactions for the day to the results array
+            results.push({ date: date.toISOString().split('T')[0], transactions });
+        }
+
+        // Extract unique types from transactions
+        const typesSet = new Set();
+        results.forEach(({ transactions }) => {
+            transactions.forEach(({ _id }) => {
+                typesSet.add(_id);
+            });
+        });
+        const types = Array.from(typesSet);
+
+        res.json({ results, types });
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+  
+module.exports = {queryRecords, monthlySummary, visualizeTransactions}
