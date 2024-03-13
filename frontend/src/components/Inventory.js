@@ -135,8 +135,8 @@ const navigate = useNavigate()
         </thead>
         <tbody>
             {filteredProducts.map((product)=> (
-                    <tr key={product._id}>
-                        <td>
+              <tr key={product._id}>
+                <td>
                             {product.code}
                         </td>
                         <td>
