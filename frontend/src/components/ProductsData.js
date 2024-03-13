@@ -1,10 +1,10 @@
-import React, { useState} from 'react'
+import React, { useEffect, useState} from 'react'
 import axios from 'axios'
 import Form from 'react-bootstrap/esm/Form';
 import Table from 'react-bootstrap/esm/Table';
 import Button from 'react-bootstrap/esm/Button';
 import Col from 'react-bootstrap/esm/Col'
-import Card from 'react-bootstrap/esm/Card'
+import MessageBox from './MessageBox'
 import Row from 'react-bootstrap/esm/Row'
 
 export default function ProductsData() {
@@ -12,29 +12,51 @@ export default function ProductsData() {
   const [month, setMonth] = useState('')
   const [year, setYear] = useState('')
   const [results, setResults] = useState([])
-  const [summary, setSummary] = useState({})
-  const [day, setDay] = useState('')
+  const [summary, setSummary] = useState(null)
+  const [endDay, setendDay] = useState('')
+  const [startDay, setstartDay] = useState('')
   const [type, setType] = useState('')
+  const [productName, setProductName] = useState('')
+  const [productNames, setProductNames] = useState([])
 
   const handleSubmit = async(e)=> {
     e.preventDefault()
-
     try{
-      const {data} = await axios.get('/api/transactions/records', {
+      const responseData = await axios.get('/api/transactions/records', {
         params:{
           month, 
-          year, 
+          year,
+          productName, 
           type,
-          day,
-        }
+          startDay,
+          endDay
+        },
       })
-      setResults(data.data)
-      setSummary(data.totals)
+      console.log(
+        month, 
+          year,
+          productName, 
+          type,
+          startDay,
+          endDay
+      )
+      setResults(responseData.data.data)
+      setSummary(responseData.data.totals);
     }catch(err){
       console.log(err)
     }
   }
+
+  useEffect(()=> {
+    const fetchProdutNames = async()=>{
+      const {data} = await axios.get('/api/product/names')
+      setProductNames(data)
+      console.log(data)
+    }
+    fetchProdutNames()
+  },[])
  
+  const RoundTo = (num)=> Math.round(num * 100 + Number.EPSILON) / 100 //====> 123.4567 - 123.45;
    const types = ['sale', 'display', 'damage', 'purchase']
    const handlePrint = () => {
     const printWindow = window.open('', '_blank');
@@ -73,6 +95,19 @@ export default function ProductsData() {
               </Form.Select>
             </Form.Group>
           </Col>
+          <Col>
+            <Form.Group>
+              <h3>Product</h3>
+              <Form.Select as='select' value={productName} onChange={(e)=> setProductName(e.target.value)}>
+                <option value=''>--select--</option>
+                {productNames?.map((product, index)=> (
+                  <option key={product._id} value={product.name}>
+                    {product.name}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
         </Row>
         <Row>
         <Col>
@@ -96,27 +131,39 @@ export default function ProductsData() {
                 onChange={(e) => setYear(e.target.value)}
               />
             </Form.Group>
-          </Col>          <Col>
-            <Form.Group controlId="day">
-              <h4>Day</h4>
+          </Col> 
+          <Col>
+            <Form.Group controlId="startDay">
+              <h4>From(Day)</h4>
               <Form.Control
                 type="number"
                 placeholder="Enter day"
-                value={day}
-                onChange={(e) => setDay(e.target.value)}
+                value={startDay}
+                onChange={(e) => setstartDay(e.target.value)}
               />
             </Form.Group>
           </Col> 
+          <Col>
+            <Form.Group controlId="endDay">
+              <h4>To(Day)</h4>
+              <Form.Control
+                type="number"
+                placeholder="Enter day"
+                value={endDay}
+                onChange={(e) => setendDay(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
         </Row>
         <Button className='my-3' type='submit'>sort</Button>
       </Form>
-      <div className='mb-3'>
-      <Row>
-        {summary && Object.entries(summary).map(([type, { quantity, valuation }]) => (
-          renderSummaryCard(type, quantity, valuation)
-        ))}
-      </Row>
-      </div>
+
+      {summary !== null && (
+        <div>
+          <MessageBox>Total Price: {RoundTo(summary.totalPrice)}</MessageBox>
+          <MessageBox>Total Quantity: {summary.totalQuantity}</MessageBox>
+        </div>
+      )}
       <Table striped bordered hover style={{ maxHeight: '500px', overflowY: 'auto' }} id='data-table'>
       <thead>
         <tr>
@@ -154,16 +201,16 @@ export default function ProductsData() {
 }
 
 
-const renderSummaryCard = (type, quantity, valuation) => (
-  <Col key={type} xs={12} sm={6} md={3}>
+/* const renderSummaryCard = (totalPrice, totalQuantity) => (
+  <Col key={'i'} xs={12} sm={6} md={3}>
     <Card className='bg-light text-dark border border-3 border-warning'>
       <Card.Body>
-        <Card.Title>{type.toUpperCase()}</Card.Title>
+         <Card.Title>{type.toUpperCase()}</Card.Title> 
         <Card.Text>
-          Quantity: {quantity}<br />
-          Valuation: {valuation.toFixed(2)}
+          Quantity: {totalQuantity}<br />
+          Valuation: {totalPrice.toFixed(2)}
         </Card.Text>
       </Card.Body>
     </Card>
   </Col>
-);
+);  */

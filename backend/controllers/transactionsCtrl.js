@@ -61,9 +61,46 @@ const monthlySummary = asyncHandler(async(req, res)=> {
     res.send(monthlyTotals);
 })
 
-
 const queryRecords = asyncHandler(async(req, res)=> {
-    const {day, year, month, type} = req.query
+    try {
+        const { month, year, productName, type, startDay, endDay } = req.query;
+    
+        // Build query object based on provided parameters
+        const query = {
+          ...(month && { createdAt: { $gte: new Date(`${year}-${month}-01`), $lt: new Date(`${year}-${parseInt(month) + 1}-01`) } }),
+          ...(productName && { productName }),
+          ...(type && { type }),
+          ...(startDay && endDay && { createdAt: { $gte: new Date(`${year}-${month}-${startDay}`), $lt: new Date(`${year}-${month}-${endDay}`) } })
+        };
+    
+        const transactions = await Transaction.find(query);
+    
+        // Calculate total quantity and total price
+        let totalQuantity = 0;
+        let totalPrice = 0;
+        transactions.forEach(transaction => {
+          totalQuantity += transaction.quantity;
+          totalPrice += transaction.quantity * transaction.purchasePrice;
+        });
+    
+        const responseData = {
+          data: transactions,
+          totals: {
+            totalQuantity,
+            totalPrice
+          }
+        };
+    
+        res.send(responseData);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+      }
+})
+/* const queryRecords = asyncHandler(async(req, res)=> {
+
+
+    const {startDay, endDay, year, month, type, product} = req.query
     let startDate, endDate
 
     if(year){ 
@@ -83,13 +120,14 @@ const queryRecords = asyncHandler(async(req, res)=> {
 
     const getRecords ={
         createdAt: {
-            $gte: startDate || new Date(0),
-            $lte: endDate || new Date()
+            type: type,
+            $gte: startDay || new Date(0),
+            $lte: endDay || new Date()
         }
     }
 
-    if(type){
-        getRecords.type = type  
+    if(product){
+        getRecords.productName = product  
     }
 
     try{
@@ -120,7 +158,7 @@ const queryRecords = asyncHandler(async(req, res)=> {
         res.send(error)
     }
 })
-
+ */
 const visualizeTransactions = asyncHandler(async (req, res) => {
     try {
         const { startDate, endDate, type } = req.query;
