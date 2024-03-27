@@ -19,6 +19,7 @@ export default function QuerySalesData (){
   // State to store the total count of results
   const [totalCount, setTotalCount] = useState(0);
   const [totalValue, setTotalValue] = useState(0);
+  const [focSales, setFocSales] = useState(0)
 
 
   // Function to fetch sales data based on query parameters
@@ -31,6 +32,7 @@ export default function QuerySalesData (){
         setSales(response.data.sales);
         setTotalCount(response.data.totalCount); // Set the total count
         setTotalValue(response.data.totalValue)
+        setFocSales(response.data.focSales)
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -118,8 +120,11 @@ export default function QuerySalesData (){
         <Col>
           {sales !== null ? (
             <div>
-              <Alert>Total Results: {totalCount}</Alert>
-              <Alert>Total value: {round2(totalValue)}</Alert>
+              <div className='d-flex justify-content-between'>
+              <Alert variant='warning'>Total Results: {totalCount}</Alert>
+              <Alert variant='warning'>Total value: {round2(totalValue)}</Alert>
+              <Alert variant='warning'>F.O.C. {round2(focSales)}</Alert>
+              </div>
               <Table striped bordered hover>
                 <thead>
                   <tr>
