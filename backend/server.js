@@ -6,7 +6,6 @@ const ErrorHandler = require('./midleware/errHandler')
 const cookieParser = require('cookie-parser');
 const userRouter = require('./routes/userRouter')
 const productRouter = require('./routes/productRouter');
-const salesRouter = require('./routes/saleRouter')
 const saleDetailsRouter  = require('./routes/saleDetailsRouter');
 const path = require('path');
 const uploadRouter = require('./controllers/uploadCtrl')
@@ -34,7 +33,6 @@ app.use(bodyParser.json())
 app.use('/api/product', productRouter)
 app.use('/api/user', userRouter)
 app.use('/api/multiple', saleDetailsRouter)
-app.use('/api/wholesale', salesRouter)
 app.use('/api/damages', damagesRouter)
 app.use('/api/upload', uploadRouter)
 app.use('/api/stock', stockRouter)
