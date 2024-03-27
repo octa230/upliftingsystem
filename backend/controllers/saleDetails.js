@@ -206,7 +206,7 @@ async function querySalesData(req, res){
 
     const totalCount = sales.length; // Total number of sales
     const totalValue = sales.reduce((acc, sale) => acc + (isNaN(sale.total) ? 0 : sale.total), 0); // Total value
-    const foc = sales.filter((sale)=> {sale.free == true})
+    const foc = sales.filter((sale)=> sale.free === true)
     const focSales = foc.reduce((acc, sale)=> acc + (isNaN(sale.total) ? 0 : sale.total), 0)
     res.status(200).send({ sales, totalCount, totalValue, focSales});
     //console.log({ sales, totalCount, totalValue })
