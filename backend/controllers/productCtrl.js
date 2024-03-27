@@ -64,7 +64,7 @@ const getAll = asyncHandler(async (req, res) => {
     const searchRegex = new RegExp(searchName, 'i')
     products = await Product.find({name: {$regex: searchRegex}})
   } else {
-    products = await Product.find()
+    products = await Product.find().sort({"name": 1})
   }
   
   const totalValue = products.reduce(
@@ -81,14 +81,15 @@ const getAll = asyncHandler(async (req, res) => {
 });
 
 const getProducts = asyncHandler(async(req, res)=> {
-    const products = await Product.find({})
+    const products = await Product.find().sort({ "name": 1})
+    console.log(products)
     res.send(products)
 
 })
 //getAllproductsByIdAndName
 
 const getAllProducts = asyncHandler(async(req, res)=> {
-    const products = await Product.find({}, "name");
+    const products = await Product.find({}, "name").sort({"name": 1});
     //const productNames = products.map(product => product.name); // Extract names from the products
     res.send(products);
 })
@@ -97,22 +98,6 @@ const namesandprice = asyncHandler(async(req, res)=> {
   const products = await Product.find().select(["name", "price", "purchasePrice"])
   res.send(products)
 })
-
-
-const searchProducts = asyncHandler(async (req, res) => {
-    const searchName = req.query.searchName || '';
-    console.log(searchName)
-    try {
-      const matchedProducts = await Product.find({
-        name: { $regex: searchName, $options: 'i' }
-      });
-      const products = matchedProducts
-      res.send(products);
-    } catch (error) {
-      console.error('Error searching products:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  });
 
 
 const updateProduct = asyncHandler(async (req, res) => {
@@ -244,7 +229,7 @@ const insermany = asyncHandler(async(req, res)=> {
 
 
 
-module.exports = {namesandprice, insermany, createProduct, aggregatePurchaseHistory, deleteProduct, getAll, updateProduct, getProduct, searchProducts, getAllProducts, getProducts}
+module.exports = {namesandprice, insermany, createProduct, aggregatePurchaseHistory, deleteProduct, getAll, updateProduct, getProduct, getAllProducts, getProducts}
 
 
 

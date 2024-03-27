@@ -2,7 +2,7 @@ const express = require('express');
 const {createProduct, 
     deleteProduct, getAll, insermany,
     updateProduct, getProduct, 
-    searchProducts, getAllProducts, getProducts, aggregatePurchaseHistory, addBulkFields, namesandprice} = require('../controllers/productCtrl')
+    getAllProducts, getProducts, aggregatePurchaseHistory,  namesandprice} = require('../controllers/productCtrl')
 
 const productRouter = express.Router();
 
@@ -18,6 +18,5 @@ productRouter.get('/list', getAll)
 productRouter.put('/update/:id', updateProduct)
 productRouter.get('/all', getProducts)
 productRouter.get('/:id', getProduct)
-productRouter.get('/search', searchProducts)
 
 module.exports = productRouter
