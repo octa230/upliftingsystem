@@ -8,7 +8,6 @@ import CustomerData from '../components/CustomerData'
 import ProductsData from '../components/ProductsData'
 import SalesData from '../components/SalesData'
 import StockRecords from '../components/StockRecords'
-import Analytics from '../components/Analyticts'
 import { newDate } from '../utils/Date'
 
 
@@ -36,9 +35,6 @@ export default function StatScreen() {
                 <Nav.Item onClick={handleSideBarClick('sales')}>
                     <Nav.Link>Sales Data</Nav.Link>
                 </Nav.Item>
-                <Nav.Item onClick={handleSideBarClick('analytics')}>
-                    <Nav.Link>Analytics</Nav.Link>
-                </Nav.Item>
                 <Nav.Item onClick={handleSideBarClick('graphs')}>
                     <Nav.Link>Graphs</Nav.Link>
                 </Nav.Item>
@@ -49,7 +45,6 @@ export default function StatScreen() {
 
         </Col>  
         <Col sm={8}>
-                {content === 'analytics' && <Analytics/>}
                 {content === 'sales' && <SalesData/>}
                 {content === 'customers' && <CustomerData/>}
                 {content === 'products' && <ProductsData/>}

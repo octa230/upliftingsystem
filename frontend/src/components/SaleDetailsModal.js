@@ -24,6 +24,7 @@ export default function SaleDetailsModal({selectedSale, show, onHide}) {
           <p>Service: {selectedSale.service}</p>
           <p>Customer: {selectedSale.name}</p>
           <p>Phone: {selectedSale.phone}</p>
+          <p>Status: {selectedSale.free ? "F.O.C" : "CHARGED"}</p>
           <p>Subtotal: {selectedSale.subTotal}</p>
           <p>Total: {selectedSale.total}</p>
         </div>

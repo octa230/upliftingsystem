@@ -53,36 +53,24 @@ const deleteProduct = asyncHandler(async(req, res)=> {
 //list All Products
 //const PAGE_SIZE = 20;
 
-const getAll = asyncHandler(async (req, res) => {
-
-  const {searchName} = req.query
-  const totalCount = await Product.countDocuments();
-  let products;
-
-
-  if(searchName){
-    const searchRegex = new RegExp(searchName, 'i')
-    products = await Product.find({name: {$regex: searchRegex}})
-  } else {
-    products = await Product.find().sort({"name": 1})
-  }
-  
-  const totalValue = products.reduce(
-    (accumulator, product) =>
-      accumulator + (product.purchasePrice || 0) * (product.inStock || 0),
-    0
-  );
-
-  res.send({
-    products,
-    totalCount,
-    totalValue,
-  });
+const searchProducts = asyncHandler(async (req, res) => {
+  const searchName = req.query.searchName
+  const products = await Product.aggregate([
+    {
+      $match:{
+        $or: [
+          {name: {$regex: searchName, $options: 'i'}},
+          {code: {$regex: searchName, $options: 'i'}}
+        ]
+      }
+    }
+  ])
+  res.send(products)
 });
 
 const getProducts = asyncHandler(async(req, res)=> {
     const products = await Product.find().sort({ "name": 1})
-    console.log(products)
+    //console.log(products)
     res.send(products)
 
 })
@@ -229,7 +217,7 @@ const insermany = asyncHandler(async(req, res)=> {
 
 
 
-module.exports = {namesandprice, insermany, createProduct, aggregatePurchaseHistory, deleteProduct, getAll, updateProduct, getProduct, getAllProducts, getProducts}
+module.exports = {namesandprice, insermany, createProduct, aggregatePurchaseHistory, deleteProduct, updateProduct, getProduct, getAllProducts, getProducts, searchProducts}
 
 
 
