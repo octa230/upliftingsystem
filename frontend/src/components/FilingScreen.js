@@ -180,7 +180,7 @@ const handleSubmit =async()=>{
         )}
         </div>
         <div>
-        <Button onClick={()=>clearSelectedItems()}>
+        <Button onClick={()=>clearSelectedItems()} disabled>
             Clear All
         </Button>
         </div>
@@ -216,7 +216,7 @@ const handleSubmit =async()=>{
             </Col>
         </ListGroup.Item>
       )) : (
-        <MessageBox>NO DATA</MessageBox>
+        <MessageBox>ADD DATA FROM INVENTORY</MessageBox>
       )}
     </ListGroup>
     <Button onClick={handleSubmit}>Submit</Button>
