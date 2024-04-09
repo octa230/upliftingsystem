@@ -214,44 +214,7 @@ async function querySalesData(req, res){
     res.status(500).send({err: 'unable to get results'})
   }
 }
-//phone service and preparedBy
-async function aggregateDataIndependently(req, res) {
-    try {
-        const pipeline = [
-            {
-                $facet: {
-                    serviceAggregation: [
-                        {
-                            $group: {
-                                _id: "$service",
-                                totalCount: { $sum: 1 },
-                                totalAmount: { $sum: "$total" },
-                                roundedSum: { $sum: { $round: "$total" } }
-                            }
-                        }
-                    ],
-                    preparedByAggregation: [
-                        {
-                            $group: {
-                                _id: "$preparedBy",
-                                totalCount: { $sum: 1 },
-                                totalAmount: { $sum: "$total" },
-                                roundedSum: { $sum: { $round: "$total" } }
-                            }
-                        }
-                    ],
-                }
-            }
-        ];
 
-        const results = await SaleDetails.aggregate(pipeline);
-
-        res.send(results);
-    } catch (error) {
-        console.error("Error aggregating data:", error);
-        throw error;
-    }
-}
 
 const customerData = asyncHandler(async(req, res)=> {
   try {
@@ -278,5 +241,5 @@ const customerData = asyncHandler(async(req, res)=> {
 module.exports = {getSales, querySalesData,
   getsingleSale, addSaleUnits,
   makeSale, getSalesData,
-  aggregateDataIndependently, customerData
+  customerData
 }
