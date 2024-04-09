@@ -17,7 +17,6 @@ saleDetailsRouter.get('/list', getSales)
 saleDetailsRouter.get('/get-sale/:id', getsingleSale)
 saleDetailsRouter.post('/:id/add-units', addSaleUnits)
 saleDetailsRouter.get('/sales-data', getSalesData)
-saleDetailsRouter.get('/aggregated-sale-data', aggregateDataIndependently)
 saleDetailsRouter.get('/for', querySalesData)
 
 

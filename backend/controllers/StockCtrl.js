@@ -1,11 +1,19 @@
 const asyncHandler = require('express-async-handler')
 const {Product, Transaction} = require('../models/product')
 const StockRecord = require('../models/StockRecord')
+const Purchase = require('../models/Purchase')
 
 
 const recordStock = asyncHandler(async(req, res)=> {
     try{
-        const {selectedProducts} = req.body
+        const {selectedProducts, deliveryNote} = req.body
+
+        const newPurchase = new Purchase({
+            deliveryNote: deliveryNote,
+            purchaseItems: selectedProducts
+        })
+
+        await newPurchase.save()
 
         for(const selectedProduct of selectedProducts){
            // const{product, purchase} = item
@@ -18,9 +26,9 @@ const recordStock = asyncHandler(async(req, res)=> {
             }
 
             ///UPDATE STOCK QUANTITIES
-            newProduct.inStock += parseInt(selectedProduct.purchase);
-            newProduct.closingStock += parseInt(selectedProduct.purchase);
-            newProduct.purchase += parseInt(selectedProduct.purchase)
+            newProduct.inStock += parseInt(selectedProduct.quantity);
+            newProduct.closingStock += parseInt(selectedProduct.quantity);
+            newProduct.purchase += parseInt(selectedProduct.quantity)
 
             newProduct.purchaseHistory.push({ date: new Date(), purchase: selectedProduct.purchase });
 
@@ -34,7 +42,7 @@ const recordStock = asyncHandler(async(req, res)=> {
                 sellingPrice: newProduct.price,
                 productName: newProduct.name,
                 type: 'purchase',
-                quantity: parseInt(selectedProduct.purchase)
+                quantity: parseInt(selectedProduct.quantity)
             })
 
             await transaction.save()

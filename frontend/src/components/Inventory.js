@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext} from 'react'
+import React, { useEffect, useState, useContext, useReducer} from 'react'
 import { Button, Table} from 'react-bootstrap'
 import {BsFillPencilFill, BsCheck2Circle, BsXCircle, BsFillFileBreakFill} from 'react-icons/bs'
 import {useNavigate } from 'react-router-dom'
@@ -6,66 +6,59 @@ import { toast } from 'react-toastify'
 import { getError } from '../utils/getError'
 import { Store } from '../utils/Store'
 import Form from 'react-bootstrap/esm/Form'
+import Row from 'react-bootstrap/esm/Row'
+import Col from 'react-bootstrap/esm/Col'
 import Badge from 'react-bootstrap/esm/Badge'
 import axios from 'axios'
 
 
+const reducer = (state, action)=>{
+  switch(action.type){
+    case "FETCH_PRODUCTS":
+      return {...state, products: action.payload}
+    case "OPEN_SEARCH":
+      return {...state, products: action.payload}
+    case "FAILED_SEARCH":
+      return {...state, loading: false, error: action.payload}
+    default:
+      return state;
+  }
+}
+
 
 export default function InventoryScreen() {
 
-const navigate = useNavigate()
+  const initialState = {
+    error: "",
+    loading: true,
+    products: [] // Initialize products as an empty array
+  };
+
+  const [{ products }, dispatch] = useReducer(reducer, initialState)
+
+  const navigate = useNavigate()
     const {state, dispatch: ctxDispatch} = useContext(Store)
-    const {sale: {saleItems} } =  state
+    const {selectedItems } =  state
 
   const [searchName, setSearchName] = useState('')
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [products, setProducts] = useState([]);
-  const [totalValue, setotalValue] = useState(0)
-
-
-
-
-  useEffect(() => {
-    const delaySearch = setTimeout(() => {
-      if (searchName.trim() === '') {
-        getProducts(currentPage);
-      } else {
-        searchProducts(searchName);
-      }
-    }, 300); // Adjust the delay as needed (300ms in this example)
-  
-    return () => clearTimeout(delaySearch);
-  }, [currentPage, searchName]);
 
 
 
   //get products by search input
-  const searchProducts= async(searchTerm)=> {
-    try {
-      const response = await axios.get(`/api/product/list?${searchTerm}`);
-      setProducts(response.data.products);
-      setTotalPages(1); // Reset total pages since we're filtering
-    } catch (error) {
-      console.error('Error searching products:', error);
+  const fetchedProducts = async (searchName) => {
+    if(!searchName){
+      const {data} = await axios.get('/api/product/all')
+      dispatch({type: "FETCH_PRODUCTS", payload: data})
+    }else{
+      const {data} = await axios.get(`/api/product/search?searchName=${searchName}`)
+      dispatch({type: "OPEN_SEARCH", payload: data})
     }
-  }
-
-  //get all products by page split
-  async function getProducts(page){
-    try{
-        const res = await axios.get(`/api/product/list`)
-        setProducts(res.data.products || [])
-        setotalValue(res.data.totalValue)
-        setTotalPages(res.data.totalPages);
-    }catch(error){
-        console.error('Error fetching data:', error);
-    }
-  }
-
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
   };
+
+  useEffect(()=> {
+    fetchedProducts(searchName, dispatch)
+  },[searchName])
+
 
   async function deleteHandler(product){
     if(window.confirm('Are you sure?')){
@@ -81,13 +74,12 @@ const navigate = useNavigate()
   
 
   const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
-  const filteredProducts = products?.filter((x) => x.name.toUpperCase().includes(searchName.toLowerCase())) || [];
+  
 
   //const filteredPrice = products.filter((x)=> x.price)
 
   const addSaleProduct = async(item)=> {
-    toast.success('unit added to sale')
-    const existItem =  saleItems.find((x)=> x._id === item._id)
+    const existItem =  selectedItems.find((x)=> x._id === item._id)
     const quantity = existItem ? existItem.quantity + 1 : 1
     const {data} = await axios.get(`/api/product/${item._id}`)
 
@@ -95,23 +87,30 @@ const navigate = useNavigate()
         window.alert('product outsold')
         return;
     }
-    ctxDispatch({type: 'ADD_SALE_ITEM', payload: {...item, quantity}})
+    ctxDispatch({type: 'ADD_SELECTED_ITEM', payload: {...item, quantity}})
   }
 
 
   return (
     <>
-    <Badge variant='success' className='p-3 mb-2'>Total value:{round2(totalValue)}{' '}</Badge>
-    <Table striped bordered hover className='w-100'
-     style={{
-      overflowY: 'auto',
-      maxHeight: '700px',
-      //margin: 'auto',
-      width: '100%',
-      display: 'block', // Important for table layout
-      //borderCollapse: 'collapse', // Optional styling for table borders
-    }} 
-    >
+    <Row>
+      <Col>
+      <Badge variant='success' className='p-3 mb-2'>
+        Total value:{round2(products.reduce((acc, product)=> acc + (product.purchasePrice * product.inStock), 0))}{' '}
+      </Badge>
+      </Col>
+      <Col md={8} className='d-flex m-1'>
+        <Form.Control type='text'
+          value={searchName}
+          onChange={(e)=> setSearchName(e.target.value)}
+          placeholder='Search products'
+        />
+        <Button onClick={()=> setSearchName('')} className='p-2' variant=''>
+          <BsXCircle/>
+        </Button>
+      </Col>
+    </Row>
+    <Table responsive striped bordered hover className='w-100 lg'>
         <thead>
             <tr>
                 <th>Code</th>
@@ -127,14 +126,14 @@ const navigate = useNavigate()
                     Actions
                     <span>
                         <Button variant='' onClick={()=> navigate('/print-inventory')}>
-                            Print <BsFillFileBreakFill />
+                          Print <BsFillFileBreakFill />
                         </Button>
                     </span>
                 </th>
             </tr>
         </thead>
         <tbody>
-            {filteredProducts.map((product)=> (
+            {products.map((product)=> (
               <tr key={product._id}>
                 <td>
                             {product.code}
@@ -164,15 +163,15 @@ const navigate = useNavigate()
                             {product.closingStock}
                         </td>
                         <td className='d-flex justify-content-end'>
-                            <Button variant='' onClick={()=> (navigate(`/api/product/update/${product._id}`))}>                               
-                               Edit <BsFillPencilFill/>
-                            </Button>
+                          <Button variant='' onClick={()=> (navigate(`/api/product/update/${product._id}`))}>                               
+                            Edit <BsFillPencilFill/>
+                          </Button>
                             <Button variant='' onClick={()=> deleteHandler(product)}>
                                Delete <BsXCircle/>
                             </Button>
-{/*                             <Button variant='' onClick={()=> addSaleProduct(product)}>
-                               Add <BsCheck2Circle/>
-                            </Button> */}
+                        <Button variant='' onClick={()=> addSaleProduct(product)}>
+                            Add <BsCheck2Circle/>
+                          </Button> 
                         </td>
                     </tr>                    
                 ))

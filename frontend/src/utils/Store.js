@@ -1,4 +1,9 @@
 import { createContext, useReducer } from "react";
+import { toast } from "react-toastify";
+
+
+
+
 
 export const Store = createContext()
 
@@ -7,16 +12,19 @@ const initialState = {
     ? JSON.parse(localStorage.getItem('userInfoToken'))
     : null,
     
-    sale:{
-        saleItems: localStorage.getItem('saleItems')
-        ?JSON.parse(localStorage.getItem('saleItems'))
-        :[],
-        multipleSaleItems: localStorage.getItem('multipleSale')
+    selectedItems: localStorage.getItem('selectedItems')
+    ? JSON.parse(localStorage.getItem('selectedItems'))
+    : [],
 
+    selectedSale: localStorage.getItem('selectedSale')
+    ? JSON.parse(localStorage.getItem('selectedSale'))
+    : {},
+
+    todaySales: localStorage.getItem('todaySales')
+    ? JSON.parse(localStorage.getItem('todaySales')) 
+    : [],
     }
-
-
-}
+    
 
 
 function reducer(state, action){
@@ -24,25 +32,38 @@ function reducer(state, action){
         case 'SIGN_IN':
             return {...state, userInfoToken: action.payload}
         case 'SIGN_OUT':
-            return { ...state, userInfoToken: null }      
-        case 'ADD_SALE_ITEM':
+            return { ...state, userInfoToken: null }
+        case "ADD_SELECTED_SALE":
+            return {...state, selectedSale: action.payload}
+        case "ADD_NEW_SALE":
+            const sale = action.payload;
+            const newSalesList = [...state.todaySales, sale]
+            localStorage.setItem('todaySales', JSON.stringify(newSalesList))
+            return {...state, todaySales: newSalesList}
+        case 'ADD_SELECTED_ITEM':
             const newItem = action.payload;
-            const existItem = state.sale.saleItems.find((item)=> item._id === newItem._id);
-            const saleItems = existItem ? state.sale.saleItems.map(
-            (item)=> item._id === existItem._id 
-            ? newItem : item)
-            : [...state.sale.saleItems, newItem]
-            localStorage.setItem('saleItems', JSON.stringify(saleItems))
-            return {...state, sale: {...state.sale, saleItems}}
+            const existItem = state.selectedItems.find((item)=> item._id === newItem._id);
+            if(existItem){
+                toast.error('item already added')
+                return {...state, selectedItems: state.selectedItems}
+            }else{
+                const updatedItems = [...state.selectedItems, newItem]
+                localStorage.setItem('selectedItems', JSON.stringify(updatedItems))
+                toast.success('unit added successfully')
+                return {...state, selectedItems: updatedItems}
+            }
 
-        case 'REMOVE_SALE_ITEM':{
-            const saleItems = state.sale.saleItems.filter((item)=> item._id !== action.payload._id)
-            localStorage.setItem('saleItems', JSON.stringify(saleItems))
-            return{...state, sale: {...state.sale, saleItems}}
+        case 'REMOVE_SELECTED_ITEM': {
+                return { ...state, selectedItems: action.payload};
+            }
+        case 'ADJUST_QTY':{
+            const selectedItems = state.selectedItems.filter((item)=> item._id !== action.payload._id)
+            localStorage.setItem('selectedItems', JSON.stringify(selectedItems))
+            return{...state, selectedItems: {...state.selectedItems, selectedItems}}
         }
 
-        case 'CLEAR_SALE_ITEMS':
-            return{...state, sale: {...state.sale, saleItems:[]}}
+        case 'CLEAR_SELECTED_ITEMS':
+            return{...state, selectedItems: {...state.selectedItems, selectedItems:[]}}
             
         default:
             return state;   

@@ -1,51 +1,51 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useReducer } from 'react';
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import { Table } from 'react-bootstrap';
+import  Table  from 'react-bootstrap/esm/Table';
+import  Button  from 'react-bootstrap/esm/Button';
+import  Form  from 'react-bootstrap/esm/Form';
+
+
+
+const reducer =(state, action)=> {
+  switch (action.type) {
+    case "FETCH_SUCCESS":
+      return {...state, data: action.payload}
+    case "FETCH_REQUEST":
+      return {...state, loading: true};
+    case "FETCH_FALSE":
+      return {...state, loading: false, error: ''}
+    default:
+      return state;
+  }
+};
+
 
 const CustomerDataTable = () => {
-  const [data, setData] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+
+  const [state, dispatch] = useReducer(reducer,{
+    error:"",
+    data:[],
+    loading: false
+  })
 
   async function getCustomerData(){
+    dispatch({type: "FETCH_REQUEST"})
     try{
-      const response = await axios.get('/api/multiple/customer-data')
-      //console.log(response.data)
-      setData(response.data)
+      const {data} = await axios.get('/api/multiple/customer-data')
+      dispatch({type: "FETCH_SUCCESS", payload: data})
+
     }catch(error){
+      dispatch({type: "FETCH_FALSE"})
       toast.error(error)
     }
   }
-  useEffect(()=> {
-    getCustomerData()
-  }, []) 
-
-  // Assuming 'data' is an array of customer summary objects
-  const sortedData = data
-    .slice()
-    .sort((a, b) => b.totalAmount - a.totalAmount);
-
-  // Number of rows to display per page
-  const rowsPerPage = 10;
-
-  // Calculate the index range for the current page
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-
-  // Get the data for the current page
-  const currentData = sortedData.slice(startIndex, endIndex);
-
-  // Total number of pages
-  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
 
   return (
     <div className='mt-2'>
       <h3>Aggregated CustomerData</h3>
+      <Button onClick={()=>getCustomerData()}>View All</Button>
       <ul className='d-flex'>
         <li className='m-3'><strong>GREEN:</strong> BIGGEST TOTAL</li>
         <li className='m-3'><strong>ORANGE:</strong> NEXT TOP 5 TOTALS</li>
@@ -61,7 +61,7 @@ const CustomerDataTable = () => {
           </tr>
         </thead>
         <tbody>
-          {currentData.map((item, index) => {
+          {state.data.map((item, index) => {
             let rowStyle = {}; // Default row style
             if (index === 0) {
               rowStyle = { backgroundColor: 'green' }; // First row in green

@@ -1,4 +1,4 @@
-import React, {useEffect, useReducer, useState} from 'react'
+import React, {useContext, useEffect, useState} from 'react'
 import Col from 'react-bootstrap/Col'
 import Alert from 'react-bootstrap/Alert'
 import ListGroup from 'react-bootstrap/ListGroup'
@@ -10,71 +10,35 @@ import { toast } from 'react-toastify'
 import { Link } from 'react-router-dom'
 import Table from 'react-bootstrap/esm/Table'
 import Button from 'react-bootstrap/esm/Button'
-import { FaEye, FaPenAlt} from 'react-icons/fa'
+import { FaEye } from 'react-icons/fa'
 import SaleDetailsModal from './SaleDetailsModal'
+import { BsPaperclip } from 'react-icons/bs'
+import { Store } from '../utils/Store'
+import MessageBox from './MessageBox'
 
 
 
-function reducer(state, action){
-    switch(action.type){
-        case 'FETCH_REQUEST':
-            return{...state, loading: false}
-        case 'FETCH_SUCCESS':
-            return{
-                ...state, 
-                sales: action.payload, 
-                loading: false
-            }
-        case 'FETCH_FAIL':
-            return{...state, loading: false, error: action.payload}
-        default:
-            return state
-    }
-}
 
 export default function SaleHistory() {
 
+    const {state} = useContext(Store)
+    const {todaySales, dispatch: ctxDispatch} = state
     
-    const [{sales}, dispatch] = useReducer(reducer, {
-        loading: true,
-        error: '',
-        sales: []
-    })
 
     const [searchCode, setSearchCode] = useState('')
     const [searchPhone, setSearchphone] = useState('')
     const [selectedSale, setSelectedSale] = useState({})
     const [showModal, setShowModal] = useState(false)
-
-    useEffect(()=> {
-        const fetchData =async()=> {
-            dispatch({type: 'FETCH_REQUEST'})
-            try{
-                const {data} = await axios.get(`/api/multiple/list`)
-                dispatch({type: 'FETCH_SUCCESS', payload: data}) 
-            }catch(error){
-                dispatch({type: 'FETCH_FAIL', payload: error})
-                toast.error(getError(error))
-            }
-        }
-        fetchData()
-    },[])
-
     
-    const handleSearch =(setState)=> {
-        return (event)=> {
-            const setValue = event.target.value;
-            setState(setValue)
-        }
-      }
-
+    
+    const addSale = async(saleId)=>{
+        const data = await axios.get(`/api/multiple/get-sale/${saleId}`)
+        setSelectedSale(data)
+        localStorage.setItem('selectedSale', JSON.stringify(selectedSale))
+        toast.success('sale attched successfully')
+    }
   
-    const filteredSale = sales?.filter((x)=> x.InvoiceCode.toLowerCase().includes(searchCode.toLocaleLowerCase()))
-    const filteredPhone = sales?.filter((x)=> x.phone.toLowerCase().includes(searchPhone.toLocaleLowerCase()))
    
-    //const filteredName = sales.filter((x)=> x.name.toLowerCase().includes(searchPrice.toLocaleLowerCase()))
-    //const filteredPrice = searchPrice
-
     const handleViewSale = async (saleId)=> {
        try{
         const result = await axios.get(`/api/multiple/get-sale/${saleId}`)
@@ -85,12 +49,18 @@ export default function SaleHistory() {
        }
     }
 
+    useEffect(()=>{
+
+    }, [todaySales])
+
+
   return (
 
         <Row className='p-2'>
-            <h2 className='text-success'>{sales.length} Sales Saved</h2>
+            <h2 className='text-success'>{todaySales.length} Sales </h2>
             <Col>
-            <Table style={{ maxHeight: '500px', overflowY: 'auto' }}>
+            {todaySales && todaySales ? (
+                <Table style={{ maxHeight: '500px', overflowY: 'auto' }}>
                 <thead>
                     <tr>
                         <th>Code</th>
@@ -100,7 +70,7 @@ export default function SaleHistory() {
                     </tr>
                 </thead>
                 <tbody>
-                    {sales && sales.slice(0, 9).map((sale)=> (
+                    {todaySales && todaySales.map((sale)=> (
                         <tr key={sale._id}>
                             <td>  
                                 <Button onClick={()=>handleViewSale(sale._id)} className='bg-primary border'>
@@ -114,10 +84,8 @@ export default function SaleHistory() {
                             <td>{sale.total}</td>
                             <td className='d-flex'>
                                 <Col >
-                                    <Button variant='warning'>
-                                    <Link to={`/edit-sale/${sale._id}`}>
-                                        <FaPenAlt/>
-                                    </Link>
+                                    <Button variant='warning' onClick={()=> addSale(sale._id)}>
+                                    <BsPaperclip/>
                                     </Button>
                                 </Col>
                             </td>
@@ -125,10 +93,14 @@ export default function SaleHistory() {
                     ))}
                 </tbody>
             </Table>
-            <SaleDetailsModal show={showModal} onHide={()=>setShowModal(false)} selectedSale={selectedSale}/>
+            ) : (
+                <MessageBox>NO SALES TODAY</MessageBox>
+            )}
+
+             <SaleDetailsModal show={showModal} onHide={()=>setShowModal(false)} selectedSale={selectedSale}/>
             </Col>
             <h5>Search Sales Database</h5>
-            <Col>
+{/*             <Col>
                 <Form.Control
                     type="input"
                     placeholder="search by code"
@@ -183,7 +155,7 @@ export default function SaleHistory() {
                         ))}
                     </ListGroup>
                 )}
-            </Col>
+            </Col> */}
         </Row>
   )
 }

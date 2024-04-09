@@ -6,19 +6,19 @@ import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import { ToastContainer } from "react-toastify";
 import Nav from "react-bootstrap/Nav";
 import Navbar from 'react-bootstrap/Navbar'
-import {BsBoxArrowRight, BsFillClipboard2DataFill, BsGrid1X2Fill, BsPieChartFill} from 'react-icons/bs'
+import {BsBoxArrowRight, BsGrid1X2Fill, BsPieChartFill} from 'react-icons/bs'
 import { useContext } from "react";
 import { Store } from "./utils/Store";
-import EditSaleDetails from "./screens/EditSaleDetails";
 import PrintStock from "./screens/PrintStock";
 import StatScreen from "./screens/StatScreen";
 import Dashboard from "./screens/Dashboard";
+import { newDate } from "./utils/Date";
 
 
 function App() {
 
   const {state, dispatch: ctxDispatch} = useContext(Store);
-  const {userInfoToken } = state;
+  const {userInfoToken} = state;
   
   
   function signoutHandler(){
@@ -27,6 +27,15 @@ function App() {
     localStorage.removeItem('userInfoToken');
     window.location.href = '/'
   }
+
+  const currentDate = newDate()
+  const systemDate = localStorage.getItem('previousDate')
+  if(!systemDate){
+    localStorage.setItem('previousDate', currentDate)
+  }else if(systemDate !== currentDate){
+    localStorage.removeItem('todaySales')
+  }
+  
   return (
   <BrowserRouter>
   <Navbar expand='lg' bg="dark" variant="dark" className="p-4" > 
@@ -46,7 +55,13 @@ function App() {
             <span className="p-3 mb-2">
               <BsPieChartFill/>
             </span>
-            Stats
+            Records
+          </Nav.Link>
+          <Nav.Link href="#">
+            <span className="p-3 mb-2">
+              <BsPieChartFill/>
+            </span>
+            Gallery
           </Nav.Link>
         </Nav>
         
@@ -61,25 +76,21 @@ function App() {
       </Navbar.Collapse>
     </Navbar>
 
-    <ToastContainer position="bottom-center" limit={2} />
+    <ToastContainer position="bottom-center" limit={1} />
     <Routes>
       <Route path="/" element={<LoginScreen />} />
       <Route path="/dashboard" element ={
       <ProtectedRoute>
         <Dashboard />
       </ProtectedRoute>}/>
+
+
       <Route path="/api/product/update/:id" element={
         <ProtectedRoute>
           <ProductEdit />
         </ProtectedRoute>
       }/>
 
-      <Route path="/edit-sale/:id" element={
-        <ProtectedRoute>
-          <EditSaleDetails />
-        </ProtectedRoute>
-      }
-      />
       <Route path="print-inventory" element={
         <ProtectedRoute>
           <PrintStock />

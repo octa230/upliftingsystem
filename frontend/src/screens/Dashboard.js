@@ -4,19 +4,18 @@ import Col from 'react-bootstrap/esm/Col'
 import Nav from 'react-bootstrap/esm/Nav'
 import AddProduct from '../components/AddProduct'
 import RegisterUser from '../components/RegisterUser'
-import SaleScreen from '../components/SaleScreen'
 import SaleHistory from '../components/SaleHistory'
 import InventoryScreen from '../components/Inventory'
-import RecordStock from '../components/RecordStock'
 import {
     BsFillCreditCardFill, 
     BsFillDatabaseFill, 
-    BsFillDeviceHddFill, BsFillTagFill,
-    BsFillFileEarmarkBarGraphFill, BsFillPersonPlusFill, BsCalculatorFill, BsTrash3Fill
+    BsFillDeviceHddFill, 
+    BsFillFileEarmarkBarGraphFill, BsFillPersonPlusFill,
+    BsCloudsFill
 } from 'react-icons/bs'
-import RecordDamages from '../components/RecordDamages'
 import { newDate } from '../utils/Date'
 import SaleTable from '../components/SaleTable'
+import FilingScreen from '../components/FilingScreen'
 
 export default function Dashboard() {
     const [content, setContent] = useState('dashboard')
@@ -30,11 +29,6 @@ export default function Dashboard() {
       <h3>{newDate()}</h3>
         <Col sm={2} gap={2} className='dashboard-nav'>
             <Nav justify-variant='tabs'  className='d-flex flex-column'>
-            <Nav.Item onClick={handleSideBarClick('stock')}>
-                    <Nav.Link className='nav-link'>
-                      <span><BsCalculatorFill/></span>  New Purchase
-                    </Nav.Link>
-                </Nav.Item>
                 <Nav.Item onClick={handleSideBarClick('inventory')}>
                     <Nav.Link className='nav-link'>
                       <span><BsFillFileEarmarkBarGraphFill/></span> See Inventory
@@ -50,14 +44,14 @@ export default function Dashboard() {
                     <span><BsFillDatabaseFill/></span>    Add product
                     </Nav.Link>
                 </Nav.Item>
-                <Nav.Item onClick={handleSideBarClick('wasted')}>
-                    <Nav.Link className='nav-link'>
-                      <span><BsTrash3Fill/></span>  Add Waste
-                    </Nav.Link>
-                </Nav.Item>
                 <Nav.Item onClick={handleSideBarClick('make-sale')}>
                     <Nav.Link className='nav-link'>
                       <span><BsFillCreditCardFill/></span>  Make Sale
+                    </Nav.Link>
+                </Nav.Item>
+                <Nav.Item onClick={handleSideBarClick('mass-records')}>
+                    <Nav.Link className='nav-link'>
+                      <span><BsCloudsFill/></span>  Mass Records
                     </Nav.Link>
                 </Nav.Item>
                 <Nav.Item onClick={handleSideBarClick('new-user')}>
@@ -72,11 +66,10 @@ export default function Dashboard() {
         <Col sm={8} className='dashboard-display'>
                 {content === 'make-sale' && <SaleTable/>}
                 {content === 'new-product' && <AddProduct/>}
+                {content === 'mass-records' && <FilingScreen/>}
                 {content === 'new-user' && <RegisterUser/>}
                 {content === 'records' && <SaleHistory />} 
                 {content === 'inventory' && <InventoryScreen/>}
-                {content === 'stock' && <RecordStock/>}
-                {content === 'wasted' && <RecordDamages/>}
         </Col>
     </Row>
   )
