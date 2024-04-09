@@ -83,10 +83,10 @@ export default function InventoryScreen() {
     const quantity = existItem ? existItem.quantity + 1 : 1
     const {data} = await axios.get(`/api/product/${item._id}`)
 
-    if(data.inStock < quantity){
+   /*  if(data.inStock < quantity){
         window.alert('product outsold')
         return;
-    }
+    } */
     ctxDispatch({type: 'ADD_SELECTED_ITEM', payload: {...item, quantity}})
   }
 
