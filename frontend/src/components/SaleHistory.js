@@ -30,8 +30,9 @@ export default function SaleHistory() {
     const addSale = async(saleId)=>{
         const {data} = await axios.get(`/api/multiple/get-sale/${saleId}`)
         setSelectedSale(data)
-        localStorage.setItem('selectedSale', JSON.stringify(selectedSale))
-        toast.success('sale attched successfully')
+        console.log(selectedSale)
+        localStorage.setItem('selectedSale', JSON.stringify(data))
+        toast.success('sale attached successfully')
     }
   
    
