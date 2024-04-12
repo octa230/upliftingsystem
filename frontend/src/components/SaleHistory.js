@@ -19,7 +19,7 @@ import MessageBox from './MessageBox'
 export default function SaleHistory() {
 
     const {state} = useContext(Store)
-    const {todaySales, dispatch: ctxDispatch} = state
+    const {todaySales} = state
 
     const [selectedSale, setSelectedSale] = useState({})
     const [showModal, setShowModal] = useState(false)
@@ -30,7 +30,7 @@ export default function SaleHistory() {
     const addSale = async(saleId)=>{
         const {data} = await axios.get(`/api/multiple/get-sale/${saleId}`)
         localStorage.setItem('selectedSale', JSON.stringify(data))
-        ctxDispatch({type: "ADD_SELECTED_SALE", payload: data})
+        //ctxDispatch({type: "ADD_SELECTED_SALE", payload: data})
         toast.success('sale attched successfully')
     }
   
