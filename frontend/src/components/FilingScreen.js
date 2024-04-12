@@ -22,7 +22,7 @@ import { getError } from '../utils/getError'
 const FilingScreen = () => {
 
 const { state, dispatch: ctxDispatch } = useContext(Store)
-const {selectedItems, selectedSale, todaySales} = state
+const {selectedItems, todaySales} = state
 
 const recordTypes = ['purchase', 'sale', 'damage', 'hotel']
 
@@ -32,6 +32,7 @@ const [itemQuantities, setItemQuantities] = useState({})
 const [deliveryNote, setdeliveryNote] = useState('')
 const [invoices, setInvoices] = useState([])
 const [showModal, setShowModal] = useState(false)
+const [selectedSale, setSelectedSale] = useState({})
 const [arrangement, setArrangement] = useState('')
 const [showSale, setShow] = useState({})
 
@@ -40,8 +41,12 @@ const [showSale, setShow] = useState({})
 useEffect(() => {
     if (recordType === 'sale') {
       setInvoices(todaySales)
+      const storedSale = JSON.parse(localStorage.getItem('selectedSale'))
+      if(storedSale){
+        setSelectedSale(storedSale)
+      }
     }
-  }, [recordType, selectedSale, selectedItems, invoices]);
+  }, [recordType, selectedItems, invoices, selectedSale]);
 
 
 

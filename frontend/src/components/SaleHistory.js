@@ -29,8 +29,8 @@ export default function SaleHistory() {
     
     const addSale = async(saleId)=>{
         const {data} = await axios.get(`/api/multiple/get-sale/${saleId}`)
-        setSelectedSale(data)
-        localStorage.setItem('selectedSale', JSON.stringify(selectedSale))
+        localStorage.setItem('selectedSale', JSON.stringify(data))
+        //ctxDispatch({type: "ADD_SELECTED_SALE", payload: data})
         toast.success('sale attched successfully')
     }
   
@@ -53,7 +53,7 @@ export default function SaleHistory() {
     useEffect(()=> {
         handleSearch()
 
-    }, [todaySales, searchText])
+    }, [todaySales, searchText, selectedSale])
 
 
   return (
