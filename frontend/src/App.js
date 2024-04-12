@@ -7,12 +7,12 @@ import { ToastContainer } from "react-toastify";
 import Nav from "react-bootstrap/Nav";
 import Navbar from 'react-bootstrap/Navbar'
 import {BsBoxArrowRight, BsGrid1X2Fill, BsPieChartFill} from 'react-icons/bs'
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { Store } from "./utils/Store";
 import PrintStock from "./screens/PrintStock";
 import StatScreen from "./screens/StatScreen";
 import Dashboard from "./screens/Dashboard";
-import { newDate } from "./utils/Date";
+import axios from "axios";
 
 
 function App() {
@@ -28,13 +28,15 @@ function App() {
     window.location.href = '/'
   }
 
-  const currentDate = newDate()
-  const systemDate = localStorage.getItem('previousDate')
-  if(!systemDate){
-    localStorage.setItem('previousDate', currentDate)
-  }else if(systemDate !== currentDate){
-    localStorage.removeItem('todaySales')
-  }
+  useEffect(()=> {
+    const getTodaySales = async()=>{
+      const {data} = await axios.get('/api/multiple/today-sales')
+      console.log(data)
+      localStorage.setItem('todaySales', JSON.stringify(data))
+    }
+    getTodaySales()
+  })
+
   
   return (
   <BrowserRouter>

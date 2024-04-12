@@ -41,7 +41,25 @@ const makeSale = asyncHandler(async(req, res)=> {
 }) 
 
 
-const PAGE_SIZE = 2
+const todaySales = asyncHandler(async (req, res) => {
+  // Get today's date
+  const today = new Date();
+  // Set the start of the day (midnight)
+  const dayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  // Set the end of the day (just before midnight)
+  const dayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+  // Retrieve sales data for today
+  const sales = await SaleDetails.find({
+    createdAt: {
+      $gte: dayStart,
+      $lt: dayEnd
+    }
+  });
+
+  res.status(200).send(sales);
+});
+
 
 const getSales = asyncHandler(async(req, res)=> {
 
@@ -215,6 +233,21 @@ async function querySalesData(req, res){
   }
 }
 
+const searchSale = asyncHandler(async(req, res)=> {
+  const searchText = req.query.searchText
+  const sales = await SaleDetails.aggregate([
+    {
+      $match:{
+        $or:[
+          {InvoiceCode: {$regex: searchText, $options: 'i' }},
+          {phone: {$regex: searchText, $options: 'i'}}
+        ]
+      }
+    }
+  ])
+  res.send(sales)
+})
+
 
 const customerData = asyncHandler(async(req, res)=> {
   try {
@@ -240,6 +273,6 @@ const customerData = asyncHandler(async(req, res)=> {
 
 module.exports = {getSales, querySalesData,
   getsingleSale, addSaleUnits,
-  makeSale, getSalesData,
-  customerData
+  makeSale, getSalesData, todaySales,
+  customerData, searchSale
 }
