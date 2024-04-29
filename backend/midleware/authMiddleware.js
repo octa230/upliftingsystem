@@ -1,34 +1,45 @@
-const asyncHandler = require('express-async-handler')
-const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
 
 
-const protectedRoute = asyncHandler(async(req, res, next)=> {
-    try{
-        const token = req.cookies.token
-        if(!token){
-            res.status(401)
-            throw new Error("unauthorized, please login")
+const generateToken = (user) => {
+    return jwt.sign(
+      {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "3d",
+      }
+    );
+};
+
+
+const isAuth = (req, res, next) => {
+    const authorization = req.headers.authorization;
+    if (authorization) {
+      const token = authorization.slice(7, authorization.length); // Bearer XXXXXX
+      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+          res.status(401).send({ message: 'Invalid Token' });
+        } else {
+          req.user = decoded;
+          next();
         }
-
-        //verify token
-
-        const verified = jwt.verify(token, process.env.JWT_SECRET);
-
-        //GET USER ID FROM TOKEN
-
-        const user = await User.findById(verified.id).select("-password");
-
-        if(!user){
-            res.status(401)
-            throw new Error("user not found")
-        }
-
-        req.user = user
-        next()
-    } catch (err){
-
+      });
+    } else {
+      res.status(401).send({ message: 'No Token' });
     }
-})
+  };
 
-module.exports = protectedRoute
+const isAdmin = (req, res, next) => {
+    if (req.user && req.user.isAdmin) {
+      next();
+    } else {
+      res.status(401).send({ message: 'Invalid Admin Token' });
+    }
+  };
+
+module.exports = {generateToken, isAdmin, isAuth}

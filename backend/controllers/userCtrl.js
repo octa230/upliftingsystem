@@ -1,6 +1,6 @@
 const User = require("../models/user");
 const bcrypt = require('bcryptjs');
-const {token} = require('../utils/auth')
+const  {generateToken, isAdmin} = require ("../midleware/authMiddleware");
 const asyncHandler = require('express-async-handler')
 
 
@@ -15,7 +15,7 @@ const newUser = new User({
 })
 
 const user = await newUser.save();
-res.send({name: user.name, email: user.email, token: token(user)}) 
+res.send({name: user.name, isAdmin: user.isAdmin, email: user.email, token: generateToken(user)}) 
 })
 
 
@@ -28,7 +28,8 @@ const loginUser = asyncHandler(async(req, res)=> {
             res.send({
                 name: user.name,
                 email: user.email,
-                token: token(user)
+                isAdmin: user.isAdmin,
+                token: generateToken(user)
             })
             return
         }

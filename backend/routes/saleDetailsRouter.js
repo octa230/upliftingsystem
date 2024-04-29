@@ -2,6 +2,7 @@ const { getSales, getsingleSale, addSaleUnits,
     makeSale, getSalesData, customerData, querySalesData,
     todaySales,
     searchSale,
+    updateSale,
 } = require('../controllers/saleDetails');
 
 const express = require('express');
@@ -15,6 +16,7 @@ const saleDetailsRouter = express.Router()
 
 saleDetailsRouter.get('/customer-data', customerData)
 saleDetailsRouter.get('/search', searchSale)
+saleDetailsRouter.put('/edit/:id', updateSale)
 saleDetailsRouter.post('/new-sale', makeSale)
 saleDetailsRouter.get('/list', getSales)
 saleDetailsRouter.get('/today-sales', todaySales)

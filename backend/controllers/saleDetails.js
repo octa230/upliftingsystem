@@ -40,6 +40,19 @@ const makeSale = asyncHandler(async(req, res)=> {
         res.status(201).send({message: 'sale recorded successfully', sale})
 }) 
 
+const updateSale = asyncHandler(async(req, res)=> {
+  try{
+    const sale = await SaleDetails.findById(req.params.id)
+  if(sale){
+    sale.date = req.body.time || sale.date,
+    sale.service = req.body.service || sale.service,
+    sale.paidBy = req.body.paidBy || sale.paidBy
+    await sale.save()
+  }
+  }catch(error){
+    res.send(error)
+  }
+})
 
 const todaySales = asyncHandler(async (req, res) => {
   // Get today's date
@@ -274,5 +287,5 @@ const customerData = asyncHandler(async(req, res)=> {
 module.exports = {getSales, querySalesData,
   getsingleSale, addSaleUnits,
   makeSale, getSalesData, todaySales,
-  customerData, searchSale
+  customerData, searchSale, updateSale
 }
