@@ -71,9 +71,8 @@ const { userInfoToken } = state;
   };
 
   ////UPLOAD PHOTO/PHOTOS
-  const uploadFileHandler = async(file)=>{
+const uploadFileHandler = async(file)=>{
   try{
-    //setLoading(true)
    const bodyFormData = new FormData()
    bodyFormData.append('file', file)
    const {data} = await axios.post('/api/upload/', bodyFormData, {

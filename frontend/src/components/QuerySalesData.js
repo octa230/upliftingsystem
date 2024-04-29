@@ -1,76 +1,105 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Table, Form, Button, Alert} from 'react-bootstrap';
+import React, { useState, useEffect, useContext } from 'react';
+import { Row, Col, Table, Form, Button, Alert} from 'react-bootstrap';
 import axios from 'axios';
-import { getError } from '../utils/getError'
-import { toast } from 'react-toastify'
-import { FaEye } from 'react-icons/fa'
-import SaleDetailsModal from './SaleDetailsModal'
+import { getError } from '../utils/getError';
+import { toast } from 'react-toastify';
+import Calendar from 'react-calendar';
+import { FaEye } from 'react-icons/fa';
+import { BsPencil, BsCheck2, BsXLg } from 'react-icons/bs';
+import SaleDetailsModal from './SaleDetailsModal';
+import { Store } from '../utils/Store';
 
+export default function QuerySalesData(){
+  const {state} = useContext(Store);
+  const {userInfoToken} = state;
 
-export default function QuerySalesData (){
   // State to store query parameters
   const [query, setQuery] = useState({});
 
   // State to store sales data
-  const [sales, setSales] = useState(null); // Initialize to null
-  const [selectedSale, setSelectedSale] = useState({})
-  const [showModal, setShowModal] = useState(false)
+  const [sales, setSales] = useState(null);
+  const [selectedSale, setSelectedSale] = useState({});
+  const [showModal, setShowModal] = useState(false);
 
   // State to store the total count of results
   const [totalCount, setTotalCount] = useState(0);
   const [totalValue, setTotalValue] = useState(0);
-  const [focSales, setFocSales] = useState(0)
+  const [focSales, setFocSales] = useState(0);
 
+  // State for editing
+  const [editingSale, setEditingSale] = useState(null);
+  const [paidBy,  setPaidBy]= useState('');
+  const [service, setService]= useState('');
+  const [date, setDate] = useState(new Date()); // Initialize with current date
 
   // Function to fetch sales data based on query parameters
-  const fetchSales =async()=> {
+  const fetchSales = async () => {
     if (Object.keys(query).length > 0) {
       try {
-        const response = await axios.get('/api/multiple/for', {
-          params: query,
-        });
+        const response = await axios.get('/api/multiple/for', { params: query });
         setSales(response.data.sales);
-        setTotalCount(response.data.totalCount); // Set the total count
-        setTotalValue(response.data.totalValue)
-        setFocSales(response.data.focSales)
+        setTotalCount(response.data.totalCount);
+        setTotalValue(response.data.totalValue);
+        setFocSales(response.data.focSales);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
-    } else {
-      setSales(null); // Set to null when no query is provided
-      setTotalCount(0);
     }
+  };
+
+  // Function to handle viewing sale details
+  const handleViewSale = async (saleId) => {
+    try {
+      const result = await axios.get(`/api/multiple/get-sale/${saleId}`);
+      setSelectedSale(result.data);
+      setShowModal(true);
+    } catch(error) {
+      toast.error(getError(error));
+    }
+  };
+
+  // Function to handle editing sale
+  const handleEdit = async (sale) => {
+    if(!userInfoToken.isAdmin){
+      toast.error('YOUR ACCOUNT CAN\'T COMPLETE THIS ACTION')
+      return
+    }
+    setEditingSale(sale);
+  };
+
+  const handleCancel = async()=>{
+    setEditingSale(null)
   }
 
-  const handleViewSale = async (saleId)=> {
-    try{
-     const result = await axios.get(`/api/multiple/get-sale/${saleId}`)
-     setSelectedSale(result.data)
-     setShowModal(true)
-    } catch(error){
-     toast.error(getError(error))
+  // Function to update sale details
+  const updateSale = async () => {
+    try {
+      await axios.put(`/api/multiple/edit/${editingSale._id}`, {
+        time: date.toLocaleDateString(),
+        service: service,
+        paidBy: paidBy
+      });
+      console.log('Sale updated successfully');
+    } catch (error) {
+      console.error('Error updating sale:', error);
     }
- }
-
+    setEditingSale(null); // Reset editing state
+  };
 
   useEffect(() => {
     fetchSales();
-  }, [query]);
+  }, [query, userInfoToken, editingSale]);
 
   // Function to handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setQuery({ ...query, [name]: value });
   };
-  const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
+
+  const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100;
 
   return (
-    <Container>
-      <Row className="my-4">
-        <Col>
-          <h2>Sales Data</h2>
-        </Col>
-      </Row>
+    <div>
       <Row className="mb-3">
         <Col md={4}>
           <Form.Group>
@@ -121,49 +150,91 @@ export default function QuerySalesData (){
           {sales !== null ? (
             <div>
               <div className='d-flex justify-content-between'>
-              <Alert variant='warning'>Total Results: {totalCount}</Alert>
-              <Alert variant='warning'>Total value: {round2(totalValue)}</Alert>
-              <Alert variant='warning'>F.O.C. {round2(focSales)}</Alert>
+                <Alert variant='warning'>Total Results: {totalCount}</Alert>
+                <Alert variant='warning'>Total value: {round2(totalValue)}</Alert>
+                <Alert variant='warning'>F.O.C. {round2(focSales)}</Alert>
               </div>
-              <Table striped bordered hover>
+              <Table bordered hover responsive>
                 <thead>
                   <tr>
                     <th>Invoice Code</th>
                     <th>Date</th>
-                    <th>customer</th>
+                    <th>Customer</th>
+                    <th>Service</th>
+                    <th>Paid By</th>
                     <th>Total</th>
-
-                    {/* Add more table headers here */}
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sales.map((sale) => (
-                    <tr key={sale._id}>
-                      <td>
-                      <Button onClick={()=>handleViewSale(sale._id)} className='bg-primary border'>
-                          <span className='px-1'>
-                              <FaEye/>
-                            </span>
-                          {sale.InvoiceCode}
-                        </Button>
-                      </td>
-                      <td>{sale.date}</td>
-                      <td>Name: {sale.name}
-                      <br/><span><strong>{`Phone:${sale.phone}`}</strong></span>
-                      </td>
-                      <td>{sale.total}</td>
-                      {/* Add more table data cells here */}
-                    </tr>
-                  ))}
-                </tbody>
+    <tr key={sale._id}>
+      <td>
+        <Button onClick={() => handleViewSale(sale._id)} className='bg-primary border'>
+          <span className='px-1'>
+            <FaEye/>
+          </span>
+          {sale.InvoiceCode}
+        </Button>
+      </td>
+      <td>
+        {editingSale && editingSale._id === sale._id ? (
+          <Calendar onChange={setDate} value={date}/>
+        ) : (
+          sale.date
+        )}
+      </td>
+      <td>{sale.name}</td>
+      <td>
+        {editingSale && editingSale._id === sale._id ? (
+          <Form.Select onChange={(e) => setService(e.target.value)}>
+            <option>Select...</option>
+            <option>Delivery</option>
+            <option>Store Pick Up</option>
+            <option>website</option>
+            <option>insta-shop</option>
+            <option>Delivero</option>
+            <option>Careem</option>
+          </Form.Select>
+        ) : (
+          sale.service
+        )}
+      </td>
+      <td>
+        {editingSale && editingSale._id === sale._id ? (
+          <Form.Select onChange={(e) => setPaidBy(e.target.value)}>
+            <option>Select...</option>
+            <option>Card</option>
+            <option>Cash</option>
+            <option>TapLink</option>
+            <option>Bank Transfer</option>
+          </Form.Select>
+        ) : (
+          sale.paidBy
+        )}
+      </td>
+      <td>{sale.total}</td>
+      <td>
+        {!editingSale || editingSale._id !== sale._id ? (
+          <BsPencil onClick={() => handleEdit(sale)}/>
+        ) : (
+          <div className='p-1 justify-content-between'>
+          <BsCheck2 onClick={() => updateSale()} />
+          <BsXLg onClick={() => handleCancel()} />
+          </div>
+        )}
+      </td>
+    </tr>
+  ))}
+</tbody>
               </Table>
-              <SaleDetailsModal show={showModal} onHide={()=>setShowModal(false)} selectedSale={selectedSale}/>
+              <SaleDetailsModal show={showModal} onHide={() => setShowModal(false)} selectedSale={selectedSale}/>
             </div>
           ) : (
             <Alert variant='warning'>No data</Alert>
           )}
         </Col>
       </Row>
-    </Container>
+    </div>
   );
 }
