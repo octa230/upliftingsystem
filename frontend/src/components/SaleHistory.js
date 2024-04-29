@@ -113,7 +113,6 @@ export default function SaleHistory() {
                     <MessageBox>NO SALES TODAY</MessageBox>
                 )}
     
-                 <SaleDetailsModal show={showModal} onHide={()=>setShowModal(false)} selectedSale={selectedSale}/>
                 </Col>
             ): (
                 <Col>

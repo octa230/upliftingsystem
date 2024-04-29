@@ -6,11 +6,10 @@ import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import { ToastContainer } from "react-toastify";
 import Nav from "react-bootstrap/Nav";
 import Navbar from 'react-bootstrap/Navbar'
-import {BsBoxArrowRight, BsGrid1X2Fill, BsPieChartFill} from 'react-icons/bs'
+import {BsBoxArrowRight} from 'react-icons/bs'
 import { useContext, useEffect } from "react";
 import { Store } from "./utils/Store";
 import PrintStock from "./screens/PrintStock";
-import StatScreen from "./screens/StatScreen";
 import Dashboard from "./screens/Dashboard";
 import axios from "axios";
 
@@ -40,32 +39,13 @@ function App() {
   
   return (
   <BrowserRouter>
-  <Navbar expand='lg' bg="dark" variant="dark" className="p-4" > 
+  <Navbar expand='lg' className=" p-3  app-Bar"> 
       <Navbar.Brand href="/">
-        <span className="border p-2">Active as: {userInfoToken? userInfoToken.name: 'Home'}</span>
+        <span className="border p-2">Active as: {userInfoToken ? userInfoToken.name : 'Home'}</span>
       </Navbar.Brand>
         <Navbar.Toggle aria-controls="nav-bar-basic"/>
         <Navbar.Collapse id="nav-bar-basic">
-        <Nav className="m-auto justify-content-center fs-5">
-          <Nav.Link href="/dashboard">
-            <span className="p-3 mb-2">
-              <BsGrid1X2Fill/>
-            </span>
-            Dashboard
-          </Nav.Link>
-          <Nav.Link href="/stats">
-            <span className="p-3 mb-2">
-              <BsPieChartFill/>
-            </span>
-            Records
-          </Nav.Link>
-          <Nav.Link href="#">
-            <span className="p-3 mb-2">
-              <BsPieChartFill/>
-            </span>
-            Gallery
-          </Nav.Link>
-        </Nav>
+        <Nav className="m-auto justify-content-center fs-5"></Nav>
         
         <div className="d-flex align-items-end">
           <Nav>
@@ -96,12 +76,6 @@ function App() {
       <Route path="print-inventory" element={
         <ProtectedRoute>
           <PrintStock />
-        </ProtectedRoute>
-      }
-      />
-      <Route path="/stats" element={
-        <ProtectedRoute>
-          <StatScreen/>
         </ProtectedRoute>
       }
       />
