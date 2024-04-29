@@ -35,7 +35,7 @@ export default function Dashboard() {
     }
   return (
     <Row className='mt-2'>
-        <Col sm={2}>
+        <Col sm={2} md={2}>
             <Nav justify-variant='tabs' className='dashboard-nav'>
               <h3>{newDate()}</h3>
                 <Nav.Item onClick={handleSideBarClick('inventory')}>

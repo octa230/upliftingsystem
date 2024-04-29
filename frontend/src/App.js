@@ -4,8 +4,9 @@ import ProtectedRoute from "./components/ProtectedRoutes";
 import ProductEdit from "./screens/ProductEdit";
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import { ToastContainer } from "react-toastify";
-import Nav from "react-bootstrap/Nav";
-import Navbar from 'react-bootstrap/Navbar'
+import Nav from "react-bootstrap/esm/Nav";
+import Badge from "react-bootstrap/esm/Badge";
+import Navbar from 'react-bootstrap/esm/Navbar'
 import {BsBoxArrowRight} from 'react-icons/bs'
 import { useContext, useEffect } from "react";
 import { Store } from "./utils/Store";
@@ -41,7 +42,7 @@ function App() {
   <BrowserRouter>
   <Navbar expand='lg' className=" p-3  app-Bar"> 
       <Navbar.Brand href="/">
-        <span className="border p-2">Active as: {userInfoToken ? userInfoToken.name : 'Home'}</span>
+        <Badge variant="dark">{userInfoToken ? userInfoToken.name.toUpperCase() : 'Home'}</Badge>
       </Navbar.Brand>
         <Navbar.Toggle aria-controls="nav-bar-basic"/>
         <Navbar.Collapse id="nav-bar-basic">
