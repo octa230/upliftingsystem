@@ -216,35 +216,82 @@ const getSalesData = asyncHandler(async(req, res)=> {
 
 // Controller to retrieve sales for a given day and month
 
-async function querySalesData(req, res){
-  const {day, month, year}= req.query;
-  const query = {}
-
+const querySalesData = asyncHandler(async(req, res) => {
+  const { day, month, year } = req.query;
+  let dateRegex;
+  
   if (year) {
-    query['date'] = { $regex: `.*${year}` };
+    dateRegex = `.*${year}`;
   }
-
+  
   if (month && day) {
-    query['date'] = { $regex: `^${day}/${month}/` };
+    dateRegex = `^${day}/${month}/`;
   } else if (month) {
-    query['date'] = { $regex: `^\\d{2}/${month}/` };
+    dateRegex = `^\\d{2}/${month}/`;
   } else if (day) {
-    query['date'] = { $regex: `^${day}/\\d{2}/` };
+    dateRegex = `^${day}/\\d{2}/`;
   }
 
-  try{
-    const sales = await SaleDetails.find(query)
+  try {
+    const sales = await SaleDetails.aggregate([
+      {
+        $match: {
+          date: { $regex: dateRegex }
+        }
+      },
+      {
+        $facet: {
+          sales: [{ $match: {} }], // Return all matched sales documents
+          totalCount: [{ $count: "count" }], // Count the total number of sales
+          totalValue: [
+            {
+              $group: {
+                _id: null,
+                total: { $sum: { $ifNull: ["$subTotal", 0] } } // Sum up the total value of sales
+              }
+            }
+          ],
+          focSales: [
+            { $match: { free: true } }, // Filter for free sales
+            {
+              $group: {
+                _id: null,
+                total: { $sum: { $ifNull: ["$subTotal", 0] } } // Sum up the value of free sales
+              }
+            }
+          ],
+          paymentTotals: [
+            {
+              $group: {
+                _id: "$paidBy",
+                total: { $sum: { $ifNull: ["$subTotal", 0] } }
+              }
+            },
+            {
+              $project: {
+                _id: 0,
+                paymentMethod: "$_id",
+                total: 1
+              }
+            }
+          ]
+        }
+      }
+    ]);
+    
+    // Extract results from the aggregation
+    const totalCount = sales[0].totalCount[0]?.count || 0;
+    const totalValue = sales[0].totalValue[0]?.total || 0;
+    const focSales = sales[0].focSales[0]?.total || 0;
+    const paymentTotals = sales[0].paymentTotals || [];
 
-    const totalCount = sales.length; // Total number of sales
-    const totalValue = sales.reduce((acc, sale) => acc + (isNaN(sale.total) ? 0 : sale.total), 0); // Total value
-    const foc = sales.filter((sale)=> sale.free === true)
-    const focSales = foc.reduce((acc, sale)=> acc + (isNaN(sale.total) ? 0 : sale.total), 0)
-    res.status(200).send({ sales, totalCount, totalValue, focSales});
-    //console.log({ sales, totalCount, totalValue })
-  }catch(err){
-    res.status(500).send({err: 'unable to get results'})
+    // Send the aggregated sales data as the response
+    res.status(200).send({ sales: sales[0].sales, totalCount, totalValue, focSales, paymentTotals });
+    //console.log({ sales: sales[0].sales, totalCount, totalValue, focSales, paymentTotals });
+  } catch (error) {
+    res.status(500).send({ error: 'Unable to get results' });
   }
-}
+});
 
 const searchSale = asyncHandler(async(req, res)=> {
   const searchText = req.query.searchText

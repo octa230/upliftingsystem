@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Row, Col, Table, Form, Button, Alert} from 'react-bootstrap';
+import { Row, Col, Table, Form, Button, Alert, Card} from 'react-bootstrap';
 import axios from 'axios';
 import { getError } from '../utils/getError';
 import { toast } from 'react-toastify';
@@ -25,6 +25,7 @@ export default function QuerySalesData(){
   const [totalCount, setTotalCount] = useState(0);
   const [totalValue, setTotalValue] = useState(0);
   const [focSales, setFocSales] = useState(0);
+  const [paymentTotals, setPaymentTotals] = useState([])
 
   // State for editing
   const [editingSale, setEditingSale] = useState(null);
@@ -41,6 +42,7 @@ export default function QuerySalesData(){
         setTotalCount(response.data.totalCount);
         setTotalValue(response.data.totalValue);
         setFocSales(response.data.focSales);
+        setPaymentTotals(response.data.paymentTotals)
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -79,6 +81,7 @@ export default function QuerySalesData(){
         service: service,
         paidBy: paidBy
       });
+      toast.success('Done')
       console.log('Sale updated successfully');
     } catch (error) {
       console.error('Error updating sale:', error);
@@ -149,21 +152,39 @@ export default function QuerySalesData(){
         <Col>
           {sales !== null ? (
             <div>
-              <div className='d-flex justify-content-between'>
-                <Alert variant='warning'>Total Results: {totalCount}</Alert>
-                <Alert variant='warning'>Total value: {round2(totalValue)}</Alert>
-                <Alert variant='warning'>F.O.C. {round2(focSales)}</Alert>
+              <div className='d-flex justify-content-between m-2'>
+                <Card variant='warning'>
+                  <Card.Body>Total Results: {totalCount}</Card.Body>
+                </Card>
+                <Card variant='warning'>
+                  <Card.Body>Total value: {round2(totalValue)}</Card.Body>
+                </Card>
+                <Card variant='warning'>
+                  <Card.Body>F.O.C. {round2(focSales)}</Card.Body>
+                </Card>
               </div>
+              <Row>
+              {paymentTotals && paymentTotals.map((paymentMethod, index) => (
+                  <Col key={index} className="m-3 border bg-primary text-light">
+                    <Card.Title className='py-2'>
+                      <strong>{paymentMethod.paymentMethod}</strong>
+                    </Card.Title>
+                    <p>{round2(paymentMethod.total)}</p>
+                  </Col>
+                ))
+              }
+            </Row>
               <Table bordered hover responsive>
                 <thead>
                   <tr>
                     <th>Invoice Code</th>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Service</th>
-                    <th>Paid By</th>
-                    <th>Total</th>
-                    <th>Actions</th>
+                    <th>DATE</th>
+                    <th>CUSTOMER</th>
+                    <th>STATUS</th>
+                    <th>SERVICE</th>
+                    <th>PAID By</th>
+                    <th>TOTAL</th>
+                    <th>ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -185,6 +206,7 @@ export default function QuerySalesData(){
         )}
       </td>
       <td>{sale.name}</td>
+      <td style={{backgroundColor: sale.free ? 'greenyellow' :  'transparent'}}>{sale.free === true ? 'F.O.C' : 'PAID'}</td>
       <td>
         {editingSale && editingSale._id === sale._id ? (
           <Form.Select onChange={(e) => setService(e.target.value)}>
