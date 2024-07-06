@@ -4,6 +4,25 @@ const mongoose = require('mongoose')
 const {Transaction} = require('../models/product')
 
 
+const getStock = asyncHandler(async(req, res)=> {
+  let matchQuery = {}
+  if(req.query.stockStatus === 'in'){
+    matchQuery = { inStock: { $gt: 0 } }
+  }else if (req.query.stockStatus === 'out') {
+    matchQuery = { inStock: { $eq: 0 } };
+  } else {
+    matchQuery = { inStock: { $gt: 0 } };
+  }
+  const products = await Product.aggregate([
+    {$match: matchQuery},
+    {$sort: { "name": 1}}
+  ])
+  res.send(products)
+})
+
+
+
+
 const createProduct = asyncHandler(async(req, res)=> {
     const {name, code, price, inStock, purchasePrice} = req.body
     const newProduct = new Product(
@@ -74,6 +93,8 @@ const getProducts = asyncHandler(async(req, res)=> {
     res.send(products)
 
 })
+
+
 //getAllproductsByIdAndName
 
 const getAllProducts = asyncHandler(async(req, res)=> {
@@ -217,7 +238,7 @@ const insermany = asyncHandler(async(req, res)=> {
 
 
 
-module.exports = {namesandprice, insermany, createProduct, aggregatePurchaseHistory, deleteProduct, updateProduct, getProduct, getAllProducts, getProducts, searchProducts}
+module.exports = {getStock, namesandprice, insermany, createProduct, aggregatePurchaseHistory, deleteProduct, updateProduct, getProduct, getAllProducts, getProducts, searchProducts}
 
 
 

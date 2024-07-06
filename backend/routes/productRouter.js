@@ -3,13 +3,14 @@ const {createProduct,
     deleteProduct, getAll,
     updateProduct, getProduct, 
     getAllProducts, getProducts, aggregatePurchaseHistory,  namesandprice, 
-    searchProducts} = require('../controllers/productCtrl')
+    searchProducts,
+    getStock} = require('../controllers/productCtrl')
 
 const productRouter = express.Router();
 
 
-
 productRouter.get('/prices', namesandprice)
+productRouter.get('/stock-only', getStock)
 productRouter.get('/names', getAllProducts)
 productRouter.post('/new', createProduct)
 productRouter.get('/purchase-history', aggregatePurchaseHistory)
