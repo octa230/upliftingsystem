@@ -26,12 +26,12 @@ const reducer = (state, action)=>{
 }
 
 
-export default function InventoryScreen() {
+const InventoryScreen =()=> {
 
   const initialState = {
     error: "",
     loading: true,
-    products: [] // Initialize products as an empty array
+    products: []
   };
 
   const [{ products }, dispatch] = useReducer(reducer, initialState)
@@ -40,24 +40,44 @@ export default function InventoryScreen() {
     const {state, dispatch: ctxDispatch} = useContext(Store)
     const {selectedItems } =  state
 
-  const [searchName, setSearchName] = useState('')
+  const [searchName, setSearchName] = useState(null)
+  const [stockOnly, setStockOnly] = useState(false)
+  const [outOfStock, setOutOfStock] = useState(false)
 
 
 
   //get products by search input
-  const fetchedProducts = async (searchName) => {
-    if(!searchName){
-      const {data} = await axios.get('/api/product/all')
-      dispatch({type: "FETCH_PRODUCTS", payload: data})
-    }else{
-      const {data} = await axios.get(`/api/product/search?searchName=${searchName}`)
-      dispatch({type: "OPEN_SEARCH", payload: data})
+
+  
+  const fetchedProducts = async () => {
+    try {
+      let data;
+  
+      if (searchName) {
+        data = await axios.get(`/api/product/search?searchName=${searchName}`);
+        dispatch({ type: "OPEN_SEARCH", payload: data.data });
+      } else if (stockOnly) {
+        setOutOfStock(false)
+        data = await axios.get(`/api/product/stock-only?stockStatus=${"in"}`);
+        dispatch({ type: "FETCH_PRODUCTS", payload: data.data });
+      }else if(outOfStock){
+        setStockOnly(false)
+        data = await axios.get(`/api/product/stock-only?stockStatus=${"out"}`);
+        dispatch({ type: "FETCH_PRODUCTS", payload: data.data });
+      }else {
+        data = await axios.get('/api/product/all');
+        dispatch({ type: "FETCH_PRODUCTS", payload: data.data });
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      dispatch({ type: "FAILED_SEARCH", payload: error.message });
     }
   };
+  
 
   useEffect(()=> {
-    fetchedProducts(searchName, dispatch)
-  },[searchName])
+    fetchedProducts(searchName, stockOnly, dispatch)
+  },[searchName, stockOnly, outOfStock])
 
 
   async function deleteHandler(product){
@@ -81,12 +101,7 @@ export default function InventoryScreen() {
   const addSaleProduct = async(item)=> {
     const existItem =  selectedItems.find((x)=> x._id === item._id)
     const quantity = existItem ? existItem.quantity + 1 : 1
-    const {data} = await axios.get(`/api/product/${item._id}`)
-
-   /*  if(data.inStock < quantity){
-        window.alert('product outsold')
-        return;
-    } */
+    await axios.get(`/api/product/${item._id}`)
     ctxDispatch({type: 'ADD_SELECTED_ITEM', payload: {...item, quantity}})
   }
 
@@ -96,7 +111,7 @@ export default function InventoryScreen() {
     <Row>
       <Col>
       <Badge variant='success' className='p-3 mb-2'>
-        Total value:{round2(products.reduce((acc, product)=> acc + (product.purchasePrice * product.inStock), 0))}{' '}
+        Total value:{round2(products?.reduce((acc, product)=> acc + (product.purchasePrice * product.inStock), 0))}{' '}
       </Badge>
       </Col>
       <Col md={8} className='d-flex m-1'>
@@ -108,6 +123,18 @@ export default function InventoryScreen() {
         <Button onClick={()=> setSearchName('')} className='p-2' variant=''>
           <BsXCircle/>
         </Button>
+      </Col>
+      <Col>
+        <Form.Check
+          label="IN STOCK ONLY"
+          checked={stockOnly}
+          onChange={()=> setStockOnly(!stockOnly)}
+        />
+        <Form.Check
+          label="OUT OF STOCK ONLY"
+          checked={outOfStock}
+          onChange={()=> setOutOfStock(!outOfStock)}
+        />
       </Col>
     </Row>
     <Table responsive striped bordered hover className='w-100 lg'>
@@ -181,3 +208,5 @@ export default function InventoryScreen() {
 </>
 )
 }
+
+export default InventoryScreen
