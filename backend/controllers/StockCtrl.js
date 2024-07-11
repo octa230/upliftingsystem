@@ -10,7 +10,7 @@ const recordStock = asyncHandler(async(req, res)=> {
 
         const newPurchase = new Purchase({
             deliveryNote: deliveryNote,
-            purchaseItems: selectedProducts
+            Items: selectedProducts
         })
 
         await newPurchase.save()
@@ -30,7 +30,7 @@ const recordStock = asyncHandler(async(req, res)=> {
             newProduct.closingStock += parseInt(selectedProduct.quantity);
             newProduct.purchase += parseInt(selectedProduct.quantity)
 
-            newProduct.purchaseHistory.push({ date: new Date(), purchase: selectedProduct.purchase });
+            //newProduct.purchaseHistory.push({ date: new Date(), purchase: selectedProduct.purchase });
 
             await newProduct.save()
 
