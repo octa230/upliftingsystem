@@ -25,7 +25,7 @@ const recordDamages = asyncHandler(async(req, res)=> {
           newProduct.inStock -= parseInt(selectedProduct.quantity);
           newProduct.closingStock -= parseInt(selectedProduct.quantity);
 
-          newProduct.wasteHistory.push({ date: new Date(), quantity: selectedProduct.quantity });
+          //newProduct.wasteHistory.push({ date: new Date(), quantity: selectedProduct.quantity });
 
           await newProduct.save()
 

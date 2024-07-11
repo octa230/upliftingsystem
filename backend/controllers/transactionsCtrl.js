@@ -1,6 +1,10 @@
 
 const asyncHandler = require('express-async-handler')
-const { Transaction} = require('../models/product')
+const { Transaction, Product} = require('../models/product');
+const Purchase = require('../models/Purchase');
+const Damaged = require('../models/Damages');
+const SaleDetails = require('../models/saleDetails');
+const StockRecord = require('../models/StockRecord');
 
 
 
@@ -98,5 +102,104 @@ const visualizeTransactions = asyncHandler(async (req, res) => {
     }
 });
 
+const dailyReport = asyncHandler(async(req, res)=> {
+    const {date, type, } = req.query
+    if(type === 'purchase'){
+        try{
+            const data = await Purchase.find({
+                createdAt: {
+                  $gte: new Date(date),
+                  $lt: new Date(date + 'T23:59:59.999Z') //full day hours
+                }
+            });
+            res.send(data)
+            //console.log(data)
+        }catch(error){
+            console.log(error)
+        }
+    }else if(type === 'closing'){
+        const data = await Product.aggregate([
+            {
+              $match: {
+                $or: [
+                  { inStock: { $gt: 0 } },
+                  { purchase: { $gt: 0 } },
+                  { waste: { $gt: 0 } },
+                  { sold: { $gt: 0 } }
+                ]
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                products: {
+                  $push: {
+                    name: "$name",
+                    purchase: "$purchase",
+                    sold: "$sold",
+                    waste: "$waste",
+                    closingStock: "$closingStock"
+                  }
+                },
+                totalPurchase: { $sum: { $multiply: ["$purchase", "$purchasePrice"] } },
+                totalSold: { $sum: { $multiply: ["$sold", "$purchasePrice"] } },
+                totalWaste: { $sum: { $multiply: ["$waste", "$purchasePrice"] } },
+                totalClosingStock: { $sum: { $multiply: ["$closingStock", "$purchasePrice"] } }
+              }
+            },
+            {
+              $project: {
+                _id: 0,
+                products: 1,
+                totalPurchase: 1,
+                totalSold: 1,
+                totalWaste: 1,
+                totalClosingStock: 1
+              }
+            }
+          ]);
+          
+        res.send(data);          
+    }else if(type === 'sales'){
+        try{
+            const data = await Transaction.find({
+                createdAt: {
+                    $gte: new Date(date),
+                    $lte: new Date(date + 'T23:59:59.999Z')
+                },
+                type: "sale"
+            })
+            res.send(data)
+        }catch(error){
+            console.log(error)
+        }
+    }else if(type === 'damages'){
+        try{
+            const data = await Transaction.find({
+                createdAt:{
+                    $gte: new Date(date),
+                    $lte: new Date(date + "T23:59:59.999Z")
+                },
+                type: 'damage'
+            })
+            res.send(data)
+        }catch(error){
+            res.send(error)
+        }
+    }else if (type === 'invoices'){
+        try{
+            const data = await SaleDetails.find({
+                createdAt: {
+                  $gte: new Date(date),
+                  $lt: new Date(date + 'T23:59:59.999Z') //full day hours
+                }
+            });
+            res.send(data)
+        }catch(error){
+            res.send(error)
+        }
+    }
+})
+
   
-module.exports = {queryRecords, visualizeTransactions}
+module.exports = {queryRecords, visualizeTransactions, dailyReport}
