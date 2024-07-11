@@ -48,7 +48,7 @@ const createProduct = asyncHandler(async(req, res)=> {
       })
       await transaction.save()
 
-      product.purchaseHistory.push({purchase: product.inStock})
+      //product.purchaseHistory.push({purchase: product.inStock})
       await product.save()
     }
     res.send({message: 'product added', product})
@@ -161,84 +161,7 @@ if(product){
 
 
 
-///PURCHASE HOSTORY
-const aggregatePurchaseHistory = asyncHandler(async (req, res) => {
-  //const { day, year, month, name } = req.query;
-
-  try {
-    const { year, month, day, product } = req.query;
-
-    // Build match conditions based on query parameters
-    const matchConditions = {};
-    if (year) matchConditions['prruchaseHistory.date'] = { $gte: new Date(`${year}-01-01`), $lt: new Date(`${parseInt(year) + 1}-01-01`) };
-    if (month) matchConditions['prruchaseHistory.date'] = { ...matchConditions['prruchaseHistory.date'], $gte: new Date(`${year}-${month}-01`), $lt: new Date(`${year}-${parseInt(month) + 1}-01`) };
-    if (day) matchConditions['prruchaseHistory.date'] = { ...matchConditions['prruchaseHistory.date'], $gte: new Date(`${year}-${month}-${day}`), $lt: new Date(`${year}-${month}-${parseInt(day) + 1}`) };
-    if (product) matchConditions['_id'] = mongoose.Types.ObjectId(product);
-   
-    const aggregationPipeline = [
-      { $match: matchConditions },
-      { $unwind: "$prruchaseHistory" },
-      {
-        $group: {
-          _id: "$_id",
-          name: { $first: "$name" },
-          totalPrice: { $sum: "$prruchaseHistory.purchase" },
-          totalPurchases: { $sum: 1 },
-          date: { $first: "$prruchaseHistory.date" }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          purchases: { $sum: "$totalPurchases" },
-          totalPrice: { $sum: "$totalPrice" },
-          results: { $push: "$$ROOT" }
-        }
-      }
-    ];
-
-    //const result = await Product.aggregate(aggregationPipeline);
-    const result = await Product.aggregate(aggregationPipeline);
-    
-   // Check if 'results' array exists before accessing its properties
-   const finalResult = result[0]?.results?.map(item => ({
-    ProductID: item._id,
-    Name: item.name,
-    TotalPrice: item.totalPrice,
-    TotalPurchases: item.totalPurchases,
-    Date: item.date?.toLocaleDateString() // Convert date to human-readable format
-  })) || [];
-
-  // Add total purchases and total price to the result
-  finalResult.push({
-    ProductID: 'Total',
-    Name: 'Overall Total',
-    TotalPrice: result[0]?.totalPrice || 0,
-    TotalPurchases: result[0]?.purchases || 0,
-    Date: '' // No specific date for the total
-  });
-
-    //console.log(finalResult)
-    res.status(200).send(finalResult)
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-const insermany = asyncHandler(async(req, res)=> {
-  try{
-    const data = req.body
-    const savedData = await Product.insertMany(data)
-    res.send(savedData)
-  }catch(error){
-    res.send(error)
-  }
-})
-
-
-
-module.exports = {getStock, namesandprice, insermany, createProduct, aggregatePurchaseHistory, deleteProduct, updateProduct, getProduct, getAllProducts, getProducts, searchProducts}
+module.exports = {getStock, namesandprice, createProduct, deleteProduct, updateProduct, getProduct, getAllProducts, getProducts, searchProducts}
 
 
 
