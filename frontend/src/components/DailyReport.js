@@ -25,7 +25,7 @@ const TableTemplate = ({ type, data }) => {
   switch (type) {
     case 'purchase':
       return (
-        <Table bordered className='printable'>
+        <Table bordered responsive className='printable'>
           <thead>
             <tr>
               <th>Delivery Note</th>
@@ -56,7 +56,7 @@ const TableTemplate = ({ type, data }) => {
       );
     case 'invoices':
       return (
-        <Table bordered className="printable">
+        <Table bordered responsive className="printable">
           <thead>
             <tr>
               <th>Code</th>
@@ -94,7 +94,7 @@ const TableTemplate = ({ type, data }) => {
       );
     case 'sales':
       return (
-        <Table bordered className="printable">
+        <Table bordered responsive className="printable">
           <thead>
             <tr>
               <th>Name</th>
@@ -119,7 +119,7 @@ const TableTemplate = ({ type, data }) => {
       );
     case 'closing':
       return (
-        <Table bordered className="printable">
+        <Table bordered responsive className="printable">
           <thead>
             <tr>
               <th>Name</th>
@@ -155,7 +155,7 @@ const TableTemplate = ({ type, data }) => {
       );
     case 'damages':
       return (
-        <Table bordered className="printable">
+        <Table bordered responsive className="printable">
           <thead>
             <tr>
               <th>Name</th>

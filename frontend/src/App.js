@@ -10,7 +10,6 @@ import Navbar from 'react-bootstrap/esm/Navbar'
 import {BsBoxArrowRight} from 'react-icons/bs'
 import { useContext, useEffect } from "react";
 import { Store } from "./utils/Store";
-import PrintStock from "./screens/PrintStock";
 import Dashboard from "./screens/Dashboard";
 import axios from "axios";
 
@@ -73,13 +72,6 @@ function App() {
           <ProductEdit />
         </ProtectedRoute>
       }/>
-
-      <Route path="print-inventory" element={
-        <ProtectedRoute>
-          <PrintStock />
-        </ProtectedRoute>
-      }
-      />
     </Routes>
     </BrowserRouter>
   );
