@@ -6,7 +6,6 @@ import AddProduct from '../components/AddProduct'
 import RegisterUser from '../components/RegisterUser'
 import SaleHistory from '../components/SaleHistory'
 import Graphs from '../components/Graphs'
-import Charts from '../components/Charts'
 import CustomerData from '../components/CustomerData'
 import ProductsData from '../components/ProductsData'
 import StockRecords from '../components/StockRecords'
@@ -25,6 +24,7 @@ import { newDate } from '../utils/Date'
 import SaleTable from '../components/SaleTable'
 import FilingScreen from '../components/FilingScreen'
 import QuerySalesData from '../components/QuerySalesData'
+import DailyReport from '../components/DailyReport'
 
 export default function Dashboard() {
     const [content, setContent] = useState('make-sale')
@@ -93,9 +93,9 @@ export default function Dashboard() {
                       <span><BsGraphUpArrow/></span> Graphs
                     </Nav.Link>
                 </Nav.Item>
-                <Nav.Item onClick={handleSideBarClick('charts')}>
+                <Nav.Item onClick={handleSideBarClick('reports')}>
                     <Nav.Link className='nav-link'>
-                      <span><BsPieChartFill/></span> Charts
+                      <span><BsPieChartFill/></span> Daily Report
                     </Nav.Link>
                 </Nav.Item>
             </Nav>
@@ -112,7 +112,7 @@ export default function Dashboard() {
           {content === 'products' && <ProductsData/>}
           {content === 'stockrecords' && <StockRecords />}
           {content === 'graphs' && <Graphs />}
-          {content === 'charts' && <Charts />}
+          {content === 'reports' && <DailyReport />}
         </Col>
     </Row>
   )
