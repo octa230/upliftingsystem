@@ -135,10 +135,10 @@ const TableTemplate = ({ type, data }) => {
                 {row.products?.map((product, idx) => (
                   <tr key={`${index}-${idx}`}>
                     <td>{product.name}</td>
-                    <td>{product.purchase > 0 ? product.purchase : 'X'}</td>
-                    <td>{product.sold > 0 ? product.sold : 'X'}</td>
-                    <td>{product.waste > 0 ? product.waste : 'X'}</td>
-                    <td>{product.closingStock > 0 ? product.closingStock : 'X'}</td>
+                    <td>{product.purchase > 0 ? product.purchase : ''}</td>
+                    <td>{product.sold > 0 ? product.sold : ''}</td>
+                    <td>{product.waste > 0 ? product.waste : ''}</td>
+                    <td>{product.closingStock > 0 ? product.closingStock : ''}</td>
                   </tr>
                 ))}
                 <tr>
