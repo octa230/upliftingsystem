@@ -2,9 +2,8 @@
 const asyncHandler = require('express-async-handler')
 const { Transaction, Product} = require('../models/product');
 const Purchase = require('../models/Purchase');
-const Damaged = require('../models/Damages');
 const SaleDetails = require('../models/saleDetails');
-const StockRecord = require('../models/StockRecord');
+
 
 
 
