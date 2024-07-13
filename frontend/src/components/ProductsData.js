@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from 'react'
+import React, { useEffect, useRef, useState} from 'react'
 import axios from 'axios'
 import Form from 'react-bootstrap/esm/Form';
 import Table from 'react-bootstrap/esm/Table';
@@ -6,6 +6,7 @@ import Button from 'react-bootstrap/esm/Button';
 import Col from 'react-bootstrap/esm/Col'
 import MessageBox from './MessageBox'
 import Row from 'react-bootstrap/esm/Row'
+import { useReactToPrint } from 'react-to-print';
 
 export default function ProductsData() {
 
@@ -47,6 +48,9 @@ export default function ProductsData() {
     }
   }
 
+
+  const tableRef = useRef()
+
   useEffect(()=> {
     const fetchProdutNames = async()=>{
       const {data} = await axios.get('/api/product/names')
@@ -58,25 +62,6 @@ export default function ProductsData() {
  
   const RoundTo = (num)=> Math.round(num * 100 + Number.EPSILON) / 100 //====> 123.4567 - 123.45;
    const types = ['sale', 'display', 'damage', 'purchase']
-   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-
-    if (printWindow) {
-      printWindow.document.write('<html><head><title>Print</title>');
-      // Add any print-specific styles here if needed
-      printWindow.document.write(
-        '<link rel="stylesheet" type="text/css" href="path-to-your-print-style.css">'
-      );
-      printWindow.document.write('</head><body>');
-      printWindow.document.write('<h1>TRANSACTIONS DATA TABLE</h1>');
-      printWindow.document.write(document.getElementById('data-table').outerHTML);
-      printWindow.document.write('</body></html>');
-      printWindow.document.close();
-      printWindow.print();
-    } else {
-      console.error('Failed to open a new window for printing.');
-    }
-  };
 
   return (
     <div>
@@ -164,10 +149,10 @@ export default function ProductsData() {
           <MessageBox>Total Quantity: {summary.totalQuantity}</MessageBox>
         </div>
       )}
-      <Table striped bordered hover style={{ maxHeight: '500px', overflowY: 'auto' }} id='data-table'>
+      <Table striped bordered ref={tableRef}>
       <thead>
         <tr>
-          <th>Product Name</th>
+          <th>Name</th>
           <th>Buying</th>
           <th>Selling</th>
           <th>Type</th>
@@ -176,9 +161,7 @@ export default function ProductsData() {
             <span>
               Date
             </span>
-            <span>
-              <Button variant='' onClick={()=>handlePrint()}>Print</Button>
-            </span>
+              <Button onClick={useReactToPrint({content: ()=> tableRef.current})}>Print</Button>
           </th>
         </tr>
       </thead>
@@ -199,18 +182,3 @@ export default function ProductsData() {
     </div>
   )
 }
-
-
-/* const renderSummaryCard = (totalPrice, totalQuantity) => (
-  <Col key={'i'} xs={12} sm={6} md={3}>
-    <Card className='bg-light text-dark border border-3 border-warning'>
-      <Card.Body>
-         <Card.Title>{type.toUpperCase()}</Card.Title> 
-        <Card.Text>
-          Quantity: {totalQuantity}<br />
-          Valuation: {totalPrice.toFixed(2)}
-        </Card.Text>
-      </Card.Body>
-    </Card>
-  </Col>
-);  */

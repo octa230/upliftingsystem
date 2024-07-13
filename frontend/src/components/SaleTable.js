@@ -14,7 +14,7 @@ import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
 
 
 
-function SaleTable() {
+const SaleTable =()=> {
 
   const [products, setProducts] = useState([]);
   const [paidBy,  setPaidBy]= useState('')
@@ -210,6 +210,7 @@ if(hasNullValues){
       <option>Mahel</option>
       <option>Ahmed</option>
       <option>MJ</option>
+
     </Form.Select>
     </Col>
     <Col className='' sm={2}>

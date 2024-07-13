@@ -25,7 +25,7 @@ const TableTemplate = ({ type, data }) => {
   switch (type) {
     case 'purchase':
       return (
-        <Table bordered className='printable'>
+        <Table bordered responsive className='printable'>
           <thead>
             <tr>
               <th>Delivery Note</th>
@@ -48,15 +48,19 @@ const TableTemplate = ({ type, data }) => {
                     ))}
                   </ul>
                 </td>
-                <td>{purchase.total?.toFixed(2)}</td>
+                <td>{purchase?.total}</td>
               </tr>
             ))}
+            <tr>
+              <td colSpan='3'><strong>TOTAL AMOUNT:</strong></td>
+              <td>{data?.reduce((total, purchase)=> total +(purchase.total || 0), 0)}</td>
+            </tr>
           </tbody>
         </Table>
       );
     case 'invoices':
       return (
-        <Table bordered className="printable">
+        <Table bordered responsive className="printable">
           <thead>
             <tr>
               <th>Code</th>
@@ -86,15 +90,19 @@ const TableTemplate = ({ type, data }) => {
                     ))}
                   </ul>
                 </td>
-                <td>{row.total || (row.saleItems?.reduce((acc, cur) => acc + cur.quantity, 0))}</td>
+                <td>{row.total || 0}</td>
               </tr>
             ))}
+            <tr>
+              <td colSpan='3'><strong>TOTAL AMOUNT:</strong></td>
+              <td>{data.reduce((acc, row)=> acc + (row.total || 0), 0)}</td>
+            </tr>
           </tbody>
         </Table>
       );
     case 'sales':
       return (
-        <Table bordered className="printable">
+        <Table bordered responsive className="printable">
           <thead>
             <tr>
               <th>Name</th>
@@ -119,7 +127,7 @@ const TableTemplate = ({ type, data }) => {
       );
     case 'closing':
       return (
-        <Table bordered className="printable">
+        <Table bordered responsive className="printable">
           <thead>
             <tr>
               <th>Name</th>
@@ -155,7 +163,7 @@ const TableTemplate = ({ type, data }) => {
       );
     case 'damages':
       return (
-        <Table bordered className="printable">
+        <Table bordered responsive className="printable">
           <thead>
             <tr>
               <th>Name</th>

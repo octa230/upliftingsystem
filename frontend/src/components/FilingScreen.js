@@ -46,7 +46,7 @@ useEffect(() => {
         setSelectedSale(storedSale)
       }
     }
-  }, [recordType, selectedItems, invoices, selectedSale]);
+  }, [recordType, selectedItems, invoices, selectedSale, todaySales]);
 
 
 
@@ -70,17 +70,24 @@ useEffect(() => {
   const selectedProducts = selectedItems.map(item => ({
     product: item._id,
     productName: item.name,
+    purchasePrice: item.purchasePrice,
     quantity: itemQuantities[item._id] || 0 // Access quantity for each item using item._id as key
   }));
-  // Now you have an array of objects containing product name and quantity
-  //console.log('Submitted Data:', selectedProducts);
+  const calculateTotal=(products)=>{
+    return products.reduce((total, product)=> {
+        return total + (product.quantity * product.purchasePrice)
+    }, 0)
+
+  }
 
 const handleSubmit =async()=>{
     switch(recordType){
         case "purchase":
             try{
+                const total = calculateTotal(selectedProducts)
                 await axios.post('/api/stock/purchase', {
-                    selectedProducts, deliveryNote
+                    selectedProducts, deliveryNote,
+                    total
                 })
                 toast.success('Done')
             }catch(error){
@@ -124,7 +131,6 @@ const handleSubmit =async()=>{
  const removeItemHandler = (item) => {
     const newselectedItems = selectedItems.filter((x)=> x._id !== item._id)
     ctxDispatch({type: "REMOVE_SELECTED_ITEM", payload: newselectedItems})
-    //localStorage.setItem('selectedItems', JSON.stringify(newselectedItems))
   };
 
   const addSale = async(saleId)=>{

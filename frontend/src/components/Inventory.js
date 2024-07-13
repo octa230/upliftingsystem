@@ -1,14 +1,16 @@
-import React, { useEffect, useState, useContext, useReducer} from 'react'
+import React, { useEffect, useState, useContext, useReducer, useRef} from 'react'
 import { Button, Table} from 'react-bootstrap'
-import {BsFillPencilFill, BsCheck2Circle, BsXCircle, BsFillFileBreakFill} from 'react-icons/bs'
+import {BsFillPencilFill, BsCheck2Circle, BsXCircle} from 'react-icons/bs'
 import {useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { getError } from '../utils/getError'
 import { Store } from '../utils/Store'
 import Form from 'react-bootstrap/esm/Form'
+import Container from 'react-bootstrap/esm/Container'
 import Row from 'react-bootstrap/esm/Row'
 import Col from 'react-bootstrap/esm/Col'
 import Badge from 'react-bootstrap/esm/Badge'
+import { useReactToPrint } from 'react-to-print';
 import axios from 'axios'
 
 
@@ -39,11 +41,11 @@ const InventoryScreen =()=> {
   const navigate = useNavigate()
     const {state, dispatch: ctxDispatch} = useContext(Store)
     const {selectedItems } =  state
+    const tableRef = useRef()
 
   const [searchName, setSearchName] = useState(null)
   const [stockOnly, setStockOnly] = useState(false)
   const [outOfStock, setOutOfStock] = useState(false)
-
 
 
   //get products by search input
@@ -107,7 +109,7 @@ const InventoryScreen =()=> {
 
 
   return (
-    <>
+    <Container fluid>
     <Row>
       <Col>
       <Badge variant='success' className='p-3 mb-2'>
@@ -137,7 +139,7 @@ const InventoryScreen =()=> {
         />
       </Col>
     </Row>
-    <Table responsive striped bordered hover className='w-100 lg'>
+    <Table responsive bordered ref={tableRef}>
         <thead>
             <tr>
                 <th>Code</th>
@@ -150,12 +152,10 @@ const InventoryScreen =()=> {
                 <th>Waste</th>
                 <th>Closing</th>
                 <th className='d-flex justify-content-between'>
-                    Actions
-                    <span>
-                        <Button variant='' onClick={()=> navigate('/print-inventory')}>
-                          Print <BsFillFileBreakFill />
-                        </Button>
-                    </span>
+                  <span>Actions</span>
+                    <Button onClick={useReactToPrint({content: ()=> tableRef.current})}>
+                      Print
+                    </Button>
                 </th>
             </tr>
         </thead>
@@ -197,7 +197,7 @@ const InventoryScreen =()=> {
                                Delete <BsXCircle/>
                             </Button>
                         <Button variant='' onClick={()=> addSaleProduct(product)}>
-                            Add <BsCheck2Circle/>
+                              Add <BsCheck2Circle/>
                           </Button> 
                         </td>
                     </tr>                    
@@ -205,7 +205,7 @@ const InventoryScreen =()=> {
             }
         </tbody>      
     </Table>
-</>
+</Container>
 )
 }
 
