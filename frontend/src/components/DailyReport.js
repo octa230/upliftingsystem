@@ -48,9 +48,13 @@ const TableTemplate = ({ type, data }) => {
                     ))}
                   </ul>
                 </td>
-                <td>{purchase.total?.toFixed(2)}</td>
+                <td>{purchase?.total}</td>
               </tr>
             ))}
+            <tr>
+              <td colSpan='3'><strong>TOTAL AMOUNT:</strong></td>
+              <td>{data?.reduce((total, purchase)=> total +(purchase.total || 0), 0)}</td>
+            </tr>
           </tbody>
         </Table>
       );
@@ -86,9 +90,13 @@ const TableTemplate = ({ type, data }) => {
                     ))}
                   </ul>
                 </td>
-                <td>{row.total || (row.saleItems?.reduce((acc, cur) => acc + cur.quantity, 0))}</td>
+                <td>{row.total || 0}</td>
               </tr>
             ))}
+            <tr>
+              <td colSpan='3'><strong>TOTAL AMOUNT:</strong></td>
+              <td>{data.reduce((acc, row)=> acc + (row.total || 0), 0)}</td>
+            </tr>
           </tbody>
         </Table>
       );

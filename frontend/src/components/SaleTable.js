@@ -14,7 +14,7 @@ import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
 
 
 
-function SaleTable() {
+const SaleTable =()=> {
 
   const [products, setProducts] = useState([]);
   const [paidBy,  setPaidBy]= useState('')

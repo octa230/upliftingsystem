@@ -6,11 +6,12 @@ const Purchase = require('../models/Purchase')
 
 const recordStock = asyncHandler(async(req, res)=> {
     try{
-        const {selectedProducts, deliveryNote} = req.body
+        const {selectedProducts, deliveryNote, total} = req.body
 
         const newPurchase = new Purchase({
             deliveryNote: deliveryNote,
-            Items: selectedProducts
+            Items: selectedProducts,
+            total: total
         })
 
         await newPurchase.save()
