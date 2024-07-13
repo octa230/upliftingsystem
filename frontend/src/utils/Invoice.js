@@ -124,9 +124,9 @@ const Invoice = ({sale}) => (
         <Text style={styles.subHeader}>Status: {sale.free ? 'F.O.C' : 'CHARGED'}</Text>
 
         <View style={styles.address}>
-        <Text style={styles.adressText}>JUMEIRAH LAKE TOWERS</Text>
-        <Text style={styles.adressText}>LAKE VIEW TOWER</Text>
-        <Text style={styles.adressText}>CLUSTER B</Text>
+        <Text style={styles.adressText}>UPLIFTING FLORAL STUDIO</Text>
+        <Text style={styles.adressText}>BUSINESS BAY</Text>
+        <Text style={styles.adressText}>BUILDING: BB02</Text>
         <Text style={styles.adressText}>DUBAI</Text>
         </View>
 
@@ -210,16 +210,16 @@ const Invoice = ({sale}) => (
         
         <View style={styles.footnote}>
             <Text style={styles.footnote}>
-              Season Of Happiness!
+              Welcome To Our Floral Paradise!
             </Text>
         </View>
         <View style={styles.footer}>
-            <Text style={styles.footer}>chateaudesfleursuae.com</Text>
-            <Text style={styles.footer}>Chateau Des Fleurs</Text>
-            <Text style={styles.footer}>0542045428</Text>
+            <Text style={styles.footer}>WEBSITE: uplifting.ae</Text>
+            <Text style={styles.footer}>INSTAGRAM: Upliftingdxb</Text>
+            <Text style={styles.footer}>WHATSAPP: +971542045427</Text>
         </View>
       </View> 
-      <Image src="/images/cdf-logo.png" style={styles.logo} />
+      <Image src="/images/logo-upl.png" style={styles.logo} />
     </Page>
   </Document>
 );
