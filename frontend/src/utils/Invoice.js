@@ -214,7 +214,7 @@ const Invoice = ({sale}) => (
             </Text>
         </View>
         <View style={styles.footer}>
-            <Text style={styles.footer}>WEBSITE: chateaudesfleursuae.ae</Text>
+            <Text style={styles.footer}>chateaudesfleursuae.ae</Text>
             <Text style={styles.footer}>INSTAGRAM: Chateau Des Fleurs</Text>
             <Text style={styles.footer}>WHATSAPP: 0542045428</Text>
         </View>
