@@ -124,9 +124,9 @@ const Invoice = ({sale}) => (
         <Text style={styles.subHeader}>Status: {sale.free ? 'F.O.C' : 'CHARGED'}</Text>
 
         <View style={styles.address}>
-        <Text style={styles.adressText}>UPLIFTING FLORAL STUDIO</Text>
-        <Text style={styles.adressText}>BUSINESS BAY</Text>
-        <Text style={styles.adressText}>BUILDING: BB02</Text>
+        <Text style={styles.adressText}>CHATEAU DES FLEURS DMCC</Text>
+        <Text style={styles.adressText}>JUMEIRAH LAKE VIEW TOWER</Text>
+        <Text style={styles.adressText}>JUMEIRAH</Text>
         <Text style={styles.adressText}>DUBAI</Text>
         </View>
 
