@@ -112,6 +112,19 @@ const Invoice = ({ sale }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.section}>
+
+        <Text style={styles.header}>Invoice: {sale.InvoiceCode}</Text>
+        <Text style={styles.subHeader}>Name: {sale.name}</Text>
+        <Text style={styles.subHeader}>Paid By: {sale.paidBy}</Text>
+        <Text style={styles.subHeader}>Date: {sale.date}</Text>
+        <Text style={styles.subHeader}>Status: {sale.free ? 'F.O.C' : 'CHARGED'}</Text>
+
+        <View style={styles.address}>
+        <Text style={styles.adressText}>CHATEAU DES FLEURS DMCC</Text>
+        <Text style={styles.adressText}>JUMEIRAH LAKE VIEW TOWER</Text>
+        <Text style={styles.adressText}>JUMEIRAH</Text>
+        <Text style={styles.adressText}>DUBAI</Text>
+
         <Image src="/images/logo-upl.png" style={styles.logo} />
         <Text style={styles.header}>Tax Invoice</Text>
         <View style={styles.addressContainer}>
@@ -181,6 +194,18 @@ const Invoice = ({ sale }) => (
         </View>
         </View>
         
+        <View style={styles.footnote}>
+            <Text style={styles.footnote}>
+              Season Of Happiness!
+            </Text>
+        </View>
+        <View style={styles.footer}>
+            <Text style={styles.footer}>chateaudesfleursuae.ae</Text>
+            <Text style={styles.footer}>INSTAGRAM: Chateau Des Fleurs</Text>
+            <Text style={styles.footer}>WHATSAPP: 0542045428</Text>
+        </View>
+      </View> 
+      <Image src="/images/cdf-logo.png" style={styles.logo} />
       </View>
     </Page>
   </Document>
