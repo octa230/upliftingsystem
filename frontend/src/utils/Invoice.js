@@ -1,122 +1,118 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
 
+// Define styles for the PDF document
 const styles = StyleSheet.create({
   page: {
-    flexDirection: 'row',
-    backgroundColor: '#E4E4E4',
-    alignItems: 'center',
-    padding: 22,
+    flexDirection: 'column',
+    backgroundColor: '#ffffff',
+    padding: 40,
+    height:"100vh"
   },
   section: {
-    //margin: 0,
-    position: 'relative',
-    marginTop: 12,
+    margin: 10,
+    padding: 10,
     flexGrow: 1,
-    padding: 2
   },
-
-  address:{
-    position: 'absolute',
-    alignSelf: 'flex-end',
-    right: 5,
-    padding: 3,
-  },
-
-  adressText:{
-    textAlign: 'center',
-    fontSize: 12
-
-  },
-
   header: {
-    fontSize: 12,
+    fontSize: 24,
+    marginBottom: 10,
     fontWeight: 'bold',
-    padding: '2px',
-    width:'100%'
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    textDecoration: "underline"
   },
   subHeader: {
-    fontSize: 12,
-    padding: '5px'
+    fontSize: 10,
+    marginBottom: 5,
+  },
+  subHeaderText:{
+    fontSize: 10,
+    fontWeight: 800
+  },
+  addressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 20,
+  },
+  addressText: {
+    fontSize: 10,
+    marginBottom: 2,
+    lineHeight: 1.5
   },
   logo: {
-    width: '40%',
-    position: 'absolute',
-    top: 14,
-    right: '40%',
-    height: 66,
+    width: 150,
+    height: 50,
+    marginBottom: 10,
+    alignSelf: 'left',
   },
   table: {
     display: 'table',
-    width: '80%',
+    width: 'auto',
+    marginTop: 10,
+    marginBottom: 30,
     borderStyle: 'solid',
-    //borderWidth: 1,
-    borderCollapse: 'collapse',
-    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#bfbfbf',
   },
   tableRow: {
-    margin: 'auto',
     flexDirection: 'row',
-    width:'100%'
+    borderBottomStyle: 'solid',
+    borderBottomWidth: 0.5,
+    borderColor: 'black',
+    justifyContent:"space-between",
+    alignContent: "center"
   },
   tableCell: {
-    width: '100%',
-    borderStyle: 'solid',
-    //borderColor: '#000',
-    borderWidth: 1,
-    padding: 3,
+    margin: 5,
+    fontSize: 10,
   },
-
-  totalTable: {
-    display: 'table',
-    width: '80%',
-    height: 120,
-    marginTop: 20,
+  tableHeader: {
+    backgroundColor: '#f0f0f0',
+    alignItems:"center"
   },
-  totalTableRow: {
+  totalAmount: {
+    marginTop: 5,
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    width: "45%",
+    paddingTop: 3,
+    marginLeft: 'auto',
+  },
+  totalAmountCell: {
     flexDirection: 'row',
-  },
-  totalTableHeader: {
-    width: '75%',
-    borderStyle: 'solid',
-    borderColor: '#000',
-    borderWidth: 1,
-    fontSize: 12,
-    padding: 5,
-  },
-  totalTableCell: {
+    borderWidth: 0.5,
+    borderColor: '#000000',
     width: '100%',
-    borderStyle: 'solid',
-    borderColor: '#000',
-    borderWidth: 1,
-    fontSize: 12,
-    padding: 3,
-  },
-  tableFont:{
-    fontSize: 12
-  },
-  footer:{
-    display: 'flex',
     justifyContent: 'space-between',
-    flexDirection: 'row',
-    marginTop: 12,
-    alignSelf: 'center',
-    fontSize: 8,
-    padding: 3,
-    width: '70%'
   },
-  footnote:{
+  footer: {
+    position: "absolute",
+    bottom: 10,
+    left: 40,
+    right: 40,
+    borderTopWidth: 1,
+    borderColor: '#bfbfbf',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontSize: 8,
+  },
+  footnote: {
+    marginTop: 10,
+    fontSize: 8,
     textAlign: 'center',
-    fontWeight: 100,
-    width:'100%',
-    marginTop: '90px'
-  }
+  },
 });
 
-const Invoice = ({sale}) => (
+// Define the Invoice component
+const Invoice = ({ sale }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.section}>
+
         <Text style={styles.header}>Invoice: {sale.InvoiceCode}</Text>
         <Text style={styles.subHeader}>Name: {sale.name}</Text>
         <Text style={styles.subHeader}>Paid By: {sale.paidBy}</Text>
@@ -128,84 +124,74 @@ const Invoice = ({sale}) => (
         <Text style={styles.adressText}>JUMEIRAH LAKE VIEW TOWER</Text>
         <Text style={styles.adressText}>JUMEIRAH</Text>
         <Text style={styles.adressText}>DUBAI</Text>
-        </View>
 
-        <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <View style={styles.tableCell}>
-              <Text style={styles.header}>Product</Text>
-            </View>
-            <View style={styles.tableCell}>
-              <Text style={styles.header}>Quantity</Text>
-            </View>
-            <View style={styles.tableCell}>
-              <Text style={styles.header}>Price</Text>
-            </View>
-            <View style={styles.tableCell}>
-              <Text style={styles.header}>Arrangement</Text>
-            </View>
+        <Image src="/images/logo-upl.png" style={styles.logo} />
+        <Text style={styles.header}>Tax Invoice</Text>
+        <View style={styles.addressContainer}>
+          <View>
+            <Text style={styles.addressText}>UPLIFTING FLORAL STUDIO</Text>
+            <Text style={styles.addressText}>MARASI DRIVE, BUSINESS BAY</Text>
+            <Text style={styles.addressText}>BUILDING: BB02, DUBAI</Text>
           </View>
-
+          <View>
+            <Text style={styles.addressText}>TRN: 100551507500003</Text>
+            <Text style={styles.addressText}>Invoice No: {sale.InvoiceCode}</Text>
+            <Text style={styles.addressText}>PreparedBy: {sale.preparedBy}</Text>
+            <Text style={styles.addressText}>Date: {sale.date}</Text>
+          </View>
+        </View>
+        <View>
+          <Text style={styles.subHeader}>Bill To:</Text>
+          <Text style={styles.subHeaderText}>{sale.name || 'Not provided'}</Text>
+          <Text style={styles.subHeaderText}>{sale.phone || 'Not provided'}</Text>
+          <Text style={styles.subHeaderText}>{sale.email || 'Not provided'}</Text>
+          <Text style={styles.subHeaderText}>{sale.paidBy || 'Not provided'}</Text>
+        </View>
+        <View style={styles.table}>
+          <View style={[styles.tableRow, styles.tableHeader]}>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Item</Text>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Quantity</Text>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Rate</Text>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Total</Text>
+          </View>
           {sale.saleItems.map((item, index) => (
             <View key={index} style={styles.tableRow}>
-              <View style={styles.tableCell}>
-                <Text style={styles.tableFont}>{item.productName}</Text>
-              </View>
-              <View style={styles.tableCell}>
-                <Text style={styles.tableFont}>{item.quantity}</Text>
-              </View>
-              <View style={styles.tableCell}>
-                <Text style={styles.tableFont}>{item.price}</Text>
-              </View>
-              <View style={styles.tableCell}>
-                <Text style={styles.tableFont}>{item.arrangement}</Text>
-              </View>
+              <Text style={styles.tableCell}>{item.productName}</Text>
+              <Text style={styles.tableCell}>{item.quantity}</Text>
+              <Text style={styles.tableCell}>AED {item.price}</Text>
+              <Text style={styles.tableCell}>AED {item.quantity * item.price}</Text>
             </View>
-            
           ))}
         </View>
-        {/* Table for Subtotal, VAT, Discount, and Total */}
-      <View style={styles.totalTable}>
-        <View style={styles.totalTableRow}>
-          <View style={styles.totalTableHeader}>
-            <Text style={styles.header}>Description</Text>
+        <View style={styles.totalAmount}>
+            <View style={styles.totalAmountCell}>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Items Total:</Text>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.itemsTotal}</Text>
+            </View>
+            <View style={styles.totalAmountCell}>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Vat(5%)</Text>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.vat}</Text>
+            </View>
+            <View style={styles.totalAmountCell}>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Discount:</Text>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.discount}</Text>
+            </View>
+            <View style={styles.totalAmountCell}>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Taxable Amount:</Text>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.subTotal}</Text>
+            </View>
+            <View style={styles.totalAmountCell}>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Total Inc.Vat:</Text>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.total}</Text>
+            </View>
           </View>
-          <View style={styles.totalTableCell}>
-            <Text style={styles.header}>Amount</Text>
+        <View style={styles.footer}>
+          <View style={styles.footnote}>
+          <Text>Website: uplifting.ae | Phone: +971542045427 | Email: info@floralshopuae.com</Text>
           </View>
+          <View style={styles.footnote}>
+          <Text>This is a system Generated Invoice, it Requires No extra action</Text>
         </View>
-        <View style={styles.totalTableRow}>
-          <View style={styles.totalTableHeader}>
-            <Text>Subtotal</Text>
-          </View>
-          <View style={styles.totalTableCell}>
-            <Text>AED {sale.subTotal}</Text>
-          </View>
-        </View>
-        <View style={styles.totalTableRow}>
-          <View style={styles.totalTableHeader}>
-            <Text>VAT (5%)</Text>
-          </View>
-          <View style={styles.totalTableCell}>
-            <Text>AED {sale.vat}</Text>
-          </View>
-        </View>
-        <View style={styles.totalTableRow}>
-          <View style={styles.totalTableHeader}>
-            <Text>Discount</Text>
-          </View>
-          <View style={styles.totalTableCell}>
-            <Text>AED {sale.discount}</Text>
-          </View>
-        </View>
-        <View style={styles.totalTableRow}>
-          <View style={styles.totalTableHeader}>
-            <Text>Total</Text>
-          </View>
-          <View style={styles.totalTableCell}>
-            <Text>AED {sale.total}</Text>
-          </View>
-          </View>
         </View>
         
         <View style={styles.footnote}>
@@ -220,6 +206,7 @@ const Invoice = ({sale}) => (
         </View>
       </View> 
       <Image src="/images/cdf-logo.png" style={styles.logo} />
+      </View>
     </Page>
   </Document>
 );

@@ -24,6 +24,7 @@ const SaleDetailSchema = new mongoose.Schema({
         photo: {type: String}
     }],
     total:{type: Number, required: true},
+    itemsTotal:{type: Number, required: true, default: 0},
     subTotal:{type: Number, required: true},
     date:{type: String, required: true},
     name:{type: String, required: true},
