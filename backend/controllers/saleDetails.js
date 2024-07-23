@@ -7,6 +7,9 @@ const {Transaction} = require('../models/product')
 const makeSale = asyncHandler(async(req, res)=> {
 
         const uuid =()=> `UPLDXB_${uuidv4().substring(0, 6)}`
+        const itemsTotal = req.body.products.reduce((total, item)=> {
+          return total + (item.quantity * item.price)
+        }, 0)
 
         const newSale = new SaleDetails({
             saleItems: req.body.products.map((x)=> ({
@@ -18,6 +21,7 @@ const makeSale = asyncHandler(async(req, res)=> {
                 photo: x.photo
             })),
             preparedBy: req.body.preparedBy,
+            itemsTotal: itemsTotal,
             paidBy: req.body.paidBy,
             service: req.body.service,
             date: req.body.time,

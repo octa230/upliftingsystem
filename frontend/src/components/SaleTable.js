@@ -8,6 +8,7 @@ import axios from 'axios'
 import { Store } from '../utils/Store';
 import {getError} from '../utils/getError'
 import { BsCamera} from 'react-icons/bs';
+import { round2 } from '../utils/helpers';
 import MessageBox from './MessageBox'
 import {toast} from 'react-toastify'
 import {BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill} from 'react-icons/bs'
@@ -28,6 +29,9 @@ const SaleTable =()=> {
   const [orderedBy, setorderedBy]= useState('')
   const [discount, setDiscount] = useState(0)
   const [recievedBy, setrecievedBy]= useState('')
+
+ 
+ 
 
   const time = new Date().toLocaleDateString('en-GB');
   
@@ -106,31 +110,35 @@ const uploadFileHandler = async(file)=>{
     newProducts[index].loading = false;
     setProducts(newProducts)
   }}};
- 
-  const calculateSubtotal = () => {
-    const itemsTotal = products.reduce((accumulator, product) => accumulator + (product.price * product.quantity), 0)
-    if(discount){
-      return itemsTotal - discount
-    }else{
-      return itemsTotal
-    }
+
+  let totalWithoutVat = 0;
+
+
+  const calculateSubTotal = () => {
+    const itemsTotalWithVat = products.reduce((accumulator, product) => accumulator + (product.quantity * product.price), 0);
+    const itemsTotal = itemsTotalWithVat / (1 + (5 / 100)); // Calculate total without VAT
+    const subTotal = round2(itemsTotal - discount); // Calculate subtotal after discount
+    totalWithoutVat = subTotal; // Store subtotal in totalWithoutVat variable
+    return subTotal;
   };
 
-
-  const calculateVat =()=> {
-    const subtotal = calculateSubtotal()
-    const Calculatedvat = (subtotal * 0.05)
-    return Calculatedvat.toFixed(2)
-
-  }
+  const calculateVat = () => {
+    const vat = round2(totalWithoutVat * (5 / 100))
+    return vat;
+  };
   
   const calculateTotal = () => {
-    const subtotal = calculateSubtotal();
-    const total = (parseFloat(subtotal));
-    return total;
+    return calculateSubTotal() + calculateVat()
   };
 
-const handleSave = async(e)=> {
+  
+
+  
+  const total = calculateTotal().toFixed(2);
+  const subTotal = calculateSubTotal().toFixed(2);
+  const vat = calculateVat().toFixed(2);
+
+  const handleSave = async(e)=> {
   e.preventDefault()
 
   const selectFields =[name, phone, service, paidBy, preparedBy];
@@ -148,9 +156,9 @@ if(hasNullValues){
 }
 
     try{
-        const subTotal = calculateSubtotal()
-        const total = calculateTotal()
-        const vat = calculateVat()
+        //const subTotal = calculateSubTotal()
+        //const total = calculateTotal()
+        //const vat = calculateVat()
         
         const response = await axios.post('/api/multiple/new-sale', {
         products, discount,
@@ -241,8 +249,8 @@ if(hasNullValues){
             <th>Arrangement</th>
             <th>Price</th>
             <th>Quantity</th>
-            <th>Total</th>
-            <th>Photo</th>
+{/*             <th>Total</th>
+ */}            <th>Photo</th>
           </tr>
         </thead>
         <tbody>
@@ -283,8 +291,8 @@ if(hasNullValues){
                   onChange={(event) => handleQuantityChange(index, event)}
                 />
               </td>
-              <td>{product.price && product.quantity ? product.price * product.quantity - discount : 0}</td>
-            <td>
+{/*               <td>{product.price && product.quantity ? (product.price * product.quantity) - ((product.price * product.quantity) * 0.05) - discount : 0}</td>
+ */}            <td>
           <label htmlFor={`fileInput-${index}`}>
             <BsCamera size={20} />
           </label>
@@ -370,20 +378,30 @@ if(hasNullValues){
       </Col>
     </Row>
       <div className='border p-2'>
-      <p>Subtotal: {calculateSubtotal()}</p>
+      <p>NET AMOUNT: 
+        <strong>
+          {subTotal}
+        </strong>
+      </p>
       <Col className='d-flex justify-content-between'>
-      <Form.Label>Discount:</Form.Label>
-      <span className='text-danger'>
-        <strong>{discount}</strong>
-      </span>
+      <Form.Label>DISCOUNT: <strong>{discount}</strong></Form.Label>
       <Form.Control type='number' style={{width:'12rem'}}
         value={discount}
         onChange={(e)=> setDiscount(e.target.value)}
         placeholder='discount'
+        lable="discount"
       />
       </Col>
-      <p>vat: {calculateVat()}</p>
-      <p>Total: {calculateTotal()}</p>
+      <p>VAT: 
+        <strong>
+          {vat}
+        </strong>
+      </p>
+      <p>AMOUNT: 
+        <strong>
+          {total}
+        </strong>
+      </p>
       </div>
       </>
   );

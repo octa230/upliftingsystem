@@ -121,7 +121,7 @@ const handleSubmit =async()=>{
             break;
         case "hotel":
             toast.error('still building')
-            console.log({selectedItems, recordType})
+            //console.log({selectedItems, recordType})
             break;
         default:
             toast.error('no type selected')
@@ -163,6 +163,7 @@ const handleSubmit =async()=>{
                 <Form.Label>Delivery Note Number</Form.Label>
                 <Form.Control type='text'
                 placeholder='invoice / Delivery Note Number'
+                value={deliveryNote}
                 onChange={(e)=> setdeliveryNote(e.target.value)}
             />
             </Form.Group>
