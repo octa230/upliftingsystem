@@ -180,7 +180,6 @@ const Invoice = ({ sale }) => (
           <Text>This is a system Generated Invoice, it Requires No extra action</Text>
         </View>
         </View>
-        
       </View>
     </Page>
   </Document>
