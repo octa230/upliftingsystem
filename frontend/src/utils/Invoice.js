@@ -155,16 +155,16 @@ const Invoice = ({ sale }) => (
             <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.itemsTotal}</Text>
             </View>
             <View style={styles.totalAmountCell}>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Vat(5%)</Text>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.vat}</Text>
-            </View>
-            <View style={styles.totalAmountCell}>
             <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Discount:</Text>
             <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.discount}</Text>
             </View>
             <View style={styles.totalAmountCell}>
             <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Taxable Amount:</Text>
             <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.subTotal}</Text>
+            </View>
+            <View style={styles.totalAmountCell}>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Vat(5%)</Text>
+            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.vat}</Text>
             </View>
             <View style={styles.totalAmountCell}>
             <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Total Inc.Vat:</Text>
