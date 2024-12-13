@@ -8,6 +8,13 @@ const recordStock = asyncHandler(async(req, res)=> {
     try{
         const {selectedProducts, deliveryNote, total} = req.body
 
+
+        const existPurchase = await Purchase.findOne({deliveryNote})
+
+        if(existPurchase){
+            res.send(existPurchase)
+        }
+
         const newPurchase = new Purchase({
             deliveryNote: deliveryNote,
             Items: selectedProducts,
@@ -17,25 +24,20 @@ const recordStock = asyncHandler(async(req, res)=> {
         await newPurchase.save()
 
         for(const selectedProduct of selectedProducts){
-           // const{product, purchase} = item
 
             const newProduct = await Product.findById(selectedProduct.product)
 
-            //CHECK AVAILABILITY
             if (!newProduct) {
                 return res.status(404).json({ error: "Product not found" });
             }
 
-            ///UPDATE STOCK QUANTITIES
             newProduct.inStock += parseInt(selectedProduct.quantity);
             newProduct.closingStock += parseInt(selectedProduct.quantity);
             newProduct.purchase += parseInt(selectedProduct.quantity)
 
-            //newProduct.purchaseHistory.push({ date: new Date(), purchase: selectedProduct.purchase });
 
             await newProduct.save()
 
-            ///CREATE TRANSACTION
 
             const transaction = new Transaction({
                 product: selectedProduct.product,

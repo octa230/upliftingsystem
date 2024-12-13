@@ -33,7 +33,7 @@ const SaleTable =()=> {
  
  
 
-  const time = new Date().toLocaleDateString('en-GB');
+const time = new Date().toLocaleDateString('en-GB');
   
 
 const { state, dispatch: ctxDispatch} = useContext(Store);
@@ -114,14 +114,6 @@ const uploadFileHandler = async(file)=>{
   let totalWithoutVat = 0;
 
 
-  /* const calculateSubTotal = () => {
-    const itemsTotalWithVat = products.reduce((accumulator, product) => accumulator + (product.quantity * product.price), 0);
-    const itemsTotal = itemsTotalWithVat / (1 + (5 / 100)); // Calculate total without VAT
-    const subTotal = round2(itemsTotal - discount); // Calculate subtotal after discount
-    totalWithoutVat = subTotal; // Store subtotal in totalWithoutVat variable
-    return subTotal;
-  }; */
-
   const calculateSubTotal =()=> {
     const itemsTotalWithVat = products.reduce((accumulator, product) => accumulator + (product.quantity * product.price), 0);
     let subTotal = itemsTotalWithVat
@@ -165,9 +157,6 @@ if(hasNullValues){
 }
 
     try{
-        //const subTotal = calculateSubTotal()
-        //const total = calculateTotal()
-        //const vat = calculateVat()
         
         const response = await axios.post('/api/multiple/new-sale', {
         products, discount,

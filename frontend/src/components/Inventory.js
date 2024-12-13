@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext, useReducer, useRef} from 'react'
-import { Button, Table} from 'react-bootstrap'
-import {BsFillPencilFill, BsCheck2Circle, BsXCircle} from 'react-icons/bs'
-import {useNavigate } from 'react-router-dom'
+import { Button, Modal, Table} from 'react-bootstrap'
+import {BsFillPencilFill, BsCheck2Circle, BsXCircle, BsTrash2Fill} from 'react-icons/bs'
 import { toast } from 'react-toastify'
 import { getError } from '../utils/getError'
 import { Store } from '../utils/Store'
@@ -9,9 +8,9 @@ import Form from 'react-bootstrap/esm/Form'
 import Container from 'react-bootstrap/esm/Container'
 import Row from 'react-bootstrap/esm/Row'
 import Col from 'react-bootstrap/esm/Col'
-import Badge from 'react-bootstrap/esm/Badge'
 import { useReactToPrint } from 'react-to-print';
 import axios from 'axios'
+import AddProduct from './AddProduct'
 
 
 const reducer = (state, action)=>{
@@ -36,16 +35,21 @@ const InventoryScreen =()=> {
     products: []
   };
 
+  //const {userInfoToken} = useContext(Store)
+
   const [{ products }, dispatch] = useReducer(reducer, initialState)
 
-  const navigate = useNavigate()
-    const {state, dispatch: ctxDispatch} = useContext(Store)
-    const {selectedItems } =  state
-    const tableRef = useRef()
+  const {state, dispatch: ctxDispatch} = useContext(Store)
+  const {selectedItems, userInfoToken } =  state
+  const tableRef = useRef()
 
   const [searchName, setSearchName] = useState(null)
   const [stockOnly, setStockOnly] = useState(false)
   const [outOfStock, setOutOfStock] = useState(false)
+  const [selectedIdentifier, setSelectedIdentifier] = useState('')
+
+  const [openModal, setOpenModal] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState({})
 
 
   //get products by search input
@@ -60,11 +64,11 @@ const InventoryScreen =()=> {
         dispatch({ type: "OPEN_SEARCH", payload: data.data });
       } else if (stockOnly) {
         setOutOfStock(false)
-        data = await axios.get(`/api/product/stock-only?stockStatus=${"in"}`);
+        data = await axios.get(`/api/product/stock-only?stockStatus=in&identifier=${selectedIdentifier}`);
         dispatch({ type: "FETCH_PRODUCTS", payload: data.data });
       }else if(outOfStock){
         setStockOnly(false)
-        data = await axios.get(`/api/product/stock-only?stockStatus=${"out"}`);
+        data = await axios.get(`/api/product/stock-only?stockStatus=out&identifier=${selectedIdentifier}`);
         dispatch({ type: "FETCH_PRODUCTS", payload: data.data });
       }else {
         data = await axios.get('/api/product/all');
@@ -75,11 +79,11 @@ const InventoryScreen =()=> {
       dispatch({ type: "FAILED_SEARCH", payload: error.message });
     }
   };
-  
 
   useEffect(()=> {
     fetchedProducts(searchName, stockOnly, dispatch)
-  },[searchName, stockOnly, outOfStock])
+    //console.log(userInfoToken?.token)
+  },[searchName, stockOnly, outOfStock, selectedIdentifier])
 
 
   async function deleteHandler(product){
@@ -95,6 +99,7 @@ const InventoryScreen =()=> {
   }
   
 
+
   const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100; // 123.2345 => 123.23
   
 
@@ -107,26 +112,41 @@ const InventoryScreen =()=> {
     ctxDispatch({type: 'ADD_SELECTED_ITEM', payload: {...item, quantity}})
   }
 
+  const handleIdentifer=(e)=>{
+    if(selectedIdentifier === ''){
+      const label = e.target.parentElement.textContent.trim();
+      setSelectedIdentifier(label);
+    }else{
+      setSelectedIdentifier('')
+    }
+    //console.log(label);
+  }
 
   return (
-    <Container fluid>
-    <Row>
+    <Container fluid className='border'>
+    <Row className='m-0 p-2'>
       <Col>
-      <Badge variant='success' className='p-3 mb-2'>
-        Total value:{round2(products?.reduce((acc, product)=> acc + (product.purchasePrice * product.inStock), 0))}{' '}
-      </Badge>
+      <Button className='p-2 m-1 bg-light text-dark font-monospace'>
+        AED: {round2(products?.reduce((acc, product)=> acc + (product.purchasePrice * product.inStock), 0))}{' '}
+      </Button>
+
+
+      <Button variant='success' className='p-2' onClick={()=> setOpenModal(!openModal)}>
+        Add Product +
+      </Button>
       </Col>
-      <Col md={8} className='d-flex m-1'>
+      <Col md={8} className='d-flex'>
         <Form.Control type='text'
           value={searchName}
           onChange={(e)=> setSearchName(e.target.value)}
           placeholder='Search products'
         />
-        <Button onClick={()=> setSearchName('')} className='p-2' variant=''>
+        <Button onClick={()=> setSearchName('')} className='p-2' variant='light'>
           <BsXCircle/>
         </Button>
       </Col>
-      <Col>
+    </Row>
+    <div className='d-flex gap-3 p-2 bg-dark text-light'>
         <Form.Check
           label="IN STOCK ONLY"
           checked={stockOnly}
@@ -137,13 +157,42 @@ const InventoryScreen =()=> {
           checked={outOfStock}
           onChange={()=> setOutOfStock(!outOfStock)}
         />
-      </Col>
-    </Row>
+        <Form.Check
+          label="STEM"
+          checked={selectedIdentifier === "STEM"}
+          onChange={handleIdentifer}
+        />
+        <Form.Check
+          label="PLANT"
+          checked={selectedIdentifier === "PLANT"}
+          onChange={handleIdentifer}
+        />
+        <Form.Check
+          label="BUNCH"
+          checked={selectedIdentifier === "BUNCH"}
+          onChange={handleIdentifer}
+        />
+        <Form.Check
+          label="TOOL"
+          checked={selectedIdentifier === "TOOL"}
+          onChange={handleIdentifer}
+        />
+        <Form.Check
+          label="ACCESSORY"
+          checked={selectedIdentifier === "ACCESSORY"}
+          onChange={handleIdentifer}
+        />
+        <Form.Check
+          label="ARRANGEMENT"
+          checked={selectedIdentifier === "ARRANGEMENT"}
+          onChange={handleIdentifer}
+        />
+      </div>
     <Table responsive bordered ref={tableRef}>
         <thead>
             <tr>
                 <th>Code</th>
-                <th>Name</th>
+                <th colSpan={1}>Name</th>
                 <th>Buy</th>
                 <th>Sell</th>
                 <th>InStock</th>
@@ -163,9 +212,9 @@ const InventoryScreen =()=> {
             {products.map((product)=> (
               <tr key={product._id}>
                 <td>
-                            {product.code}
+                          {product.code}
                         </td>
-                        <td>
+                        <td colSpan={1} className='text-truncate w-25'>
                             {product.name}
                         </td>
                         <td>
@@ -189,22 +238,28 @@ const InventoryScreen =()=> {
                         <td>
                             {product.closingStock}
                         </td>
-                        <td className='d-flex justify-content-end'>
-                          <Button variant='' onClick={()=> (navigate(`/api/product/update/${product._id}`))}>                               
-                            Edit <BsFillPencilFill/>
-                          </Button>
-                            <Button variant='' onClick={()=> deleteHandler(product)}>
-                               Delete <BsXCircle/>
-                            </Button>
-                        <Button variant='' onClick={()=> addSaleProduct(product)}>
-                              Add <BsCheck2Circle/>
-                          </Button> 
+                        <td className='d-flex justify-content-between p-2'>
+                            <BsFillPencilFill onClick={()=> {
+                              setSelectedProduct(product) 
+                              setOpenModal(true)
+                            }}/>
+                            <BsTrash2Fill onClick={()=> deleteHandler(product)}/>
+                            <BsCheck2Circle onClick={()=> addSaleProduct(product)}/>
                         </td>
                     </tr>                    
                 ))
             }
         </tbody>      
     </Table>
+
+
+    <Modal show={openModal} onHide={()=>{
+      setOpenModal(!openModal)
+      setSelectedProduct(null)
+
+    }}>
+      <AddProduct product={null || selectedProduct} userInfoToken={userInfoToken}/>
+    </Modal>
 </Container>
 )
 }

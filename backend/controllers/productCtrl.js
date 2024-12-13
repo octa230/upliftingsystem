@@ -3,53 +3,54 @@ const {Product} = require ('../models/product');
 const {Transaction} = require('../models/product')
 
 
-const getStock = asyncHandler(async(req, res)=> {
-  let matchQuery = {}
-  if(req.query.stockStatus === 'in'){
-    matchQuery = { inStock: { $gt: 0 } }
-  }else if (req.query.stockStatus === 'out') {
-    matchQuery = { inStock: { $eq: 0 } };
-  } else {
-    matchQuery = { inStock: { $gt: 0 } };
+const getStock = asyncHandler(async (req, res) => {
+  let matchQuery = {};
+
+  // Check for stock status (in or out)
+  if (req.query.stockStatus === 'in') {
+    matchQuery.inStock = { $gt: 0 };  // Products with inStock > 0
+  } else if (req.query.stockStatus === 'out') {
+    matchQuery.inStock = { $eq: 0 };  // Products with inStock == 0
+  } 
+
+  // Check if identifier is provided, and apply to match query
+  if (req.query.identifier) {
+    matchQuery.identifier = { $eq: req.query.identifier }; // Match by identifier
   }
+
+  // Default case: match in-stock products if no specific filters
+  if (!req.query.stockStatus && !req.query.identifier) {
+    matchQuery.inStock = { $gt: 0 };  // Default to in-stock products
+  }
+
+  // Aggregate query to find products based on the constructed matchQuery
   const products = await Product.aggregate([
-    {$match: matchQuery},
-    {$sort: { "name": 1}}
-  ])
-  res.send(products)
-})
+    { $match: matchQuery },  // Apply filter based on stockStatus and identifier
+    { $sort: { name: 1 } }    // Sort products by name (ascending order)
+  ]);
+
+  res.send(products);  // Send filtered products
+});
 
 
 
 
 const createProduct = asyncHandler(async(req, res)=> {
-    const {name, code, price, inStock, purchasePrice} = req.body
+    const {name, code, price, inStock, purchasePrice, identifier, photo} = req.body
     const newProduct = new Product(
         {
             name: name.toUpperCase(),
             price: price,
             code: code.toUpperCase(),
+            photo: photo,
             inStock: inStock,
             purchase: inStock,
             purchasePrice: purchasePrice,
+            identifier: identifier.toUpperCase(),
             closingStock: inStock,
         }
     )
     const product = await newProduct.save();
-    if(product){
-      const transaction = new Transaction({
-        product: product._id,
-        type: 'purchase',
-        productName: product.name,
-        purchasePrice: product.purchasePrice,
-        sellingPrice: product.price,
-        quantity: product.inStock
-      })
-      await transaction.save()
-
-      //product.purchaseHistory.push({purchase: product.inStock})
-      await product.save()
-    }
     res.send({message: 'product added', product})
 })
 
@@ -110,7 +111,7 @@ const namesandprice = asyncHandler(async(req, res)=> {
 
 const updateProduct = asyncHandler(async (req, res) => {
     const productId = req.params.id;
-    const { name, price, code, purchase, purchasePrice } = req.body;
+    const { name, price, code, purchase, purchasePrice, photo, identifier } = req.body;
     const product = await Product.findById(productId);
   
     if (product) {
@@ -118,27 +119,8 @@ const updateProduct = asyncHandler(async (req, res) => {
       product.price = price;
       product.code = code.toUpperCase();
       product.purchasePrice = purchasePrice;
-  
-      if (purchase) {
-        const purchaseAmount = parseInt(purchase);
-        product.purchaseHistory.push({ purchase: purchaseAmount });
-  
-        const transaction = new Transaction({
-          product: product._id,
-          type: 'purchase',
-          productName: product.name,
-          purchasePrice: product.purchasePrice,
-          sellingPrice: product.price,
-          quantity: purchaseAmount,
-        });
-  
-        await transaction.save();
-  
-        product.inStock += purchaseAmount;
-        product.closingStock += purchaseAmount;
-        product.purchase += purchaseAmount;
-      }
-  
+      product.identifier = identifier
+      product.photo = photo
       await product.save();
   
       res.send({ message: 'Product updated successfully' });
