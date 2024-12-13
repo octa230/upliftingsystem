@@ -1,3 +1,11 @@
+* {
+  font-family: "SFMono-Regular", Monaco, monospace;
+  //font-weight: 600;
+  font-size: 9;
+  //line-height: 2
+  
+}
+
 body {
   margin: 0;
   height: 100vh;

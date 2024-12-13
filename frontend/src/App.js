@@ -12,6 +12,7 @@ import { useContext, useEffect } from "react";
 import { Store } from "./utils/Store";
 import Dashboard from "./screens/Dashboard";
 import axios from "axios";
+import { newDate } from "./utils/Date";
 
 
 function App() {
@@ -39,22 +40,21 @@ function App() {
   
   return (
   <BrowserRouter>
-  <Navbar expand='lg' className=" p-3  app-Bar"> 
+  <Navbar expand='lg' className=" p-3 bg-dark text-light"> 
       <Navbar.Brand href="/">
         <Badge variant="dark">{userInfoToken ? userInfoToken.name.toUpperCase() : 'Home'}</Badge>
       </Navbar.Brand>
         <Navbar.Toggle aria-controls="nav-bar-basic"/>
         <Navbar.Collapse id="nav-bar-basic">
-        <Nav className="m-auto justify-content-center fs-5"></Nav>
-        
-        <div className="d-flex align-items-end">
+        <Nav className="m-auto justify-content-center fs-5">{newDate()}</Nav>
+        <Badge className="d-flex align-items-end bg-warning">
           <Nav>
             <Nav.Link>
-              <span className="p-lg-3" onClick={signoutHandler}>Log out</span>
-              <BsBoxArrowRight />
+              <span className="p-lg-3 text-light" onClick={signoutHandler}>Log out</span>
+              <BsBoxArrowRight color="red"/>
             </Nav.Link>
           </Nav>
-        </div>
+        </Badge>
       </Navbar.Collapse>
     </Navbar>
 

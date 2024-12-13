@@ -6,7 +6,8 @@ const unitSchema = new mongoose.Schema({
     products: [{
         product: {type: mongoose.Schema.Types.ObjectId, ref: 'Product'},
         quantity: {type: Number, required: true},
-        productName: {type: String}
+        productName: {type: String},
+        identifier: {type: String}
     }],
 },
 {
@@ -21,6 +22,7 @@ const SaleDetailSchema = new mongoose.Schema({
         price: {type: Number, required: true},
         quantity: {type: Number, required: true},
         arrangement: {type: String, required: true},
+        identifier: {type: String},
         photo: {type: String}
     }],
     total:{type: Number, required: true},

@@ -1,44 +1,96 @@
-import React, {useState} from 'react'
-import { Button, Form } from 'react-bootstrap'
+import React, { useState } from 'react'
+import { Button, Form, ListGroup, Modal, InputGroup, Image } from 'react-bootstrap'
+import { uploadFileHandler } from '../utils/helpers'
+import LoadingBox from './Spinner'
 import axios from 'axios'
-import {toast} from 'react-toastify'
-import {getError} from '../utils/getError'
+import { getError } from '../utils/getError'
+import { toast } from 'react-toastify'
 
 
 
 
 
-export default function AddProduct() {
+
+export default function AddProduct({product, userInfoToken }) {
   
-    const [name, setName]= useState('');
-    const [code, setProductCode] = useState('')
-    const [price, setPrice] = useState('')
-    const [inStock, setInStock] = useState('')
-    const [purchasePrice, setpurchasePrice] = useState('')
+
+    
+
+    const [name, setName]= useState(product?.name || '');
+    const [code, setProductCode] = useState(product?.code || '')
+    const [price, setPrice] = useState(product?.price || '')
+    const [purchasePrice, setpurchasePrice] = useState(product?.purchasePrice || '')
+    const [selectedIdentifier, setSelectedIdentifier ] = useState(product?.identifier || '')
+    const [photo, setPhoto] = useState(product?.photo || '')
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    
 
     const createHandler = async()=> {
+
+        if(product && product._id){
+            try{
+                const {data} = await axios.put(`/api/product/update/${product._id}`,{
+                     name,
+                     code,
+                     price,
+                     photo,
+                     purchasePrice,
+                     identifier: selectedIdentifier
+                 })
+                 toast.success('product added successfully');
+                 console.log(data)
+             }catch(error){
+                 toast.error(getError(error))
+            } 
+        }else{
+            try{
+                const {data} = await axios.post('/api/product/new',{
+                     name,
+                     code,
+                     price,
+                     photo,
+                     purchasePrice,
+                     identifier: selectedIdentifier
+                 })
+                 toast.success('product added successfully');
+                 console.log(data)
+             }catch(error){
+                 toast.error(getError(error))
+             } 
+        }
+         
+    }
+
+    const identifiers = ['STEM', 'PLANT', 'BUNCH', 'TOOL', 'ACCESSORY', 'ARRANGEMENT']
+    
+    const FileUPload = async(e)=>{
+        const file = e.target.files[0]
+
         try{
-           const {data} = await axios.post('/api/product/new',{
-                name,
-                code,
-                price,
-                inStock,
-                purchasePrice,
-            })
-            toast.success('product added successfully');
-            console.log(data)
+           setLoading(true)
+           const fileurl = await uploadFileHandler(file, userInfoToken)
+           setPhoto(fileurl)
+           setLoading(false)
         }catch(error){
-            toast.error(getError(error))
+            setError(error)
+            console.log(error)
+            setLoading(false)
         }
     }
 
 
-  return (
-        <Form className='m-auto w-50'>
-            <Form.Text>
+    
+    return ( 
+        <Form className='m-auto' onSubmit={createHandler}>
+            <Modal.Header closeButton>
+            <Modal.Title>
                 <h1>Add New Product</h1>
-            </Form.Text>
+            </Modal.Title>
+            </Modal.Header>
 
+            <Modal.Body>
             <Form.Group controlId='code'>
                 <Form.Label>Code</Form.Label>
                 <Form.Control 
@@ -74,19 +126,38 @@ export default function AddProduct() {
                 required
                 />
             </Form.Group>  
-
-            <Form.Group controlId='inStock'>
-                <Form.Label>Add Stock</Form.Label>
-                <Form.Control 
-                onChange={(e)=>setInStock(e.target.value)} 
-                value={inStock}
-                required
+            <ListGroup className='my-2'>
+                {identifiers.map((identifier)=> (
+                    <ListGroup.Item key={identifier}>
+                        <Form.Check type='radio' 
+                            value={identifier}
+                            label={identifier}
+                            checked={selectedIdentifier === identifier}
+                            onChange={(e)=> setSelectedIdentifier(e.target.value)}
+                        />
+                    </ListGroup.Item>
+                ))}
+            </ListGroup>
+            <ListGroup.Item>
+            {loading && <LoadingBox/>}
+            {photo && <Image src={photo} className="thumbnail" height={50} width={50}/>}
+            {error && <p>{error}</p>}
+            </ListGroup.Item>
+            <InputGroup className="mb-3">
+                <InputGroup.Text id="basic-addon1">Photo</InputGroup.Text>
+                <Form.Control type='file'
+                    placeholder="photo"
+                    aria-label="Photo"
+                    aria-describedby="basic-addon1"
+                    onChange={FileUPload}
                 />
-            </Form.Group> 
-
-            <Button variant='success' onClick={createHandler}className='my-4 w-100'>
-                Done
+                </InputGroup>
+            </Modal.Body>
+            <Modal.Footer>
+            <Button variant='success' className='my-4 w-100' onClick={createHandler}>
+                SAVE
             </Button>
-        </Form>
+            </Modal.Footer>
+        </Form>        
   )
 }
