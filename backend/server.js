@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import userRouter from './routes/userRouter.js';
 import saleDetailsRouter from './routes/SaleRoutes.js';
-import ProductRouter from './routes/ProductRouteS.js';
+import ProductRouter from './routes/ProductRoutes.js';
 import backgroundTasks from './utils/backgroundTasks.js';
 import TransactionRouter from './routes/transactionRoutes.js';
 import { ErrorHandler, UploadRouter } from './Helpers.js';
