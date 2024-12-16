@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import SaleHistory from '../components/SaleHistory'
 import Graphs from '../components/Graphs'
-import CustomerData from '../components/CustomerData'
+import CustomerData from '../components/PurchaseScreen'
 import ProductsData from '../components/ProductsData'
-import StockRecords from '../components/StockRecords'
 import { Tabs, Tab } from 'react-bootstrap';
 
 
@@ -22,6 +21,7 @@ import SaleTable from '../components/SaleTable'
 import FilingScreen from '../components/FilingScreen'
 import QuerySalesData from '../components/QuerySalesData'
 import DailyReport from '../components/DailyReport'
+import PurchaseScreen from '../components/PurchaseScreen'
 
 export default function Dashboard() {
     const [content, setContent] = useState('inventory')
@@ -62,19 +62,12 @@ export default function Dashboard() {
                   }>
                       {content === 'mass-records' && <FilingScreen/>}
                   </Tab>
-                  <Tab eventKey="stockrecords" title={
+                  <Tab eventKey="purchase" title={
                       <>
-                          <BsBuildingLock/> Stock Records
+                          <BsPeopleFill/> Purchase Data
                       </>
                   }>
-                      {content === 'stockrecords' && <StockRecords />}
-                  </Tab>
-                  <Tab eventKey="customers" title={
-                      <>
-                          <BsPeopleFill/> Customer Data
-                      </>
-                  }>
-                      {content === 'customers' && <CustomerData/>}
+                      {content === 'purchase' && <PurchaseScreen/>}
                   </Tab>
                   <Tab eventKey="products" title={
                       <>

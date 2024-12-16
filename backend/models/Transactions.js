@@ -1,4 +1,39 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose"
+
+const DamageSchema = new mongoose.Schema({
+    date:{type: String}, 
+    Items: [{
+        product: {type: mongoose.Schema.Types.ObjectId, ref: 'Product'},
+        productName: {type: String},
+        quantity: {type: Number, default: 0},
+        purchasePrice: {type: Number, default: 0}
+    }],
+    total: {type: Number, default: 0}
+},
+{
+    timestamps: true
+})
+
+
+const PurchaseSchema = new mongoose.Schema({
+    deliveryNote: {type: String},
+    dateRecorded: {type: String},
+    supplier: {type: String},
+    Items: [{
+        product: {type: mongoose.Schema.Types.ObjectId, ref: "Product"},
+        productName: {type: String},
+        quantity: {type: Number, required: true, default: 0},
+        purchasePrice: {type: Number, default: 0},
+        identifier: {type: String}
+    }],
+    total: {type: Number, default: 0}
+},
+{
+    timestamps: true
+}
+)
+
+
 
 const unitSchema = new mongoose.Schema({
     arrangement: {type: String, required: false},
@@ -15,7 +50,7 @@ const unitSchema = new mongoose.Schema({
 }
 )
 
-const SaleDetailSchema = new mongoose.Schema({
+const SaleSchema = new mongoose.Schema({
     InvoiceCode: {type: String, required: true},
     saleItems:[{
         productName: {type: String, required: true},
@@ -48,5 +83,19 @@ const SaleDetailSchema = new mongoose.Schema({
 }
 )
 
-const SaleDetails = mongoose.model('SaleDetails', SaleDetailSchema)
-module.exports = SaleDetails
+
+export const Damages = mongoose.model('Damage', DamageSchema)
+export const Purchase = mongoose.model('Purchase', PurchaseSchema)
+export const Sale = mongoose.model('Sale', SaleSchema)
+
+
+
+
+
+
+
+
+
+
+
+

@@ -85,7 +85,11 @@ const handleSubmit =async()=>{
         case "purchase":
             try{
                 const total = calculateTotal(selectedProducts)
-                await axios.post('/api/stock/purchase', {
+                if(!deliveryNote){
+                    toast.error('Add delivery note number')
+                    return
+                }
+                await axios.post('/api/transactions/purchase', {
                     selectedProducts, deliveryNote,
                     total
                 })
@@ -110,7 +114,7 @@ const handleSubmit =async()=>{
             break;
         case "damage":
             try{
-                await axios.post('/api/damages/bulk-records', {
+                await axios.post('/api/transactions/damages', {
                     selectedProducts
                 })
                 toast.success('Done')

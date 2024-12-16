@@ -1,18 +1,15 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser')
-const ErrorHandler = require('./midleware/errHandler')
-const cookieParser = require('cookie-parser');
-const userRouter = require('./routes/userRouter')
-const productRouter = require('./routes/productRouter');
-const saleDetailsRouter  = require('./routes/saleDetailsRouter');
-const path = require('path');
-const uploadRouter = require('./controllers/uploadCtrl')
-const damagesRouter = require('./routes/DamagesRoutes');
-const stockRouter = require('./routes/StockRoutes')
-const backgroundTasks = require('./utils/backgroundTasks');
-const transactionsRouter = require('./routes/transactionRoutes');
+import express from 'express';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import path from 'path';
+import userRouter from './routes/userRouter.js';
+import saleDetailsRouter from './routes/SaleRoutes.js';
+import ProductRouter from './routes/ProductRouteS.js';
+import backgroundTasks from './utils/backgroundTasks.js';
+import TransactionRouter from './routes/transactionRoutes.js';
+import { ErrorHandler, UploadRouter } from './Helpers.js';
 
 const app = express();
 dotenv.config()
@@ -30,23 +27,16 @@ app.use(bodyParser.json())
 
 
 //routes middleware
-app.use('/api/product', productRouter)
+app.use('/api/product', ProductRouter)
 app.use('/api/user', userRouter)
 app.use('/api/multiple', saleDetailsRouter)
-app.use('/api/damages', damagesRouter)
-app.use('/api/upload', uploadRouter)
-app.use('/api/stock', stockRouter)
-app.use('/api/transactions', transactionsRouter)
+app.use('/api/upload', UploadRouter)
+app.use('/api/transactions', TransactionRouter)
 
 //errorMiddleware
 app.use(ErrorHandler)
 
-/* app.use(express.static(path.join(__dirname, '/../frontend/build')))
-app.get('*', (req, res)=>
-    res.sendFile(path.join(`${__dirname}, '/../frontend/build/index.html`))
-)  */
 
-//serve frontend
 if(process.env.NODE_ENV === 'production'){
     app.use(express.static(path.join(__dirname, '../frontend/build')));
     app.get('*', (req, res)=> res.sendFile(

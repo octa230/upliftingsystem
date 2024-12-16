@@ -1,79 +1,12 @@
-const cronJob = require('node-cron')
-const {Product} = require('../models/product')
-const StockRecord = require('../models/StockRecord')
+import cronJob from 'node-cron';
+import { Product } from '../models/Product.js';
+
 
 
 Product.schema.virtual("nextWasteResetTime").get(function () {
     const resetTime = new Date(this.updatedAt || this.createdAt).getTime() + 24 * 60 * 60 * 1000;
     return resetTime;
   });
-
-const getstockSnapShot = async () => {
-    try {
-      const [products] = await Product.aggregate([
-        {
-          $match: {
-            $or: [
-              { sold: { $gt: 0 }},
-              { inStock: { $gt: 0 }},
-              { waste: { $gt: 0 }},
-              { purchase: { $gt: 0 }},
-            ]
-          },
-        },
-        {
-          $group:{
-            _id: null,
-            products:{
-              $push:{
-                productName: "$name",
-                purchase: "$purchase",
-                sold: "$sold",
-                damaged:"$waste",
-                closingStock:"$inStock"
-              }
-            },
-
-            totalPurchase: {$sum: {$multiply: ["$purchase", "$purchasePrice"]}},
-            totalSold: {$sum: {$multiply: ["$sold", "$purchasePrice"]}},
-            totalWaste: {$sum: {$multiply: ["$waste", "$purchasePrice"]}},
-            totalClosingStock: {$sum: {$multiply: ["$inStock", "$purchasePrice"]}},
-          }
-        },
-        {
-          $project:{
-            _id: 0,
-            products: 1,
-            totalPurchase: 1,
-            totalSold: 1,
-            totalWaste: 1,
-            totalClosingStock: 1 
-          }
-        }
-      ]);
-  
-      if (!products) {
-        console.error('No products found for the snapshot.');
-        return;
-      }
-      
-      // Create a single stock record for the entire collection with individual product details
-      const stockRecord = new StockRecord({
-        date: new Date().toISOString(),
-        products: products.products,
-        closingStockvalue: products.totalClosingStock,
-        TotalDamagesvalue: products.totalWaste,
-        totalPurchase: products.totalPurchase,
-        TotalSoldvalue: products.totalSold,
-      });
-  
-      // Save the stock record to the database
-      await stockRecord.save();  
-      console.log('snapshot taken')
-    } catch (error) {
-      console.error('Error recording stock snapshot:', error.message);
-    }
-  };
 
 const resetWasteValues = async()=> {
     try{
@@ -90,13 +23,10 @@ const resetWasteValues = async()=> {
     }
   }
   
-
-  const backgroundTasks={
+  const  backgroundTasks={
     start: ()=> {
-      cronJob.schedule('55 23 * * * ', getstockSnapShot);
-      //setTimeout(getstockSnapShot, 10000)
       cronJob.schedule('10 0 * * * ', resetWasteValues)
     }
   }
 
-module.exports = backgroundTasks
+  export default backgroundTasks

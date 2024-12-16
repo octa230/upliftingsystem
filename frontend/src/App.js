@@ -1,7 +1,6 @@
 import LoginScreen from "./screens/LoginScreen";
 import 'react-toastify/dist/ReactToastify.css';
 import ProtectedRoute from "./components/ProtectedRoutes";
-import ProductEdit from "./screens/ProductEdit";
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import { ToastContainer } from "react-toastify";
 import Nav from "react-bootstrap/esm/Nav";
@@ -13,6 +12,7 @@ import { Store } from "./utils/Store";
 import Dashboard from "./screens/Dashboard";
 import axios from "axios";
 import { newDate } from "./utils/Date";
+import Register from "./components/Register";
 
 
 function App() {
@@ -49,6 +49,7 @@ function App() {
         <Nav className="m-auto justify-content-center fs-5">{newDate()}</Nav>
         <Badge className="d-flex align-items-end bg-warning">
           <Nav>
+            <Register/>
             <Nav.Link>
               <span className="p-lg-3 text-light" onClick={signoutHandler}>Log out</span>
               <BsBoxArrowRight color="red"/>
@@ -65,13 +66,6 @@ function App() {
       <ProtectedRoute>
         <Dashboard />
       </ProtectedRoute>}/>
-
-
-      <Route path="/api/product/update/:id" element={
-        <ProtectedRoute>
-          <ProductEdit />
-        </ProtectedRoute>
-      }/>
     </Routes>
     </BrowserRouter>
   );

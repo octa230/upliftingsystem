@@ -1,10 +1,50 @@
-const express = require('express')
-const {loginUser, createUser} = require('../controllers/userCtrl')
+import express from 'express';
+import bcrypt from 'bcrypt'
+import { Employee } from '../models/Profile.js';
+import { generateToken } from '../Helpers.js';
+import expressAsyncHandler from 'express-async-handler';
 
 const userRouter = express.Router();
 
-userRouter.post('/register', createUser);
-userRouter.post('/login', loginUser)
+userRouter.post(
+    '/register',
+    expressAsyncHandler(async(req, res)=> {
+        //console.log(req.body)
+    try {
+        const newUser = new Employee({
+            name: req.body.name,
+            email: req.body.email,
+            password: bcrypt.hashSync(req.body.password, 10)
+        })
+        
+        const user = await newUser.save();
+        const newuser = user
+        newUser.token = generateToken(newUser)
+        res.send(newuser)
+    } catch (error) {
+        console.log(error)
+    }
+    })
+    
 
+);
+userRouter.post(
+    '/login', 
+    expressAsyncHandler(async(req, res)=> {
+        const user = await Employee.findOne({name: req.body.name})
+        if(user){
+            if(bcrypt.compareSync(req.body.password, user.password)){
+                res.send({
+                    name: user.name,
+                    email: user.email,
+                    isAdmin: user.isAdmin,
+                    token: generateToken(user)
+                })
+                return
+            }
+        }
+        res.status(404).send({message: "invalid email or password"})
+    })
+)
 
-module.exports = userRouter
+export default userRouter
