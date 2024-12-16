@@ -4,7 +4,6 @@ import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import path from 'path';
-import {fileURLToPath} from 'url'
 import userRouter from './routes/userRouter.js';
 import saleDetailsRouter from './routes/SaleRoutes.js';
 import ProductRouter from './routes/ProductRoutes.js';
