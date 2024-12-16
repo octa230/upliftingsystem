@@ -4,12 +4,14 @@ import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import {fileURLToPath} from 'url'
 import userRouter from './routes/userRouter.js';
 import saleDetailsRouter from './routes/SaleRoutes.js';
 import ProductRouter from './routes/ProductRoutes.js';
 import backgroundTasks from './utils/backgroundTasks.js';
 import TransactionRouter from './routes/transactionRoutes.js';
 import { ErrorHandler, UploadRouter } from './Helpers.js';
+import { fileURLToPath } from 'url';
 
 const app = express();
 dotenv.config()
@@ -37,11 +39,13 @@ app.use('/api/transactions', TransactionRouter)
 app.use(ErrorHandler)
 
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 if(process.env.NODE_ENV === 'production'){
-    app.use(express.static(path.join(__dirname, '../frontend/build')));
+    /* app.use(express.static(path.join(__dirname, '../frontend/build')));
     app.get('*', (req, res)=> res.sendFile(
         path.resolve(__dirname, '../', 'frontend', 'build', 'index.html')
-    ))
+    )) */
+    res.sendFile(path.resolve(__dirname, '../frontend/build', 'index.html'))
 }else {
     app.get('/', (req, res)=> res.send('please set to production mode'))
 }
