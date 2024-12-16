@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import SaleHistory from '../components/SaleHistory'
 import Graphs from '../components/Graphs'
-import CustomerData from '../components/PurchaseScreen'
 import ProductsData from '../components/ProductsData'
 import { Tabs, Tab } from 'react-bootstrap';
 
@@ -15,7 +14,7 @@ import {
     BsFillDeviceHddFill, 
     BsFillFileEarmarkBarGraphFill,
     BsCloudsFill,BsFillFolderSymlinkFill,
-    BsBuildingLock, BsFillInboxesFill 
+    BsFillInboxesFill 
 } from 'react-icons/bs'
 import SaleTable from '../components/SaleTable'
 import FilingScreen from '../components/FilingScreen'
