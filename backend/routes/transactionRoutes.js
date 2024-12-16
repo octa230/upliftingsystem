@@ -219,7 +219,7 @@ TransactionRouter.get(
                 }
             }else if (type === 'invoices'){
                 try{
-                    const data = await SaleDetails.find({
+                    const data = await Sale.find({
                         createdAt: {
                           $gte: new Date(date),
                           $lt: new Date(date + 'T23:59:59.999Z') //full day hours

@@ -53,7 +53,7 @@ const TableTemplate = ({ type, data }) => {
             ))}
             <tr>
               <td colSpan='3'><strong>TOTAL AMOUNT:</strong></td>
-              <td>{data?.reduce((total, purchase)=> total +(purchase.total || 0), 0)}</td>
+              <td>{Array.isArray(data ) && data?.reduce((total, purchase)=> total +(purchase.total || 0), 0)}</td>
             </tr>
           </tbody>
         </Table>
@@ -90,12 +90,12 @@ const TableTemplate = ({ type, data }) => {
                     ))}
                   </ul>
                 </td>
-                <td>{row.total || 0}</td>
+                <td>{row?.total || 0}</td>
               </tr>
             ))}
             <tr>
               <td colSpan='3'><strong>TOTAL AMOUNT:</strong></td>
-              <td>{data.reduce((acc, row)=> acc + (row.total || 0), 0)}</td>
+              <td>{Array.isArray(data) && data?.reduce((acc, row)=> acc + (row?.total || 0), 0)}</td>
             </tr>
           </tbody>
         </Table>
@@ -216,6 +216,7 @@ const DailyReport = () => {
         dispatch({ type: "FETCH_DATA" });
         const { data } = await axios.get(`/api/transactions/daily-report?date=${formatedDate}&type=${type}`);
         dispatch({ type: "FETCH_DATA_DONE", payload: data });
+        console.log(data)
       } catch (error) {
         console.error("Error fetching data:", error);
         // Optionally handle error state
