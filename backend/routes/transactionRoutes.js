@@ -16,12 +16,8 @@ TransactionRouter.post(
                 const {selectedProducts, deliveryNote, total} = req.body
         
         
-                const existPurchase = await Purchase.findOne({deliveryNote})
-        
-                if(existPurchase){
-                    res.send(existPurchase)
-                }
-        
+                //const existPurchase = await Purchase.findOne({deliveryNote})
+
                 const newPurchase = new Purchase({
                     deliveryNote: deliveryNote,
                     Items: selectedProducts,
@@ -52,6 +48,7 @@ TransactionRouter.post(
                         sellingPrice: newProduct.price,
                         productName: newProduct.name,
                         type: 'purchase',
+                        deliveryNote: deliveryNote,
                         quantity: parseInt(selectedProduct.quantity)
                     })
         
@@ -66,6 +63,82 @@ TransactionRouter.post(
     )
 )
 
+TransactionRouter.get(
+    '/:deliveryNote',
+    expressAsyncHandler(async(req, res)=> {
+        try{
+            const dbPurchase  = await Purchase.findOne({deliveryNote: req.params.deliveryNote})
+
+        if(!dbPurchase){
+            res.status(404).send({message:"Purchase not Found"})
+            return
+        }
+        res.status(200).send(dbPurchase)
+
+        }catch(error){
+            res.send(error)
+        }
+    })
+)
+
+
+
+///UPDATE PURCHASE DATA
+TransactionRouter.put(
+    '/:deliveryNote',
+    expressAsyncHandler(async(req, res)=> {
+        const {purchase, total, type} = req.body
+        const {deliveryNote} = req.params
+        try{
+            const dbPurchase  = await Purchase.findOne({deliveryNote})
+
+
+        if(!dbPurchase){
+            res.status(404).send({message:"Purchase not Found"})
+            return
+        }
+        
+        dbPurchase.Items = purchase.Items
+        dbPurchase.total = total 
+
+        for(const product of purchase.Items){
+        
+            const newProduct = await Product.findById(product.product)
+
+            if (!newProduct) {
+                return res.status(404).json({ error: "Product not found" });
+            }
+
+            const quantityToReturn = parseInt(product.quantity);
+                newProduct.inStock -= quantityToReturn;
+                newProduct.closingStock -= quantityToReturn;
+                newProduct.returned += quantityToReturn;
+
+
+            await newProduct.save()
+
+
+            const transaction = new Transaction({
+                product: product.product,
+                purchasePrice: newProduct.purchasePrice,
+                sellingPrice: newProduct.price,
+                productName: newProduct.name,
+                type: type,
+                deliveryNote: deliveryNote,
+                quantity: parseInt(product.quantity)
+            })
+
+            await transaction.save()
+        }
+        res.status(200).send({ message: "Bulk Successful" });
+
+        await dbPurchase.save()
+
+        }catch(error){
+            res.send(error)
+        }
+    })
+)
 
 
 TransactionRouter.get(

@@ -198,6 +198,7 @@ const InventoryScreen =()=> {
                 <th>InStock</th>
                 <th>Purchase</th>
                 <th>Sold</th>
+                <th>Returned</th>
                 <th>Waste</th>
                 <th>Closing</th>
                 <th className='d-flex justify-content-between'>
@@ -231,6 +232,9 @@ const InventoryScreen =()=> {
                         </td>
                         <td>
                           {product.sold}
+                        </td>
+                        <td>
+                          {product.returned}
                         </td>
                         <td>
                             {product.waste}
