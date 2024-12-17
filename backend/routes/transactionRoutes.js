@@ -16,8 +16,6 @@ TransactionRouter.post(
                 const {selectedProducts, deliveryNote, total} = req.body
         
         
-                //const existPurchase = await Purchase.findOne({deliveryNote})
-
                 const newPurchase = new Purchase({
                     deliveryNote: deliveryNote,
                     Items: selectedProducts,
