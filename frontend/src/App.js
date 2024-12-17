@@ -49,7 +49,7 @@ function App() {
         <Nav className="m-auto justify-content-center fs-5">{newDate()}</Nav>
         <Badge className="d-flex align-items-end bg-warning">
           <Nav>
-            <Register/>
+            {userInfoToken && <Register/>}
             <Nav.Link>
               <span className="p-lg-3 text-light" onClick={signoutHandler}>Log out</span>
               <BsBoxArrowRight color="red"/>

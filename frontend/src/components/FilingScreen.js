@@ -24,7 +24,7 @@ const FilingScreen = () => {
 const { state, dispatch: ctxDispatch } = useContext(Store)
 const {selectedItems, todaySales} = state
 
-const recordTypes = ['purchase', 'sale', 'damage', 'hotel']
+const recordTypes = ['purchase', 'sale', 'damage', 'hotel', 'returned']
 
 
 const [recordType, setRecordType] = useState('')
@@ -35,19 +35,30 @@ const [showModal, setShowModal] = useState(false)
 const [selectedSale, setSelectedSale] = useState({})
 const [arrangement, setArrangement] = useState('')
 const [showSale, setShow] = useState({})
+const [purchase, setPurchase] = useState({})
+const [newTotal, setNewTotal] = useState(0)
 
 
 
 useEffect(() => {
     if (recordType === 'sale') {
-      setInvoices(todaySales)
-      const storedSale = JSON.parse(localStorage.getItem('selectedSale'))
-      if(storedSale){
+      (async()=> {
+        setInvoices(todaySales || [])
+        const storedSale = await JSON.parse(localStorage.getItem('selectedSale'))
+        if(storedSale){
         setSelectedSale(storedSale)
       }
+    })()
     }
   }, [recordType, selectedItems, invoices, selectedSale, todaySales]);
 
+
+  const getPurchase = async(e)=>{
+    if(deliveryNote !== ''){
+      const {data} = await axios.get(`/api/transactions/${deliveryNote}`)
+      setPurchase(data)
+    }
+  }
 
 
   const handleQuantityChange = (itemId, value) => {
@@ -127,8 +138,22 @@ const handleSubmit =async()=>{
             toast.error('still building')
             //console.log({selectedItems, recordType})
             break;
+        case "returned":
+            try{
+                if(purchase.Items && deliveryNote){
+                    await axios.put(`/api/transactions/${deliveryNote}`, {
+                        purchase,
+                        total: newTotal,
+                        type: recordType
+                    })
+                }
+            }catch(error){
+                console.log(error)
+            }
+            break;
         default:
-            toast.error('no type selected')
+            return
+            //console.log('unknown Action')
     }
 }
 
@@ -136,6 +161,40 @@ const handleSubmit =async()=>{
     const newselectedItems = selectedItems.filter((x)=> x._id !== item._id)
     ctxDispatch({type: "REMOVE_SELECTED_ITEM", payload: newselectedItems})
   };
+
+  const removePurchaseItem = (item) => {
+    const newItems = purchase?.Items.filter((x) => x.product !== item.product);
+  
+    const total = newItems.reduce((acc, item) => acc + (item.quantity * item.purchasePrice), 0);
+  
+    setPurchase(prevState => ({
+      ...prevState,
+      Items: newItems, 
+      total: total   
+    }));
+
+    setNewTotal(total);
+  };
+  
+
+  const handleReturnChange = (productId, newQuantity) => {
+
+    setPurchase(prevState => {
+
+        const updatedItems = prevState.Items.map(item =>
+        item.product === productId ? { ...item, quantity: parseInt(newQuantity) } : item
+      );  
+      const updatedTotal = updatedItems.reduce((acc, item) => acc + (item.quantity * item.purchasePrice), 0);
+  
+      setNewTotal(updatedTotal)
+      return {
+        ...prevState,
+        Items: updatedItems,
+        total: updatedTotal
+      };
+    });
+  };
+  
 
   const addSale = async(saleId)=>{
     const {data} = await axios.get(`/api/multiple/get-sale/${saleId}`)
@@ -162,39 +221,51 @@ const handleSubmit =async()=>{
         </Form.Control>
         </div>
         <div>
-        {recordType === "purchase" ? (
-            <Form.Group>
-                <Form.Label>Delivery Note Number</Form.Label>
-                <Form.Control type='text'
-                placeholder='invoice / Delivery Note Number'
-                value={deliveryNote}
-                onChange={(e)=> setdeliveryNote(e.target.value)}
-            />
-            </Form.Group>
-        ): (
-            selectedSale && recordType !== "damage" ? (
-               <div>
-                 <Alert variant="success">
-            {selectedSale.InvoiceCode || "No Invoice"}
-        </Alert>
-        <Form.Group>
-            <Form.Label>Arrangement</Form.Label>
-            <Form.Control as='select'
-                value={arrangement}
-                onChange={(e)=> setArrangement(e.target.value)}
-            >
-                <option>--select--</option>
-                {selectedSale.saleItems?.map(item => (
-                    <option key={item}>{item.arrangement}</option>
-                ))}
-            </Form.Control>
-        </Form.Group>
-                </div>
-            ): (
-                <MessageBox>Not Sale</MessageBox>
-            ) 
-        )}
-        </div>
+  {recordType === "purchase" ? (
+    <Form.Group>
+      <Form.Label>Delivery Note Number</Form.Label>
+      <Form.Control
+        type='text'
+        placeholder='invoice / Delivery Note Number'
+        value={deliveryNote}
+        onChange={(e) => setdeliveryNote(e.target.value)}
+      />
+    </Form.Group>
+  ) : recordType === "returned" ? (
+    <Form.Group>
+      <Form.Label>Delivery Note Number</Form.Label>
+      <Form.Control
+        type='text'
+        placeholder='invoice / Delivery Note Number'
+        value={deliveryNote}
+        onChange={(e) => setdeliveryNote(e.target.value)}
+      />
+      <Button onClick={getPurchase} className='p-1 m-2'>Find</Button>
+    </Form.Group>
+  ) : selectedSale && recordType !== "damage" ? (
+    <div>
+      <Alert variant="success">
+        {selectedSale.InvoiceCode || "No Invoice"}
+      </Alert>
+      <Form.Group>
+        <Form.Label>Arrangement</Form.Label>
+        <Form.Control
+          as='select'
+          value={arrangement}
+          onChange={(e) => setArrangement(e.target.value)}
+        >
+          <option>--select--</option>
+          {selectedSale.saleItems?.map((item) => (
+            <option key={item._id}>{item.arrangement}</option> // Ensure to use a unique key
+          ))}
+        </Form.Control>
+      </Form.Group>
+    </div>
+  ) : (
+    <div>No selection</div>
+  )}
+    </div>
+
         <div>
         <Button onClick={()=>clearSelectedItems()} disabled>
             Clear All
@@ -217,9 +288,9 @@ const handleSubmit =async()=>{
                 <Col>
                 <Form.Control as="select" 
                     value={itemQuantities[item._id] || ''} 
-                    onChange={(e) => handleQuantityChange(item._id, e.target.value)}>
-                        <option>--select--</option>
-                    {[...Array(item.inStock).keys()].map((val) => (
+                    onChange={(e) => handleQuantityChange(item?._id, e.target.value)}>
+                    <option>--select--</option>
+                    {[...Array(item?.inStock).keys()|| 0].map((val) => (
                     <option key={val + 1} value={val + 1}>{val + 1}</option>
                   ))}
                 </Form.Control>
@@ -238,11 +309,10 @@ const handleSubmit =async()=>{
     <Button onClick={handleSubmit}>Submit</Button>
 
     <div className='my-3'>
-        {
-            recordType !== "purchase" ? (
-                <ListGroup className='my-3'>
+        { recordType !== "purchase" 
+        ? (<ListGroup className='my-3'>
                 {recordType !== "damage"  && invoices.map((invoice)=> (
-            <ListGroup.Item className='d-flex justify-content-between' key={invoice.InvoiceCode}>
+                <ListGroup.Item className='d-flex justify-content-between' key={invoice.InvoiceCode}>
                 <Button onClick={()=>handleViewSale(invoice._id)} className='bg-primary border'> 
                 <span className='px-1'>
                     <FaEye/>
@@ -256,13 +326,34 @@ const handleSubmit =async()=>{
                 </div>
             </ListGroup.Item>
         ))}
-    </ListGroup>
+        </ListGroup>
             ):(
                 <MessageBox>Not Required</MessageBox>
             )
         }
         <SaleDetailsModal show={showModal} onHide={()=>setShowModal(false)} selectedSale={showSale}/>
     </div>
+
+    {recordType === 'returned' && purchase.Items?.map((item)=> (
+        <ListGroup.Item key={item.product} className='d-flex my-1 justify-content-between'>
+        <Col>{item.productName}</Col>
+            <Col>
+            <Form.Control as="select" 
+                value={itemQuantities[item.product] || item.quantity} 
+                onChange={(e) => handleReturnChange(item.product, e.target.value)}>
+                    <option>--select--</option>
+                {[...Array(item.quantity).keys()].map((val) => (
+                <option key={val + 1} value={val + 1}>{val + 1}</option>
+              ))}
+            </Form.Control>
+        </Col>
+        <Col>
+        <Button variant='' onClick={()=> removePurchaseItem(item)}>
+            <BsXCircle/>
+        </Button>
+        </Col>
+    </ListGroup.Item>
+    ))}
     </Container>
   )
 }
