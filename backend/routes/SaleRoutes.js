@@ -75,19 +75,31 @@ SaleRouter.get(
           let dateRegex;
           
           try {
-            if (year) {
-              dateRegex = `.*${year}`;
+            if (year && month) {
+              dateRegex = `^${year}/${month}/`;
             }
-            
-            if (month && day) {
+            else if (year) {
+              dateRegex = `^${year}/`; 
+            }
+            else if (month && day) {
               dateRegex = `^${day}/${month}/`;
-            } else if (month) {
-              dateRegex = `^\\d{2}/${month}/`;
-            } else if (day) {
-              dateRegex = `^${day}/\\d{2}/`;
+            }
+            else if (month) {
+              if (year) {
+                dateRegex = `^${year}/${month}/`; 
+              } else {
+                dateRegex = `^\\d{4}/${month}/`;
+              }
+            }
+            else if (day) {
+              if (year) {
+                dateRegex = `^${year}/${day}/\\d{2}/`;
+              } else {
+                dateRegex = `^\\d{4}/${day}/\\d{2}/`;
+              }
             }
           } catch (error) {
-            console.log(error)
+            console.log(error);
           }
         
           try {
