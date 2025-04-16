@@ -11,6 +11,7 @@ import { FaEye } from 'react-icons/fa'
 import SaleDetailsModal from './SaleDetailsModal'
 import { BsPaperclip, BsXCircle } from 'react-icons/bs'
 import { Store } from '../utils/Store'
+import XlsExportBtn from './XlsExportBtn'
 import MessageBox from './MessageBox'
 
 
@@ -59,6 +60,7 @@ export default function SaleHistory() {
   return (
 
         <Row className='p-2'>
+            <XlsExportBtn worksheetName='Sales History' data={todaySales} keysToInclude={['InvoiceCode', 'date', 'total', 'prepaidBy', 'paidBy', 'service']} />
             <h2 className='text-success'>{todaySales.length} Sales Today </h2>
             <Form.Label>PHONE / INVOICE CODE</Form.Label>
             <Form.Group className='d-flex'>
