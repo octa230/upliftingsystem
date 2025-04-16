@@ -71,6 +71,7 @@ SaleRouter.get(
 SaleRouter.get(
   '/for',
   expressAsyncHandler(async (req, res) => {
+    console.log(req.query)
     const { day, month, year } = req.query;
     let dateFilter = {};
 

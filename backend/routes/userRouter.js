@@ -18,15 +18,16 @@ userRouter.post(
         })
         
         const user = await newUser.save();
-        const newuser = user
-        newUser.token = generateToken(newUser)
-        res.send(newuser)
+        const token = generateToken(user)
+        res.send({
+            ...user._doc,
+            token: token
+
+        })
     } catch (error) {
         console.log(error)
     }
     })
-    
-
 );
 userRouter.post(
     '/login', 

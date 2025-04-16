@@ -11,6 +11,7 @@ import Col from 'react-bootstrap/esm/Col'
 import { useReactToPrint } from 'react-to-print';
 import axios from 'axios'
 import AddProduct from './AddProduct'
+import XlsExportBtn from './XlsExportBtn'
 
 
 const reducer = (state, action)=>{
@@ -134,6 +135,7 @@ const InventoryScreen =()=> {
       <Button variant='success' className='p-2' onClick={()=> setOpenModal(!openModal)}>
         Add Product +
       </Button>
+      <XlsExportBtn data={products}/>
       </Col>
       <Col md={8} className='d-flex'>
         <Form.Control type='text'

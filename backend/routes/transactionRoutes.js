@@ -294,95 +294,381 @@ const getLast12Months = () => {
     return { startDate, endDate };
   };
 
-TransactionRouter.get(
+
+
+  ///visualize line graph sales, damages, vat & purchase
+
+  TransactionRouter.get(
     '/visualize',
     expressAsyncHandler(async (req, res) => {
-        try {
-          // Get startDate and endDate from query params, or default to the past 12 months
-          let { startDate, endDate } = req.query;
-    
-          // If no dates are provided, use the last 12 months
-          if (!startDate || !endDate) {
-            const { startDate: defaultStartDate, endDate: defaultEndDate } = getLast12Months();
-            startDate = defaultStartDate.toISOString();  // Convert to ISO string
-            endDate = defaultEndDate.toISOString();      // Convert to ISO string
-          }
-    
-          // Convert to Date objects (MongoDB expects Date objects for comparisons)
-          const start = new Date(startDate);
-          const end = new Date(endDate);
-    
-          // Perform aggregation
-          const results = await Transaction.aggregate([
+      try {
+        // Get startDate and endDate from query params, or default to past 12 months
+        let { startDate, endDate } = req.query;
+  
+        if (!startDate || !endDate) {
+          const { startDate: defaultStartDate, endDate: defaultEndDate } = getLast12Months();
+          startDate = defaultStartDate.toISOString();
+          endDate = defaultEndDate.toISOString();
+        }
+  
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+  
+        // Perform aggregations
+        const [transactionResults, salesResults] = await Promise.all([
+          // Transactions aggregation (purchases, damages, returns)
+          Transaction.aggregate([
             {
               $match: {
                 createdAt: { $gte: start, $lt: end },
-              },
+                type: { $in: ['purchase', 'damage', 'returned'] }
+              }
             },
             {
               $project: {
                 year: { $year: '$createdAt' },
                 month: { $month: '$createdAt' },
                 quantity: 1,
-                type: 1,
-                purchasePrice: 1,
-                sellingPrice: 1,
-              },
+                type: 1
+              }
             },
             {
               $group: {
                 _id: { year: '$year', month: '$month' },
                 totalPurchase: {
-                  $sum: {
-                    $cond: [{ $eq: ['$type', 'purchase'] }, '$quantity', 0],
-                  },
-                },
-                totalSale: {
-                  $sum: {
-                    $cond: [{ $eq: ['$type', 'sale'] }, '$quantity', 0],
-                  },
+                  $sum: { $cond: [{ $eq: ['$type', 'purchase'] }, '$quantity', 0] }
                 },
                 totalDamage: {
-                  $sum: {
-                    $cond: [{ $eq: ['$type', 'damage'] }, '$quantity', 0],
-                  },
+                  $sum: { $cond: [{ $eq: ['$type', 'damage'] }, '$quantity', 0] }
                 },
                 totalReturned: {
-                  $sum: {
-                    $cond: [{ $eq: ['$type', 'returned'] }, '$quantity', 0],
-                  },
-                },
-              },
+                  $sum: { $cond: [{ $eq: ['$type', 'returned'] }, '$quantity', 0] }
+                }
+              }
             },
-            {
-              $sort: { '_id.year': 1, '_id.month': 1 },
-            },
-          ]);
-    
-          // Format the data for the client
-          const formattedData = [
-            ['Year-Month', 'Purchase', 'Sale', 'Damage', 'Returned'],
-            ...results.map(item => {
-              const date = `${item._id.year}-${item._id.month < 10 ? '0' + item._id.month : item._id.month}`;
-              return [
-                date,
-                item.totalPurchase,
-                item.totalSale,
-                item.totalDamage,
-                item.totalReturned,
-              ];
-            }),
-          ];
-    
-          res.json(formattedData);
-        } catch (error) {
-          console.error('Error fetching data:', error);
-          res.status(500).json({ message: 'Server Error' });
-        }
-      })
-    );
+            { $sort: { '_id.year': 1, '_id.month': 1 } }
+          ]),
+  
+          Sale.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: start, $lt: end }
+            }
+          },
+          {
+            $project: {
+              year: { $year: '$createdAt' },
+              month: { $month: '$createdAt' },
+              itemsTotal: 1,  // Using the pre-calculated field
+              total: 1,       // The monetary total
+              vat: 1
+            }
+          },
+          {
+            $group: {
+              _id: { year: '$year', month: '$month' },
+              totalSaleQuantity: { $sum: '$itemsTotal' }, // Sum of quantities
+              totalSaleAmount: { $sum: '$total' },        // Sum of monetary values
+              totalVAT: { $sum: '$vat' }
+            }
+          },
+          { $sort: { '_id.year': 1, '_id.month': 1 } }
+        ])
+        ]);
+  
+        // Merge results (updated to include both quantity and amount)
+      const mergedResults = mergeResults(transactionResults, salesResults);
 
-TransactionRouter.post(
+      // Format response
+      const formattedData = [
+        ['Year-Month', 'Purchase', 'Sale Quantity', 'Sale Amount', 'Damage', 'Returned', 'VAT'],
+        ...mergedResults.map(item => [
+          `${item._id.year}-${item._id.month.toString().padStart(2, '0')}`,
+          item.totalPurchase || 0,
+          item.totalSaleQuantity || 0,  // Quantity from itemsTotal
+          item.totalSaleAmount || 0,    // Monetary total
+          item.totalDamage || 0,
+          item.totalReturned || 0,
+          item.totalVAT || 0
+        ])
+      ];
+
+      res.json(formattedData);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      res.status(500).json({ message: 'Server Error' });
+    }
+  })
+);
+
+
+
+
+//visualise a bar graph for the loss difference among purchase sale and damages with a trajectory
+TransactionRouter.get(
+  '/visualize-loss',
+  expressAsyncHandler(async (req, res) => {
+    try {
+      // Date handling
+      let { startDate, endDate } = req.query;
+      if (!startDate || !endDate) {
+        const { startDate: defaultStartDate, endDate: defaultEndDate } = getLast12Months();
+        startDate = defaultStartDate.toISOString();
+        endDate = defaultEndDate.toISOString();
+      }
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      // Get all needed data in parallel
+      const [purchases, sales, damages] = await Promise.all([
+        // Purchases (total quantity and amount)
+        Transaction.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: start, $lt: end },
+              type: 'purchase'
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              totalQuantity: { $sum: '$quantity' },
+              totalAmount: { $sum: { $multiply: ['$quantity', '$purchasePrice'] } }
+            }
+          }
+        ]),
+
+        // Sales (using itemsTotal and total from Sale model)
+        Sale.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: start, $lt: end }
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              totalQuantity: { $sum: '$itemsTotal' },
+              totalAmount: { $sum: '$total' }
+            }
+          }
+        ]),
+
+        // Damages
+        Transaction.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: start, $lt: end },
+              type: 'damage'
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              totalQuantity: { $sum: '$quantity' },
+              totalAmount: { $sum: { $multiply: ['$quantity', '$purchasePrice'] } }
+            }
+          }
+        ])
+      ]);
+
+      // Extract values (handle empty results)
+      const purchaseQty = purchases[0]?.totalQuantity || 0;
+      const purchaseAmt = purchases[0]?.totalAmount || 0;
+      const saleQty = sales[0]?.totalQuantity || 0;
+      const saleAmt = sales[0]?.totalAmount || 0;
+      const damageQty = damages[0]?.totalQuantity || 0;
+      const damageAmt = damages[0]?.totalAmount || 0;
+
+      // Calculate losses
+      const lostQty = purchaseQty - saleQty - damageQty;
+      const lostAmt = purchaseAmt - saleAmt - damageAmt;
+
+      // Prepare response for bar graph
+      const barData = [
+        ['Category', 'Quantity', 'Amount'],
+        ['Purchases', purchaseQty, purchaseAmt],
+        ['Sales', saleQty, saleAmt],
+        ['Damages', damageQty, damageAmt],
+        ['Lost', lostQty, lostAmt]
+      ];
+
+      // Get monthly trajectory data
+      const monthlyData = await getMonthlyTrajectory(start, end);
+
+      res.json({
+        barGraph: barData,
+        trajectory: monthlyData
+      });
+
+    } catch (error) {
+      console.error('Error in loss visualization:', error);
+      res.status(500).json({ message: 'Server Error' });
+    }
+  })
+);
+
+// Helper to get monthly trajectory
+async function getMonthlyTrajectory(start, end) {
+  const results = await Promise.all([
+    Transaction.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: start, $lt: end },
+          type: { $in: ['purchase', 'damage'] }
+        }
+      },
+      {
+        $project: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' },
+          quantity: 1,
+          amount: { $cond: [
+            { $eq: ['$type', 'purchase'] },
+            { $multiply: ['$quantity', '$purchasePrice'] },
+            { $multiply: ['$quantity', -1, '$purchasePrice'] } // Damages as negative
+          ]},
+          type: 1
+        }
+      },
+      {
+        $group: {
+          _id: { year: '$year', month: '$month' },
+          purchaseQty: {
+            $sum: { $cond: [{ $eq: ['$type', 'purchase'] }, '$quantity', 0] }
+          },
+          purchaseAmt: {
+            $sum: { $cond: [{ $eq: ['$type', 'purchase'] }, '$amount', 0] }
+          },
+          damageAmt: {
+            $sum: { $cond: [{ $eq: ['$type', 'damage'] }, '$amount', 0] }
+          }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
+    ]),
+
+    Sale.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: start, $lt: end }
+        }
+      },
+      {
+        $project: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' },
+          quantity: '$itemsTotal',
+          amount: '$total'
+        }
+      },
+      {
+        $group: {
+          _id: { year: '$year', month: '$month' },
+          saleQty: { $sum: '$quantity' },
+          saleAmt: { $sum: '$amount' }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
+    ])
+  ]);
+
+  const [purchasesData, salesData] = results;
+
+  // Merge monthly data
+  const monthlyMap = new Map();
+  
+  purchasesData.forEach(item => {
+    const key = `${item._id.year}-${item._id.month}`;
+    monthlyMap.set(key, {
+      year: item._id.year,
+      month: item._id.month,
+      purchaseQty: item.purchaseQty,
+      purchaseAmt: item.purchaseAmt,
+      damageAmt: item.damageAmt,
+      saleQty: 0,
+      saleAmt: 0
+    });
+  });
+
+  salesData.forEach(item => {
+    const key = `${item._id.year}-${item._id.month}`;
+    if (monthlyMap.has(key)) {
+      const existing = monthlyMap.get(key);
+      existing.saleQty = item.saleQty;
+      existing.saleAmt = item.saleAmt;
+    } else {
+      monthlyMap.set(key, {
+        year: item._id.year,
+        month: item._id.month,
+        purchaseQty: 0,
+        purchaseAmt: 0,
+        damageAmt: 0,
+        saleQty: item.saleQty,
+        saleAmt: item.saleAmt
+      });
+    }
+  });
+
+  // Calculate trajectory points
+  const trajectoryData = Array.from(monthlyMap.values())
+    .sort((a, b) => a.year - b.year || a.month - b.month)
+    .map(item => {
+      const lossAmt = item.purchaseAmt - item.saleAmt - item.damageAmt;
+      return {
+        date: `${item.year}-${item.month.toString().padStart(2, '0')}`,
+        purchaseAmount: item.purchaseAmt,
+        saleAmount: item.saleAmt,
+        damageAmount: item.damageAmt,
+        lossAmount: lossAmt
+      };
+    });
+
+  return trajectoryData;
+}
+
+// Updated merge function
+function mergeResults(transactions, sales) {
+  const resultMap = new Map();
+
+  transactions.forEach(t => {
+    const key = `${t._id.year}-${t._id.month}`;
+    resultMap.set(key, {
+      _id: t._id,
+      totalPurchase: t.totalPurchase,
+      totalDamage: t.totalDamage,
+      totalReturned: t.totalReturned,
+      totalSaleQuantity: 0,
+      totalSaleAmount: 0,
+      totalVAT: 0
+    });
+  });
+
+  sales.forEach(s => {
+    const key = `${s._id.year}-${s._id.month}`;
+    if (resultMap.has(key)) {
+      const existing = resultMap.get(key);
+      //existing.totalSaleQuantity = s.totalSaleQuantity;
+      existing.totalSaleAmount = s.totalSaleAmount;
+      existing.totalVAT = s.totalVAT;
+    } else {
+      resultMap.set(key, {
+        _id: s._id,
+        totalPurchase: 0,
+        //totalSaleQuantity: s.totalSaleQuantity,
+        totalSaleAmount: s.totalSaleAmount,
+        totalDamage: 0,
+        totalReturned: 0,
+        totalVAT: s.totalVAT
+      });
+    }
+  });
+
+  return Array.from(resultMap.values()).sort((a, b) => 
+    a._id.year - b._id.year || a._id.month - b._id.month
+  );
+}
+  TransactionRouter.post(
     '/damages',
     expressAsyncHandler(
         async(req, res)=> {

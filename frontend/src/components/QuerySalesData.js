@@ -3,11 +3,12 @@ import { Row, Col, Table, Form, Button, Alert, Card} from 'react-bootstrap';
 import axios from 'axios';
 import { getError } from '../utils/getError';
 import { toast } from 'react-toastify';
-import Calendar from 'react-calendar';
 import { FaEye } from 'react-icons/fa';
 import { BsPencil, BsCheck2, BsXLg } from 'react-icons/bs';
 import SaleDetailsModal from './SaleDetailsModal';
 import { Store } from '../utils/Store';
+import Calendar from 'react-calendar';
+import XlsExportBtn from './XlsExportBtn';
 
 export default function QuerySalesData(){
   const {state} = useContext(Store);
@@ -37,7 +38,12 @@ export default function QuerySalesData(){
   const fetchSales = async () => {
     if (Object.keys(query).length > 0) {
       try {
-        const response = await axios.get('/api/sale/for', { params: query });
+        const response = await axios.get('/api/sale/for',  {params: {
+          year: query.year,
+          month: query.month,
+          day: query.day
+          // ... any other query parameters
+        }} );
         setSales(response.data.sales);
         setTotalCount(response.data.totalCount);
         setTotalValue(response.data.totalValue);
@@ -94,60 +100,37 @@ export default function QuerySalesData(){
   }, [query, userInfoToken, editingSale]);
 
   // Function to handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setQuery({ ...query, [name]: value });
+  const handleInputChange = (selectedDate) => {
+    // Create a new query object to avoid mutating the state directly
+    const newQuery = {
+      ...query,
+      year: selectedDate.getFullYear(),
+      month: selectedDate.getMonth() + 1, // Months are 0-indexed in JS
+      day: selectedDate.getDate()
+    };
+    
+    setQuery(newQuery);
+    setDate(selectedDate);
   };
+  
 
   const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100;
 
   return (
     <div>
-      <Row className="mb-3">
-        <Col md={4}>
-          <Form.Group>
-            <Form.Label>Year</Form.Label>
-            <Form.Control
-              type="text"
-              name="year"
-              placeholder="Enter year"
-              value={query.year || ''}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
-        </Col>
-        <Col md={4}>
-          <Form.Group>
-            <Form.Label>Month</Form.Label>
-            <Form.Control
-              type="text"
-              name="month"
-              placeholder="Enter month"
-              value={query.month || ''}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
-        </Col>
-        <Col md={4}>
-          <Form.Group>
-            <Form.Label>Day</Form.Label>
-            <Form.Control
-              type="text"
-              name="day"
-              placeholder="Enter day"
-              value={query.day || ''}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
-        </Col>
-      </Row>
-      <Row className="mb-3">
-        <Col>
-          <Button variant="primary" onClick={fetchSales}>
-            Search
+      <div className="mb-3 d-flex flex-direction-row justify-content-between p-3">
+        <div className='d-flex'>
+        <Calendar value={date} onChange={handleInputChange}/>
+        <div className='mx-2'>
+        <Button variant="primary" onClick={fetchSales}>
+            Filter
           </Button>
-        </Col>
-      </Row>
+        </div>
+        </div>
+          <div>
+          <XlsExportBtn data={sales}/>
+          </div>
+      </div>
       <Row>
         <Col>
           {sales !== null ? (

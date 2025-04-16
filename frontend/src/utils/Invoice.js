@@ -1,184 +1,252 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
 
-// Define styles for the PDF document
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#ffffff',
     padding: 40,
-    height:"100vh"
-  },
-  section: {
-    margin: 10,
-    padding: 10,
-    flexGrow: 1,
+    fontFamily: 'Helvetica'
   },
   header: {
-    fontSize: 24,
-    marginBottom: 10,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    textDecoration: "underline"
-  },
-  subHeader: {
-    fontSize: 10,
-    marginBottom: 5,
-  },
-  subHeaderText:{
-    fontSize: 10,
-    fontWeight: 800
-  },
-  addressContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 20,
+    alignItems: 'center',
+    marginBottom: 30,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    paddingBottom: 20
   },
-  addressText: {
-    fontSize: 10,
-    marginBottom: 2,
-    lineHeight: 1.5
+  logoContainer: {
+    width: 120
   },
   logo: {
-    width: 150,
-    height: 50,
+    width: '100%',
+    height: 'auto',
+    maxHeight: 60
+  },
+  invoiceTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333333',
+    textAlign: 'right'
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 25
+  },
+  infoColumn: {
+    width: '48%'
+  },
+  label: {
+    fontSize: 10,
+    color: '#666666',
+    marginBottom: 3,
+    fontWeight: 'medium'
+  },
+  value: {
+    fontSize: 10,
+    color: '#333333',
+    marginBottom: 12,
+    fontWeight: 'normal'
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333333',
     marginBottom: 10,
-    alignSelf: 'left',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    paddingBottom: 5
   },
   table: {
-    display: 'table',
-    width: 'auto',
-    marginTop: 10,
-    marginBottom: 30,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#bfbfbf',
+    width: '100%',
+    marginBottom: 30
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f8f8f8',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0'
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottomStyle: 'solid',
-    borderBottomWidth: 0.5,
-    borderColor: 'black',
-    justifyContent:"space-between",
-    alignContent: "center"
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0'
   },
   tableCell: {
-    margin: 5,
     fontSize: 10,
+    paddingHorizontal: 5
   },
-  tableHeader: {
-    backgroundColor: '#f0f0f0',
-    alignItems:"center"
+  itemCell: {
+    width: '45%'
   },
-  totalAmount: {
-    marginTop: 5,
-    flexDirection: 'column',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    width: "45%",
-    paddingTop: 3,
-    marginLeft: 'auto',
+  quantityCell: {
+    width: '15%',
+    textAlign: 'right'
   },
-  totalAmountCell: {
+  rateCell: {
+    width: '20%',
+    textAlign: 'right'
+  },
+  amountCell: {
+    width: '20%',
+    textAlign: 'right'
+  },
+  totalsContainer: {
+    alignSelf: 'flex-end',
+    width: '40%',
+    marginTop: 20
+  },
+  totalRow: {
     flexDirection: 'row',
-    borderWidth: 0.5,
-    borderColor: '#000000',
-    width: '100%',
     justifyContent: 'space-between',
+    marginBottom: 5
+  },
+  totalLabel: {
+    fontSize: 10,
+    color: '#666666'
+  },
+  totalValue: {
+    fontSize: 10,
+    fontWeight: 'bold'
+  },
+  grandTotal: {
+    borderTopWidth: 1,
+    borderTopColor: '#333333',
+    paddingTop: 5,
+    marginTop: 5
+  },
+  grandTotalLabel: {
+    fontSize: 11,
+    fontWeight: 'bold'
+  },
+  grandTotalValue: {
+    fontSize: 11,
+    fontWeight: 'bold'
   },
   footer: {
-    position: "absolute",
-    bottom: 10,
+    position: 'absolute',
+    bottom: 30,
     left: 40,
     right: 40,
-    borderTopWidth: 1,
-    borderColor: '#bfbfbf',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
     fontSize: 8,
-  },
-  footnote: {
-    marginTop: 10,
-    fontSize: 8,
+    color: '#999999',
     textAlign: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingTop: 10
   },
+  watermark: {
+    position: 'absolute',
+    bottom: '40%',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    color: '#f0f0f0',
+    fontSize: 60,
+    fontWeight: 'bold',
+    opacity: 0.1,
+    transform: 'rotate(-30deg)'
+  }
 });
 
-// Define the Invoice component
 const Invoice = ({ sale }) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      <Image src="/images/logo-upl.png" style={styles.logo} />
-        <Text style={styles.header}>Tax Invoice</Text>
-        <View style={styles.addressContainer}>
-          <View>
-            <Text style={styles.addressText}>UPLIFTING FLORAL STUDIO</Text>
-            <Text style={styles.addressText}>MARASI DRIVE, BUSINESS BAY</Text>
-            <Text style={styles.addressText}>BUILDING: BB02, DUBAI</Text>
-          </View>
-          <View>
-            <Text style={styles.addressText}>TRN: 100551507500003</Text>
-            <Text style={styles.addressText}>Invoice No: {sale.InvoiceCode}</Text>
-            <Text style={styles.addressText}>PreparedBy: {sale.preparedBy}</Text>
-            <Text style={styles.addressText}>Date: {sale.date}</Text>
-          </View>
+      {/* Watermark (optional) */}
+      <Text style={styles.watermark}>UPLIFTING</Text>
+      
+      {/* Header with logo and invoice title */}
+      <View style={styles.header}>
+        <View style={styles.logoContainer}>
+          <Image src="/images/logo-upl.png" style={styles.logo} />
         </View>
-        <View>
-          <Text style={styles.subHeader}>Bill To:</Text>
-          <Text style={styles.subHeaderText}>{sale.name || 'Not provided'}</Text>
-          <Text style={styles.subHeaderText}>{sale.phone || 'Not provided'}</Text>
-          <Text style={styles.subHeaderText}>{sale.email || 'Not provided'}</Text>
-          <Text style={styles.subHeaderText}>{sale.paidBy || 'Not provided'}</Text>
+        <Text style={styles.invoiceTitle}>TAX INVOICE</Text>
+      </View>
+      
+      {/* Company and invoice info */}
+      <View style={styles.infoContainer}>
+        <View style={styles.infoColumn}>
+          <Text style={styles.label}>UPLIFTING FLORAL STUDIO</Text>
+          <Text style={styles.value}>MARASI DRIVE, BUSINESS BAY</Text>
+          <Text style={styles.value}>BUILDING: BB02, DUBAI</Text>
+          <Text style={styles.value}>TRN: 100551507500003</Text>
         </View>
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Item</Text>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Quantity</Text>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Rate</Text>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Total</Text>
+        <View style={styles.infoColumn}>
+          <Text style={styles.label}>INVOICE #</Text>
+          <Text style={styles.value}>{sale.InvoiceCode}</Text>
+          <Text style={styles.label}>DATE</Text>
+          <Text style={styles.value}>{sale.date}</Text>
+          <Text style={styles.label}>PREPARED BY</Text>
+          <Text style={styles.value}>{sale.preparedBy}</Text>
+        </View>
+      </View>
+      
+      {/* Billing info */}
+      <Text style={styles.sectionTitle}>BILL TO</Text>
+      <View style={styles.infoContainer}>
+        <View style={styles.infoColumn}>
+          <Text style={styles.value}>{sale.name || 'Not provided'}</Text>
+          <Text style={styles.value}>{sale.phone || 'Not provided'}</Text>
+        </View>
+        <View style={styles.infoColumn}>
+          <Text style={styles.value}>{sale.email || 'Not provided'}</Text>
+          <Text style={styles.value}>{sale.paidBy || 'Not provided'}</Text>
+        </View>
+      </View>
+      
+      {/* Items table */}
+      <View style={styles.table}>
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableCell, styles.itemCell, { fontWeight: 'bold' }]}>ITEM</Text>
+          <Text style={[styles.tableCell, styles.quantityCell, { fontWeight: 'bold' }]}>QTY</Text>
+          <Text style={[styles.tableCell, styles.rateCell, { fontWeight: 'bold' }]}>RATE</Text>
+          <Text style={[styles.tableCell, styles.amountCell, { fontWeight: 'bold' }]}>AMOUNT</Text>
+        </View>
+        {sale.saleItems.map((item, index) => (
+          <View key={index} style={styles.tableRow}>
+            <Text style={[styles.tableCell, styles.itemCell]}>{item.productName}</Text>
+            <Text style={[styles.tableCell, styles.quantityCell]}>{item.quantity}</Text>
+            <Text style={[styles.tableCell, styles.rateCell]}>AED {item.price.toFixed(2)}</Text>
+            <Text style={[styles.tableCell, styles.amountCell]}>AED {(item.quantity * item.price).toFixed(2)}</Text>
           </View>
-          {sale.saleItems.map((item, index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={styles.tableCell}>{item.productName}</Text>
-              <Text style={styles.tableCell}>{item.quantity}</Text>
-              <Text style={styles.tableCell}>AED {item.price}</Text>
-              <Text style={styles.tableCell}>AED {item.quantity * item.price}</Text>
-            </View>
-          ))}
+        ))}
+      </View>
+      
+      {/* Totals */}
+      <View style={styles.totalsContainer}>
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>Subtotal:</Text>
+          <Text style={styles.totalValue}>AED {sale.itemsTotal.toFixed(2)}</Text>
         </View>
-        <View style={styles.totalAmount}>
-            <View style={styles.totalAmountCell}>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Items Total:</Text>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.itemsTotal}</Text>
-            </View>
-            <View style={styles.totalAmountCell}>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Discount:</Text>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.discount}</Text>
-            </View>
-            <View style={styles.totalAmountCell}>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Taxable Amount:</Text>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.subTotal}</Text>
-            </View>
-            <View style={styles.totalAmountCell}>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Vat(5%)</Text>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.vat}</Text>
-            </View>
-            <View style={styles.totalAmountCell}>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>Total Inc.Vat:</Text>
-            <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>AED {sale.total}</Text>
-            </View>
-          </View>
-        <View style={styles.footer}>
-          <View style={styles.footnote}>
-          <Text>Website: uplifting.ae | Phone: +971542045427 | Email: info@uplifting.ae</Text>
-          </View>
-          <View style={styles.footnote}>
-          <Text>This is a system Generated Invoice, it Requires No extra action</Text>
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>Discount:</Text>
+          <Text style={styles.totalValue}>- AED {sale.discount.toFixed(2)}</Text>
         </View>
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>Taxable Amount:</Text>
+          <Text style={styles.totalValue}>AED {sale.subTotal.toFixed(2)}</Text>
         </View>
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>VAT (5%):</Text>
+          <Text style={styles.totalValue}>AED {sale.vat.toFixed(2)}</Text>
+        </View>
+        <View style={[styles.totalRow, styles.grandTotal]}>
+          <Text style={styles.grandTotalLabel}>TOTAL DUE:</Text>
+          <Text style={styles.grandTotalValue}>AED {sale.total.toFixed(2)}</Text>
+        </View>
+      </View>
+      
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text>UPLIFTING FLORAL STUDIO | MARASI DRIVE, BUSINESS BAY, DUBAI | TRN: 100551507500003</Text>
+        <Text>Website: uplifting.ae | Phone: +971542045427 | Email: info@uplifting.ae</Text>
+        <Text style={{ marginTop: 5 }}>This is a computer generated invoice and does not require a signature</Text>
+      </View>
     </Page>
   </Document>
 );
