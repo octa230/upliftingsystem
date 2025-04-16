@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 
 const CompanySchema = new mongoose.Schema({
-    Name: String,
+    name: String,
     code: String,
     Logo: String,
     TRN: String,
@@ -31,7 +31,7 @@ const CustomerSchema = new mongoose.Schema({
 
 
 const EmployeeSchema = new mongoose.Schema({
-    name: {type: String, required: true, unique: [true, 'username already exists']},
+    name: {type: String, required: true, unique: true, sparse: true},
     Nationality: String,
     Position: String,
     Phone: String,
