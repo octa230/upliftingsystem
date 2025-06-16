@@ -5,6 +5,7 @@ import { getError } from '../utils/getError';
 import { toast } from 'react-toastify';
 import { FaEye } from 'react-icons/fa';
 import { BsPencil, BsCheck2, BsXLg } from 'react-icons/bs';
+import Badge from 'react-bootstrap/esm/Badge';
 import SaleDetailsModal from './SaleDetailsModal';
 import { Store } from '../utils/Store';
 import Calendar from 'react-calendar';
@@ -15,7 +16,10 @@ export default function QuerySalesData(){
   const {userInfoToken} = state;
 
   // State to store query parameters
-  const [query, setQuery] = useState({});
+  const [query, setQuery] = useState({
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0] 
+  });
 
   // State to store sales data
   const [sales, setSales] = useState(null);
@@ -35,26 +39,7 @@ export default function QuerySalesData(){
   const [date, setDate] = useState(new Date());
 
   // Function to fetch sales data based on query parameters
-  const fetchSales = async () => {
-    if (Object.keys(query).length > 0) {
-      try {
-        const response = await axios.get('/api/sale/for',  {params: {
-          year: query.year,
-          month: query.month,
-          day: query.day
-          // ... any other query parameters
-        }} );
-        setSales(response.data.sales);
-        setTotalCount(response.data.totalCount);
-        setTotalValue(response.data.totalValue);
-        setFocSales(response.data.focSales);
-        setPaymentTotals(response.data.paymentTotals)
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    }
-  };
-
+  
   // Function to handle viewing sale details
   const handleViewSale = async (saleId) => {
     try {
@@ -96,22 +81,25 @@ export default function QuerySalesData(){
   };
 
   useEffect(() => {
-    fetchSales();
-  }, [query, userInfoToken, editingSale]);
+    const fetchSales = async () => {
 
-  // Function to handle form input changes
-  const handleInputChange = (selectedDate) => {
-    // Create a new query object to avoid mutating the state directly
-    const newQuery = {
-      ...query,
-      year: selectedDate.getFullYear(),
-      month: selectedDate.getMonth() + 1, // Months are 0-indexed in JS
-      day: selectedDate.getDate()
-    };
-    
-    setQuery(newQuery);
-    setDate(selectedDate);
+    if(query){
+      try{
+        const {data} = await axios.get(`/api/sale/for?startDate=${query.startDate}&endDate=${query.endDate}`)
+        setSales(data.sales)
+        setTotalCount(data.totalCount)
+        setTotalValue(data.totalValue);
+        setFocSales(data.focSales);
+        setPaymentTotals(data.paymentTotals)
+      }catch(error){
+        toast.error(error)
+        console.log(error)
+      }
+    }
   };
+  fetchSales()
+
+  }, [query.startDate, query.endDate, userInfoToken, editingSale]);
   
 
   const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100;
@@ -120,12 +108,14 @@ export default function QuerySalesData(){
     <div>
       <div className="mb-3 d-flex flex-direction-row justify-content-between p-3">
         <div className='d-flex'>
-        <Calendar value={date} onChange={handleInputChange}/>
-        <div className='mx-2'>
-        <Button variant="primary" onClick={fetchSales}>
-            Filter
-          </Button>
-        </div>
+          <Form.Group>
+            <Form.Label>STARTING</Form.Label>
+        <Form.Control type='date' value={query.startDate} onChange={(e)=> setQuery(prev =>({...prev, startDate: e.target.value}))} />
+          </Form.Group>
+          <Form.Group className='mx-2'>
+            <Form.Label>END</Form.Label>
+        <Form.Control type='date' value={query.endDate} onChange={(e)=> setQuery(prev =>({...prev, endDate: e.target.value}))} />
+          </Form.Group>
         </div>
           <div>
           <XlsExportBtn data={sales}/>
@@ -136,18 +126,13 @@ export default function QuerySalesData(){
           {sales !== null ? (
             <div>
               <div className='d-flex justify-content-between m-2'>
-                <Card variant='warning'>
-                  <Card.Body>Total Results: {totalCount}</Card.Body>
-                </Card>
-                <Card variant='warning'>
-                  <Card.Body>Total value: {round2(totalValue)}</Card.Body>
-                </Card>
-                <Card variant='warning'>
-                  <Card.Body>F.O.C. {round2(focSales)}</Card.Body>
-                </Card>
+                  <Badge bg='danger' className='p-3'>Total Results: {totalCount}</Badge>
+                  <Badge bg='danger' className='p-3'>Total value: {round2(totalValue)}</Badge>
+                  <Badge bg='danger' className='p-3'>Vat value: {round2(sales?.reduce((acc, sale)=> acc + sale.vat, 0))}</Badge>
+                  <Badge bg='danger' className='p-3'>F.O.C. {round2(focSales)}</Badge>
               </div>
               <Row>
-              {paymentTotals && paymentTotals.map((paymentMethod, index) => (
+              {paymentTotals && paymentTotals?.map((paymentMethod, index) => (
                   <Col key={index} className="m-3 border bg-primary text-light">
                     <Card.Title className='py-2'>
                       <strong>{paymentMethod.paymentMethod}</strong>
@@ -160,7 +145,7 @@ export default function QuerySalesData(){
               <Table bordered hover responsive>
                 <thead>
                   <tr>
-                    <th>Invoice Code</th>
+                    <th>INV Code</th>
                     <th>DATE</th>
                     <th>CUSTOMER</th>
                     <th>STATUS</th>
@@ -171,7 +156,7 @@ export default function QuerySalesData(){
                   </tr>
                 </thead>
                 <tbody>
-                  {sales.map((sale) => (
+                  {sales?.map((sale) => (
     <tr key={sale._id}>
       <td>
         <Button onClick={() => handleViewSale(sale._id)} className='bg-primary border'>

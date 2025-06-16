@@ -9,7 +9,7 @@ const userRouter = express.Router();
 userRouter.post(
     '/register',
     expressAsyncHandler(async(req, res)=> {
-        //console.log(req.body)
+        console.log(req.body)
     try {
         const newUser = new Employee({
             name: req.body.name,
@@ -32,6 +32,7 @@ userRouter.post(
 userRouter.post(
     '/login', 
     expressAsyncHandler(async(req, res)=> {
+        console.log(req.body)
         const user = await Employee.findOne({name: req.body.name})
         if(user){
             if(bcrypt.compareSync(req.body.password, user.password)){
@@ -47,5 +48,6 @@ userRouter.post(
         res.status(404).send({message: "invalid email or password"})
     })
 )
+
 
 export default userRouter
