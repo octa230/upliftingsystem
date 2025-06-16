@@ -123,25 +123,38 @@ ProductRouter.put(
           }
     )
 )
+
 ProductRouter.get(
-    '/search', 
-    expressAsyncHandler(
-        async (req, res) => {
-            const searchName = req.query.searchName
-            const products = await Product.aggregate([
-              {
-                $match:{
-                  $or: [
-                    {name: {$regex: searchName, $options: 'i'}},
-                    {code: {$regex: searchName, $options: 'i'}}
-                  ]
-                }
-              }
-            ])
-            res.send(products)
+  '/search',
+  expressAsyncHandler(
+    async (req, res) => {
+      const searchName = req.query.searchName;
+      
+      if (!searchName || typeof searchName !== 'string' || searchName.trim() === '') {
+        return res.send([]);
+      }
+      
+      try {
+        const products = await Product.aggregate([
+          {
+            $match: {
+              $or: [
+                {name: {$regex: searchName.trim(), $options: 'i'}},
+                {code: {$regex: searchName.trim(), $options: 'i'}}
+              ]
+            }
           }
-    )
-)
+        ]);
+        
+        res.send(products);
+      } catch (error) {
+        console.error('Product search error:', error);
+        res.status(500).send([]);
+      }
+    }
+  )
+);
+
 ProductRouter.get(
     '/all',
     expressAsyncHandler(

@@ -71,38 +71,38 @@ SaleRouter.get(
 SaleRouter.get(
   '/for',
   expressAsyncHandler(async (req, res) => {
-    console.log(req.query)
-    const { day, month, year } = req.query;
+    //console.log(req.query);
+    const { startDate, endDate, limit } = req.query;
     let dateFilter = {};
 
-    try {
-      if (year && month && day) {
-        const startDate = new Date(year, month - 1, day); // month is 0-based
-        const endDate = new Date(year, month - 1, parseInt(day) + 1);
-        dateFilter = { createdAt: { $gte: startDate, $lt: endDate } };
-      } else if (year && month) {
-        const startDate = new Date(year, month - 1, 1);
-        const endDate = new Date(year, month, 0); // last day of month
-        dateFilter = { createdAt: { $gte: startDate, $lte: endDate } };
-      } else if (year) {
-        const startDate = new Date(year, 0, 1);
-        const endDate = new Date(year, 11, 31, 23, 59, 59);
-        dateFilter = { createdAt: { $gte: startDate, $lte: endDate } };
+    if (startDate || endDate) {
+      dateFilter.createdAt = {};
+      if (startDate) {
+        dateFilter.createdAt.$gte = new Date(startDate);
       }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // include full day
+        dateFilter.createdAt.$lte = end;
+      }
+    }
 
+    try {
       const sales = await Sale.aggregate([
-        {
-          $match: dateFilter
-        },
+        { $match: dateFilter },
         {
           $facet: {
-            sales: [{ $match: {} }],
-            totalCount: [{ $count: "count" }],
+            sales: [
+              { $match: {} }, // optional: you could put more filters or pagination here
+              { $sort: { createdAt: -1 } },
+              { $limit: parseInt(limit) || 50 }
+            ],
+            totalCount: [{ $count: 'count' }],
             totalValue: [
               {
                 $group: {
                   _id: null,
-                  total: { $sum: { $ifNull: ["$total", 0] } }
+                  total: { $sum: { $ifNull: ['$total', 0] } }
                 }
               }
             ],
@@ -111,21 +111,21 @@ SaleRouter.get(
               {
                 $group: {
                   _id: null,
-                  total: { $sum: { $ifNull: ["$total", 0] } }
+                  total: { $sum: { $ifNull: ['$total', 0] } }
                 }
               }
             ],
             paymentTotals: [
               {
                 $group: {
-                  _id: "$paidBy",
-                  total: { $sum: { $ifNull: ["$total", 0] } }
+                  _id: '$paidBy',
+                  total: { $sum: { $ifNull: ['$total', 0] } }
                 }
               },
               {
                 $project: {
                   _id: 0,
-                  paymentMethod: "$_id",
+                  paymentMethod: '$_id',
                   total: 1
                 }
               }
@@ -139,100 +139,20 @@ SaleRouter.get(
       const focSales = sales[0].focSales[0]?.total || 0;
       const paymentTotals = sales[0].paymentTotals || [];
 
-      res.status(200).send({ 
-        sales: sales[0].sales, 
-        totalCount, 
-        totalValue, 
-        focSales, 
-        paymentTotals 
+      res.status(200).send({
+        sales: sales[0].sales,
+        totalCount,
+        totalValue,
+        focSales,
+        paymentTotals
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       res.status(500).send({ error: 'Unable to get results' });
     }
   })
 );
 
-
-/* SaleRouter.get(
-  '/for',
-  expressAsyncHandler(
-      async(req, res) => {
-          const { day, month, year } = req.query;
-          let dateRegex;
-          
-          try {
-            if (year && month && day) {
-              dateRegex = `^${year}/${month}/${day}`; 
-            } else if (year && month) {
-              dateRegex = `^${year}/${month}`; 
-            } else if (year) {
-              dateRegex = `^${year}`; 
-            }
-          } catch (error) {
-            console.log(error);
-          }
-        
-          try {
-            const sales = await Sale.aggregate([
-              {
-                $match: {
-                  date: { $regex: dateRegex }
-                }
-              },
-              {
-                $facet: {
-                  sales: [{ $match: {} }],
-                  totalCount: [{ $count: "count" }],
-                  totalValue: [
-                    {
-                      $group: {
-                        _id: null,
-                        total: { $sum: { $ifNull: ["$total", 0] } }
-                      }
-                    }
-                  ],
-                  focSales: [
-                    { $match: { free: true } },
-                    {
-                      $group: {
-                        _id: null,
-                        total: { $sum: { $ifNull: ["$total", 0] } }
-                      }
-                    }
-                  ],
-                  paymentTotals: [
-                    {
-                      $group: {
-                        _id: "$paidBy",
-                        total: { $sum: { $ifNull: ["$total", 0] } }
-                      }
-                    },
-                    {
-                      $project: {
-                        _id: 0,
-                        paymentMethod: "$_id",
-                        total: 1
-                      }
-                    }
-                  ]
-                }
-              }
-            ]);
-            
-            const totalCount = sales[0].totalCount[0]?.count || 0;
-            const totalValue = sales[0].totalValue[0]?.total || 0;
-            const focSales = sales[0].focSales[0]?.total || 0;
-            const paymentTotals = sales[0].paymentTotals || [];
-        
-            // Send the aggregated sales data as the response
-            res.status(200).send({ sales: sales[0].sales, totalCount, totalValue, focSales, paymentTotals });
-          } catch (error) {
-            res.status(500).send({ error: 'Unable to get results' });
-          }
-        }
-  )
-) */
 SaleRouter.get(
     '/search',
     expressAsyncHandler(
