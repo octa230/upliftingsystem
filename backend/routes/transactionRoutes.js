@@ -737,16 +737,50 @@ TransactionRouter.post(
 )
 
 TransactionRouter.get(
-  '/:deliveryNote',
+  '/',
   expressAsyncHandler(async (req, res) => {
+    const {startDate, endDate, limit, deliveryNote} = req.query
+    let query = {}
     try {
-      const dbPurchase = await Purchase.findOne({ deliveryNote: req.params.deliveryNote })
 
-      if (!dbPurchase) {
-        res.status(404).send({ message: "Purchase not Found" })
-        return
+      if (deliveryNote) {
+        query.deliveryNote = deliveryNote;
       }
-      res.status(200).send(dbPurchase)
+
+      if(startDate || endDate){
+        query.createdAt = {}
+        if(startDate){
+          query.createdAt.$gte = new Date(startDate)
+        }
+        if(endDate){
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999) ///full day hours and micro secs
+          query.createdAt.$lte = end
+        }
+      }
+      
+      const purchases = await Purchase.aggregate([
+        {$match: query},
+        {
+          $facet:{
+            purchases:[
+              //{$match: {deliveryNote: deliveryNote}},
+              {$sort: {createdAt: -1}},
+              {$limit: parseInt(limit) || 50}
+            ],
+            totalCount: [{$count: 'count'}],
+            totalValue: [
+              {
+                $group: {
+                  _id: null,
+                  total: { $sum: { $ifNull: ['$total', 0] } }
+                }
+              }
+            ],
+          }
+        }
+      ])
+      res.send(purchases)
 
     } catch (error) {
       res.send(error)

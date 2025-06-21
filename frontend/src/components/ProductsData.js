@@ -5,9 +5,7 @@ import Table from 'react-bootstrap/esm/Table';
 import Button from 'react-bootstrap/esm/Button';
 import Badge from 'react-bootstrap/esm/Badge';
 import ListGroup from 'react-bootstrap/esm/ListGroup';
-import MessageBox from './MessageBox'
 import { useReactToPrint } from 'react-to-print';
-import Select from 'react-select'
 import _ from 'lodash'
 
 export default function ProductsData() {
@@ -23,7 +21,6 @@ export default function ProductsData() {
   const [productName, setProductName] = useState('')
   const [productQuery, setProductQuery] = useState('')
   const [products, setProducts] = useState([])
-  const [selectedProduct, setSelectedProduct] = useState(null)
   const [showDropdown, setShowDropdown] = useState(false)
 
   const tableRef = useRef()
@@ -73,7 +70,7 @@ export default function ProductsData() {
 
   return (
     <div>
-      <div className='my-3 d-flex flex-row gap-3 p-2'>
+      <div className='my-3 d-flex flex-row gap-3 p-2 justify-content-between'>
         <Form.Group>
           <Form.Label>Transaction</Form.Label>
           <Form.Control as='select' value={type} onChange={(e) => setType(e.target.value)}>
@@ -138,9 +135,9 @@ export default function ProductsData() {
           </Form.Control>
         </Form.Group>
         {summary !== null && (
-        <div className='d-flex gap-3'>
-          <Badge>Total Price: {RoundTo(summary.totalPrice)}</Badge>
-          <Badge>Total Quantity: {summary.totalQuantity}</Badge>
+        <div className='d-flex gap-3 align-items-center'>
+          <Badge bg='danger'>Total Price: {RoundTo(summary.totalPrice)}</Badge>
+          <Badge bg='danger'>Total Quantity: {summary.totalQuantity}</Badge>
         </div>
       )}
       </div>
