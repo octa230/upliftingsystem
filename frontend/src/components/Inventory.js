@@ -1,13 +1,11 @@
-import React, { useEffect, useState, useContext, useReducer, useRef} from 'react'
+import { useEffect, useState, useContext, useReducer, useRef} from 'react'
 import { Button, Modal, Table} from 'react-bootstrap'
-import {BsFillPencilFill, BsCheck2Circle, BsXCircle, BsTrash2Fill} from 'react-icons/bs'
+import {BsFillPencilFill, BsXCircle, BsFillTrashFill, BsBookmarkCheckFill} from 'react-icons/bs'
 import { toast } from 'react-toastify'
 import { getError } from '../utils/getError'
 import { Store } from '../utils/Store'
 import Form from 'react-bootstrap/esm/Form'
 import Container from 'react-bootstrap/esm/Container'
-import Row from 'react-bootstrap/esm/Row'
-import Col from 'react-bootstrap/esm/Col'
 import { useReactToPrint } from 'react-to-print';
 import axios from 'axios'
 import AddProduct from './AddProduct'
@@ -125,29 +123,24 @@ const InventoryScreen =()=> {
 
   return (
     <Container fluid className='border'>
-    <Row className='m-0 p-2'>
-      <Col>
-      <Button className='p-2 m-1 bg-light text-dark font-monospace'>
+    <div className='d-flex gap-3 p-1'>
+      <Button className='bg-light text-dark font-monospace'>
         AED: {round2(products?.reduce((acc, product)=> acc + (product.purchasePrice * product.inStock), 0))}{' '}
       </Button>
-
-
       <Button variant='success' className='p-2' onClick={()=> setOpenModal(!openModal)}>
         Add Product +
       </Button>
       <XlsExportBtn data={products}/>
-      </Col>
-      <Col md={8} className='d-flex'>
         <Form.Control type='text'
+          className='w-25 justify-self-end'
           value={searchName}
           onChange={(e)=> setSearchName(e.target.value)}
           placeholder='Search products'
         />
-        <Button onClick={()=> setSearchName('')} className='p-2' variant='light'>
+        <Button onClick={()=> setSearchName('')} variant='light'>
           <BsXCircle/>
         </Button>
-      </Col>
-    </Row>
+    </div>
     <div className='d-flex gap-3 p-2 bg-dark text-light'>
         <Form.Check
           label="IN STOCK ONLY"
@@ -244,13 +237,13 @@ const InventoryScreen =()=> {
                         <td>
                             {product.closingStock}
                         </td>
-                        <td className='d-flex justify-content-between p-2'>
-                            <BsFillPencilFill onClick={()=> {
+                        <td className='d-flex justify-content-around p-1'>
+                            <BsFillPencilFill  size={23}onClick={()=> {
                               setSelectedProduct(product) 
                               setOpenModal(true)
                             }}/>
-                            <BsTrash2Fill onClick={()=> deleteHandler(product)}/>
-                            <BsCheck2Circle onClick={()=> addSaleProduct(product)}/>
+                            <BsFillTrashFill size={23} onClick={()=> deleteHandler(product)}/>
+                            <BsBookmarkCheckFill size={23} onClick={()=> addSaleProduct(product)}/>
                         </td>
                     </tr>                    
                 ))

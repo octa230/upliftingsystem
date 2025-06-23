@@ -37,7 +37,7 @@ const XlsExportBtn = ({title='export', worksheetName="Sheet1", data=[], keysToIn
 
         setLoading(false);
     }
-  return <Button className='btn btn-success btn-md'
+  return <Button className='btn btn-success btn-md' variant='info'
             onClick={handleExport}
             value={title}
             disabled={loading}>
