@@ -221,23 +221,23 @@ const Invoice = ({ sale }) => (
       <View style={styles.totalsContainer}>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Subtotal:</Text>
-          <Text style={styles.totalValue}>AED {sale.itemsTotal.toFixed(2)}</Text>
+          <Text style={styles.totalValue}>AED {sale?.itemsTotal.toFixed(2)}</Text>
         </View>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Discount:</Text>
-          <Text style={styles.totalValue}>- AED {sale.discount.toFixed(2)}</Text>
+          <Text style={styles.totalValue}>- AED {sale.discount?.toFixed(2)}</Text>
         </View>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Taxable Amount:</Text>
-          <Text style={styles.totalValue}>AED {sale.subTotal.toFixed(2)}</Text>
+          <Text style={styles.totalValue}>AED {sale.subTotal?.toFixed(2)}</Text>
         </View>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>VAT (5%):</Text>
-          <Text style={styles.totalValue}>AED {sale.vat.toFixed(2)}</Text>
+          <Text style={styles.totalValue}>AED {sale.vat?.toFixed(2)}</Text>
         </View>
         <View style={[styles.totalRow, styles.grandTotal]}>
           <Text style={styles.grandTotalLabel}>TOTAL DUE:</Text>
-          <Text style={styles.grandTotalValue}>AED {sale.total.toFixed(2)}</Text>
+          <Text style={styles.grandTotalValue}>AED {sale.total?.toFixed(2)}</Text>
         </View>
       </View>
       
