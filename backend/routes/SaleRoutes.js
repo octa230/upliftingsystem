@@ -210,7 +210,8 @@ SaleRouter.post(
     '/new-sale',
     expressAsyncHandler(
         async(req, res)=> {
-            const ttSales = await Sale.findOne({}).sort({createdAt: -1})
+            const lastSale = await Sale.findOne({}).sort({createdAt: -1})
+            const invNumber = parseInt(lastSale.InvoiceCode.match(/\d+/)?.[0] || '0') + 1
             const itemsTotal = req.body.products.reduce((total, item)=> {
               return total + (item.quantity * item.price)
             }, 0)
@@ -241,7 +242,7 @@ SaleRouter.post(
                 subTotal: req.body.subTotal,
                 total: req.body.total,
                 vat: req.body.vat,
-                InvoiceCode: `UPLDXB_${ttSales + 1}`,
+                InvoiceCode: `UPLDXB_${invNumber}`,
             })
         
             const sale = await newSale.save()

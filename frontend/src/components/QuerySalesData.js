@@ -149,7 +149,7 @@ export default function QuerySalesData() {
   const statusColors = {
     cancelled: "tomato",
     pending: "orange",
-    completed: "green",
+    completed: "white",
   };
 
 
