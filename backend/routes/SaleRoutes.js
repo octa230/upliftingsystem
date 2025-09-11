@@ -8,6 +8,20 @@ import { Sale } from '../models/Transactions.js';
 
 const SaleRouter = express.Router()
 
+SaleRouter.patch('/status/:id', expressAsyncHandler(async(req, res)=>{
+  const {status} = req.body
+  const sale = await Sale.findById(req.params.id)
+  if(!sale){
+    throw new Error('Sale not found')
+  }else{
+    const oldStatus = sale.status
+    sale.status = status
+    const newSale = await sale.save()
+    console.log(`sale status changed from ${oldStatus} to ${newSale.status}`)
+    res.send(newSale)
+  }
+}))
+
 SaleRouter.get(
   '/sales-data',
   async(req, res)=> {
@@ -93,7 +107,7 @@ SaleRouter.get(
         {
           $facet: {
             sales: [
-              { $match: {} }, // optional: you could put more filters or pagination here
+              { $match: {}},
               { $sort: { createdAt: -1 } },
               { $limit: parseInt(limit) || 50 }
             ],
@@ -172,6 +186,7 @@ SaleRouter.get(
           }
     )
 )
+
 SaleRouter.put(
     '/edit/:id',
     expressAsyncHandler(
@@ -190,11 +205,12 @@ SaleRouter.put(
           }
     )
 )
+
 SaleRouter.post(
     '/new-sale',
     expressAsyncHandler(
         async(req, res)=> {
-            const ttSales = await Sale.countDocuments()
+            const ttSales = await Sale.findOne({}).sort({createdAt: -1})
             const itemsTotal = req.body.products.reduce((total, item)=> {
               return total + (item.quantity * item.price)
             }, 0)
@@ -233,6 +249,7 @@ SaleRouter.post(
     }
     )
 )
+
 SaleRouter.get(
     '/list',
     expressAsyncHandler(
@@ -243,6 +260,7 @@ SaleRouter.get(
         }
     )
 )
+
 SaleRouter.get(
     '/today-sales',
     expressAsyncHandler(
@@ -266,6 +284,7 @@ SaleRouter.get(
           }
     )
 )
+
 SaleRouter.get(
     '/get-sale/:id',
     expressAsyncHandler(
@@ -280,6 +299,7 @@ SaleRouter.get(
         }
     )
 )
+
 SaleRouter.post(
     '/:id/add-units',
     expressAsyncHandler(

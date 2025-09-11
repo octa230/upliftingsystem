@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Row, Col, Table, Form, Button, Alert, Card } from 'react-bootstrap';
+import { Row, Col, Table, Form, Button, Alert, Card, Modal, ListGroup } from 'react-bootstrap';
 import axios from 'axios';
 import { getError } from '../utils/getError';
 import { toast } from 'react-toastify';
 import { FaEye } from 'react-icons/fa';
-import { BsPencil, BsCheck2, BsXLg, BsBookmarkCheckFill } from 'react-icons/bs';
+import { BsCheck2, BsXLg, BsBookmarkCheckFill, BsDashCircleFill, BsPencilFill } from 'react-icons/bs';
 import Badge from 'react-bootstrap/esm/Badge';
 import SaleDetailsModal from './SaleDetailsModal';
 import { Store } from '../utils/Store';
-import Calendar from 'react-calendar';
 import XlsExportBtn from './XlsExportBtn';
 import { useCallback } from 'react';
 import debounce from 'lodash.debounce'
@@ -28,6 +27,7 @@ export default function QuerySalesData() {
   const [sales, setSales] = useState(null);
   const [selectedSale, setSelectedSale] = useState({});
   const [showModal, setShowModal] = useState(false);
+  const [statusModal, setStatusModal] = useState(false);
   const [searchText, setSearchText] = useState('')
 
   // State to store the total count of results
@@ -40,7 +40,7 @@ export default function QuerySalesData() {
   const [editingSale, setEditingSale] = useState(null);
   const [paidBy, setPaidBy] = useState('');
   const [service, setService] = useState('');
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
 
   // Function to fetch sales data based on query parameters
@@ -58,15 +58,20 @@ export default function QuerySalesData() {
 
   // Function to handle editing sale
   const handleEdit = async (sale) => {
-    if (!userInfoToken.isAdmin) {
+    if (userInfoToken.isAdmin) {
       toast.error('YOUR ACCOUNT CAN\'T COMPLETE THIS ACTION')
       return
     }
     setEditingSale(sale);
   };
 
-  const handleCancel = async () => {
+  const handleChangeStatus = async (str) => {
     setEditingSale(null)
+    const { data } = await axios.patch(`/api/sale/status/${selectedSale._id}`, {
+      status: str
+    })
+    setSales((prev) => prev.map((sale) => sale._id === data._id ? data : sale))
+    setStatusModal(false)
   }
 
   // Function to update sale details
@@ -90,7 +95,7 @@ export default function QuerySalesData() {
 
     const fetchSales = async () => {
 
-      if(searchText){
+      if (searchText) {
         handleSearch(searchText)
       }
 
@@ -115,25 +120,38 @@ export default function QuerySalesData() {
 
 
   const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100;
-  const searchTotal = sales?.reduce((acc, curr)=> acc + curr.total, 0)
-  const searchFoc = sales?.filter((sale)=> sale.free)?.reduce((acc, curr)=> acc + curr.total, 0)
+  const searchTotal = sales?.reduce((acc, curr) => acc + curr.total, 0)
+  const searchFoc = sales?.filter((sale) => sale.free)?.reduce((acc, curr) => acc + curr.total, 0)
 
   const handleSearch = useCallback(
-    debounce(async(searchText)=>{
-      const {data} = await axios.get(`/api/sale/search?searchText=${searchText}`)
+    debounce(async (searchText) => {
+      const { data } = await axios.get(`/api/sale/search?searchText=${searchText}`)
       setSales(data)
     }, 300),
     []
   )
 
-  const addSale = async(saleId)=>{
-    const {data} = await axios.get(`/api/sale/get-sale/${saleId}`)
-    if(data && data._id){
+  const addSale = async (saleId) => {
+    const { data } = await axios.get(`/api/sale/get-sale/${saleId}`)
+    if (data && data._id) {
       localStorage.setItem('selectedSale', JSON.stringify(data))
       toast.success('successfully attached')
     }
 
   }
+
+  const cancelSale = async ({ _id }) => {
+    setSelectedSale({ _id })
+    setStatusModal(true)
+  }
+
+
+  const statusColors = {
+    cancelled: "tomato",
+    pending: "orange",
+    completed: "green",
+  };
+
 
   return (
     <div>
@@ -149,39 +167,74 @@ export default function QuerySalesData() {
           </Form.Group>
           <Form.Group>
             <Form.Label>SEARCH SALE</Form.Label>
-            <Form.Control type='text' 
-              value={searchText} 
+            <Form.Control type='text'
+              value={searchText}
               placeholder='name, phone or invoice number'
-              onChange={(e)=> setSearchText(e.target.value)}
-              />
+              onChange={(e) => setSearchText(e.target.value)}
+            />
           </Form.Group>
         </div>
         <div>
           <XlsExportBtn data={sales} />
+          <Button className='mx-3'>PDF</Button>
         </div>
       </div>
       <Row>
         <Col>
           {sales !== null ? (
             <div>
-              <div className='d-flex justify-content-between m-2'>
-                <Badge bg='danger' className='p-3'>Total Results: {totalCount || sales?.length}</Badge>
-                <Badge bg='danger' className='p-3'>Total value: {round2(totalValue || searchTotal)}</Badge>
-                <Badge bg='danger' className='p-3'>Vat value: {round2(sales?.reduce((acc, sale) => acc + sale.vat, 0))}</Badge>
-                <Badge bg='danger' className='p-3'>F.O.C. {round2(focSales || searchFoc)}</Badge>
+                <div className="row g-2">
+                  {/* Left side */}
+                  <div className="col-md-6">
+                    <div className="row g-2">
+                      <div className="col-6">
+                        <Card className="p-4 text-center h-100">
+                          <Card.Title>Total Results</Card.Title>
+                          <h4 className="fw-bold text-dark">{totalCount || sales?.length}</h4>
+                        </Card>
+                      </div>
+                      <div className="col-6">
+                        <Card className="p-4 text-center h-100">
+                          <Card.Title>Total Value</Card.Title>
+                          <h4 className="fw-bold text-success">{round2(totalValue || searchTotal)}</h4>
+                        </Card>
+                      </div>
+                      <div className="col-6">
+                        <Card className="p-4 text-center h-100">
+                          <Card.Title>VAT Value</Card.Title>
+                          <h4 className="fw-bold text-primary">
+                            {round2(sales?.reduce((acc, sale) => acc + sale.vat, 0))}
+                          </h4>
+                        </Card>
+                      </div>
+                      <div className="col-6">
+                        <Card className="p-4 text-center h-100">
+                          <Card.Title>F.O.C.</Card.Title>
+                          <h4 className="fw-bold text-danger">{round2(focSales || searchFoc)}</h4>
+                        </Card>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right side */}
+                  <div className="col-md-6">
+                    <div className="row g-2">
+                      {paymentTotals &&
+                        paymentTotals.slice(0, 4).map((paymentMethod, index) => (
+                          <div key={index} className="col-6">
+                            <Card className="p-4 text-center h-100">
+                              <Card.Title>{paymentMethod.paymentMethod}</Card.Title>
+                              <h4 className="fw-bold text-secondary">
+                                {round2(paymentMethod.total)}
+                              </h4>
+                            </Card>
+                          </div>
+                        ))}
+                    </div>
+                </div>
               </div>
-              <Row>
-                {paymentTotals && paymentTotals?.map((paymentMethod, index) => (
-                  <Col key={index} className="m-3 border bg-primary text-light">
-                    <Card.Title className='py-2'>
-                      <strong>{paymentMethod.paymentMethod}</strong>
-                    </Card.Title>
-                    <p>{round2(paymentMethod.total)}</p>
-                  </Col>
-                ))
-                }
-              </Row>
-              <Table bordered hover responsive>
+
+              <Table bordered hover responsive className='mt-3'>
                 <thead>
                   <tr>
                     <th>INV Code</th>
@@ -196,18 +249,15 @@ export default function QuerySalesData() {
                 </thead>
                 <tbody>
                   {sales?.map((sale) => (
-                    <tr key={sale._id}>
+                    <tr key={sale._id} style={{ background: statusColors[sale?.status] || 'white' }}>
                       <td>
-                        <Button onClick={() => handleViewSale(sale._id)} className='bg-primary border'>
-                          <span className='px-1'>
-                            <FaEye />
-                          </span>
+                        <Button onClick={() => handleViewSale(sale._id)} className='bg-primary border-none btn-sm'>
                           {sale.InvoiceCode}
                         </Button>
                       </td>
                       <td>
                         {editingSale && editingSale._id === sale._id ? (
-                          <Calendar onChange={setDate} value={date} />
+                          <Form.Control type='date' onChange={(e) => setDate(e.target.value)} value={date} />
                         ) : (
                           sale.date
                         )}
@@ -245,20 +295,38 @@ export default function QuerySalesData() {
                       <td>{sale.total}</td>
                       <td className='d-flex justify-content-around'>
                         {!editingSale || editingSale._id !== sale._id ? (
-                          <BsPencil size={22} onClick={() => handleEdit(sale)} />
+                          <BsPencilFill size={22} onClick={() => handleEdit(sale)} />
                         ) : (
                           <div className='d-flex p-1 justify-content-between'>
                             <BsCheck2 size={22} onClick={() => updateSale()} />
-                            <BsXLg size={22} onClick={() => handleCancel()} />
+                            <BsXLg size={22} />
                           </div>
                         )}
-                        <BsBookmarkCheckFill size={22} onClick={()=> addSale(sale._id)}/>
+                        <BsBookmarkCheckFill size={22} onClick={() => addSale(sale._id)} />
+                        <BsDashCircleFill size={22} onClick={() => cancelSale(sale)} color='red' />
                       </td>
                     </tr>
                   ))}
+                  <Modal show={statusModal} onHide={() => setStatusModal(false)}>
+                    <Modal.Header closeButton>
+                      <h3>CHANGE SALE STATUS</h3>
+                    </Modal.Header>
+                    <Modal.Body>
+                      <ListGroup>
+                        {['completed', 'pending', 'cancelled'].map(status => (
+                          <ListGroup.Item key={status}>
+                            <Button className='btn btn-sm' variant='warning' onClick={() => handleChangeStatus(status)}>
+                              {status}
+                            </Button>
+                          </ListGroup.Item>
+                        ))}
+                      </ListGroup>
+                    </Modal.Body>
+                  </Modal>
                 </tbody>
               </Table>
               <SaleDetailsModal show={showModal} onHide={() => setShowModal(false)} selectedSale={selectedSale} />
+
             </div>
           ) : (
             <Alert variant='warning'>No data</Alert>
