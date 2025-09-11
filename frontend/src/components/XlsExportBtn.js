@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Button } from 'react-bootstrap';
 import * as xlsx from 'xlsx'
 
-const XlsExportBtn = ({title='export', worksheetName="Sheet1", data=[], keysToInclude=null }) => {
+const XlsExportBtn = ({title='export XLS', worksheetName="Sheet1", data=[], keysToInclude=null }) => {
 
     const [loading, setLoading] = useState(false);
 

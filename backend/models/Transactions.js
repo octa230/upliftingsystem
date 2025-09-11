@@ -52,6 +52,7 @@ const unitSchema = new mongoose.Schema({
 
 const SaleSchema = new mongoose.Schema({
     InvoiceCode: {type: String, required: true},
+    status:{type: String, Enumerator:['completed', 'pending', 'cancelled'], default: "completed"},
     saleItems:[{
         productName: {type: String, required: true},
         price: {type: Number, required: true},
