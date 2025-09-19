@@ -18,7 +18,7 @@ import Register from "./components/Register";
 function App() {
 
   const {state, dispatch: ctxDispatch} = useContext(Store);
-  const {userInfoToken} = state;
+  const {userInfoToken, selectedItems} = state;
   
   
   function signoutHandler(){
