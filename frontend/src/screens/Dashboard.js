@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Graphs from '../components/Graphs'
 import ProductsData from '../components/ProductsData'
-import { Tabs, Tab } from 'react-bootstrap';
+import { Tabs, Tab, Badge } from 'react-bootstrap';
 
 
 
@@ -12,21 +12,29 @@ import {
     BsGraphUpArrow,
     BsFillFileEarmarkBarGraphFill,
     BsCloudsFill, BsFillFolderSymlinkFill,
-    BsFillInboxesFill
+    BsFillInboxesFill,
+    BsCalculatorFill
 } from 'react-icons/bs'
 import SaleTable from '../components/SaleTable'
 import FilingScreen from '../components/FilingScreen'
 import QuerySalesData from '../components/QuerySalesData'
 import DailyReport from '../components/DailyReport'
 import PurchaseScreen from '../components/PurchaseScreen'
+import Expenses from '../components/Expenses';
+import { useContext } from 'react';
+import { Store } from '../utils/Store';
 
 export default function Dashboard() {
     const [content, setContent] = useState('inventory')
+    const {state} = useContext(Store)
+
+    const {selectedItems} = state
+
     return (
         <Tabs fill
             defaultActiveKey="inventory"
             id="dashboard-tabs"
-            className="mb-3 p-3 bg-dark text-li"
+            className="mb-3 p-3 bg-light text-li"
             variant='pills'
             mountOnEnter
             onSelect={(eventKey) => setContent(eventKey)}
@@ -38,6 +46,13 @@ export default function Dashboard() {
             }>
                 {content === 'inventory' && <InventoryScreen />}
             </Tab>
+            <Tab eventKey="expenses" title={
+                <>
+                    <BsCalculatorFill /> Expenses
+                </>
+            }>
+                {content === 'expenses' && <Expenses />}
+            </Tab>
             <Tab eventKey="make-sale" title={
                 <>
                     <BsFillCreditCardFill /> Make Sale
@@ -48,6 +63,7 @@ export default function Dashboard() {
             <Tab eventKey="mass-records" title={
                 <>
                     <BsCloudsFill /> Mass Records
+                    <Badge bg='danger'>{selectedItems?.length}</Badge>
                 </>
             }>
                 {content === 'mass-records' && <FilingScreen />}

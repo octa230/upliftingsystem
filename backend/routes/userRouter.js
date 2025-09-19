@@ -32,7 +32,6 @@ userRouter.post(
 userRouter.post(
     '/login', 
     expressAsyncHandler(async(req, res)=> {
-        console.log(req.body)
         const user = await Employee.findOne({name: req.body.name})
         if(user){
             if(bcrypt.compareSync(req.body.password, user.password)){
@@ -49,5 +48,9 @@ userRouter.post(
     })
 )
 
+userRouter.get('/', expressAsyncHandler(async(req, res)=> {
+    const users = await Employee.find({}).select('name')
+    res.send(users)
+}))
 
 export default userRouter

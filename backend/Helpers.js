@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import {v2 as cloudinary} from 'cloudinary';
+import path from 'path';
 import streamifier from 'streamifier';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv'
@@ -10,6 +11,21 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const upload = multer();
+
+
+
+
+const storage = multer.diskStorage({
+  destination: function(req, file, cb){
+    cb(null, 'uploads/bills')
+  },
+  filename: function(req, file, cb){
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+})
+
+const dskUploads = multer({storage: storage})
 
 
 export const UploadRouter = express.Router();
@@ -52,6 +68,19 @@ UploadRouter.post(
     }
   }
 );
+
+UploadRouter.post('/bill', dskUploads.single('file'), (req, res)=>{
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+
+  // File metadata is in req.file
+  res.send({
+    message: 'File uploaded successfully!',
+    filePath: req.file.path,
+    fileName: req.file.filename
+  });
+})
 
 
 export const generateToken = (user) => {

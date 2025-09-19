@@ -288,9 +288,7 @@ if(hasNullValues){
                   value={product.quantity || ''}
                   onChange={(event) => handleQuantityChange(index, event)}
                 />
-              </td>
-{/*               <td>{product.price && product.quantity ? (product.price * product.quantity) - ((product.price * product.quantity) * 0.05) - discount : 0}</td>
- */}            <td>
+
           <label htmlFor={`fileInput-${index}`}>
             <BsCamera size={20} />
           </label>
