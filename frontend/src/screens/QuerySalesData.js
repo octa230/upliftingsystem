@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Row, Col, Table, Form, Button, Alert, Card, Modal, ListGroup } from 'react-bootstrap';
 import axios from 'axios';
 import { getError } from '../utils/getError';
 import { toast } from 'react-toastify';
-import { FaEye } from 'react-icons/fa';
-import { BsCheck2, BsXLg, BsBookmarkCheckFill, BsDashCircleFill, BsPencilFill } from 'react-icons/bs';
-import Badge from 'react-bootstrap/esm/Badge';
-import SaleDetailsModal from './SaleDetailsModal';
+import { BsCheck2, BsXLg, BsDashCircleFill } from 'react-icons/bs';
+import SaleDetailsModal from '../components/SaleDetailsModal';
 import { Store } from '../utils/Store';
-import XlsExportBtn from './XlsExportBtn';
+import XlsExportBtn from '../components/XlsExportBtn';
 import { useCallback } from 'react';
 import debounce from 'lodash.debounce'
+import { LuPenLine, LuPlusCircle, LuPrinter } from 'react-icons/lu';
 
 export default function QuerySalesData() {
   const { state } = useContext(Store);
@@ -55,6 +54,28 @@ export default function QuerySalesData() {
       toast.error(getError(error));
     }
   };
+
+  const handlePrint=async(saleId)=>{
+    if(window.confirm('print Invoice?')){
+      toast.promise(
+        axios.post(`/api/sale/print-sale/${saleId}`, {},
+          {
+            responseType:"blob",
+            headers: {'Accept': 'application/pdf'}
+          }
+        ).then((response)=> {
+        const blob = new Blob([response.data], {type:"application/pdf"});
+        const url = window.URL.createObjectURL(blob)
+        window.open(url, '_blank')
+      }),
+      {
+        pending:"...please wait",
+        success:"...done!",
+        error:"Oops! try again"
+      }
+      )
+    }
+  }
 
   // Function to handle editing sale
   const handleEdit = async (sale) => {
@@ -183,58 +204,58 @@ export default function QuerySalesData() {
         <Col>
           {sales !== null ? (
             <div>
-                <div className="row g-2">
-                  {/* Left side */}
-                  <div className="col-md-6">
-                    <div className="row g-2">
-                      <div className="col-6">
-                        <Card className="p-4 text-center h-100">
-                          <Card.Title>Total Results</Card.Title>
-                          <h4 className="fw-bold text-dark">{totalCount || sales?.length}</h4>
-                        </Card>
-                      </div>
-                      <div className="col-6">
-                        <Card className="p-4 text-center h-100">
-                          <Card.Title>Total Value</Card.Title>
-                          <h4 className="fw-bold text-success">{round2(totalValue || searchTotal)}</h4>
-                        </Card>
-                      </div>
-                      <div className="col-6">
-                        <Card className="p-4 text-center h-100">
-                          <Card.Title>VAT Value</Card.Title>
-                          <h4 className="fw-bold text-primary">
-                            {round2(sales?.reduce((acc, sale) => acc + sale.vat, 0))}
-                          </h4>
-                        </Card>
-                      </div>
-                      <div className="col-6">
-                        <Card className="p-4 text-center h-100">
-                          <Card.Title>F.O.C.</Card.Title>
-                          <h4 className="fw-bold text-danger">{round2(focSales || searchFoc)}</h4>
-                        </Card>
-                      </div>
+              <div className="row g-2">
+                {/* Left side */}
+                <div className="col-md-6">
+                  <div className="row g-2">
+                    <div className="col-6">
+                      <Card className="p-4 text-center h-100">
+                        <Card.Title>Total Results</Card.Title>
+                        <h4 className="fw-bold text-dark">{totalCount || sales?.length}</h4>
+                      </Card>
+                    </div>
+                    <div className="col-6">
+                      <Card className="p-4 text-center h-100">
+                        <Card.Title>Total Value</Card.Title>
+                        <h4 className="fw-bold text-success">{round2(totalValue || searchTotal)}</h4>
+                      </Card>
+                    </div>
+                    <div className="col-6">
+                      <Card className="p-4 text-center h-100">
+                        <Card.Title>VAT Value</Card.Title>
+                        <h4 className="fw-bold text-primary">
+                          {round2(sales?.reduce((acc, sale) => acc + sale.vat, 0))}
+                        </h4>
+                      </Card>
+                    </div>
+                    <div className="col-6">
+                      <Card className="p-4 text-center h-100">
+                        <Card.Title>F.O.C.</Card.Title>
+                        <h4 className="fw-bold text-danger">{round2(focSales || searchFoc)}</h4>
+                      </Card>
                     </div>
                   </div>
+                </div>
 
-                  {/* Right side */}
-                  <div className="col-md-6">
-                    <div className="row g-2">
-                      {paymentTotals &&
-                        paymentTotals.slice(0, 4).map((paymentMethod, index) => (
-                          <div key={index} className="col-6">
-                            <Card className="p-4 text-center h-100">
-                              <Card.Title>{paymentMethod.paymentMethod}</Card.Title>
-                              <h4 className="fw-bold text-secondary">
-                                {round2(paymentMethod.total)}
-                              </h4>
-                            </Card>
-                          </div>
-                        ))}
-                    </div>
+                {/* Right side */}
+                <div className="col-md-6">
+                  <div className="row g-2">
+                    {paymentTotals &&
+                      paymentTotals.slice(0, 4).map((paymentMethod, index) => (
+                        <div key={index} className="col-6">
+                          <Card className="p-4 text-center h-100">
+                            <Card.Title>{paymentMethod.paymentMethod}</Card.Title>
+                            <h4 className="fw-bold text-secondary">
+                              {round2(paymentMethod.total)}
+                            </h4>
+                          </Card>
+                        </div>
+                      ))}
+                  </div>
                 </div>
               </div>
 
-              <Table bordered hover responsive className='mt-3'>
+              <Table bordered striped hover size='sm' responsive className='mt-3'>
                 <thead>
                   <tr>
                     <th>INV Code</th>
@@ -263,7 +284,7 @@ export default function QuerySalesData() {
                         )}
                       </td>
                       <td>{sale.name}</td>
-                      <td style={{ backgroundColor: sale.free ? 'greenyellow' : 'transparent' }}>{sale.free === true ? 'F.O.C' : 'PAID'}</td>
+                      <td style={{ backgroundColor: sale.free ? '#FF9999' : 'transparent' }}>{sale.free === true ? 'F.O.C' : 'PAID'}</td>
                       <td>
                         {editingSale && editingSale._id === sale._id ? (
                           <Form.Select onChange={(e) => setService(e.target.value)}>
@@ -295,14 +316,15 @@ export default function QuerySalesData() {
                       <td>{sale.total}</td>
                       <td className='d-flex justify-content-around'>
                         {!editingSale || editingSale._id !== sale._id ? (
-                          <BsPencilFill size={22} onClick={() => handleEdit(sale)} />
+                          <LuPenLine size={22} onClick={() => handleEdit(sale)} />
                         ) : (
                           <div className='d-flex p-1 justify-content-between'>
                             <BsCheck2 size={22} onClick={() => updateSale()} />
                             <BsXLg size={22} />
                           </div>
                         )}
-                        <BsBookmarkCheckFill size={22} onClick={() => addSale(sale._id)} />
+                        <LuPlusCircle size={22} onClick={() => addSale(sale._id)} />
+                        <LuPrinter size={22} onClick={() => handlePrint(sale._id)} />
                         <BsDashCircleFill size={22} onClick={() => cancelSale(sale)} color='red' />
                       </td>
                     </tr>
@@ -326,7 +348,6 @@ export default function QuerySalesData() {
                 </tbody>
               </Table>
               <SaleDetailsModal show={showModal} onHide={() => setShowModal(false)} selectedSale={selectedSale} />
-
             </div>
           ) : (
             <Alert variant='warning'>No data</Alert>

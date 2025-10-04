@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { Button } from 'react-bootstrap';
+import { LuDatabase } from 'react-icons/lu';
 import * as xlsx from 'xlsx'
 
-const XlsExportBtn = ({title='export XLS', worksheetName="Sheet1", data=[], keysToInclude=null }) => {
+const XlsExportBtn = ({title='XLS', worksheetName="Sheet1", data=[], keysToInclude=null }) => {
 
     const [loading, setLoading] = useState(false);
 
@@ -37,11 +38,17 @@ const XlsExportBtn = ({title='export XLS', worksheetName="Sheet1", data=[], keys
 
         setLoading(false);
     }
-  return <Button className='btn btn-success btn-md' variant='info'
+  return <Button variant='outline-info'
             onClick={handleExport}
             value={title}
             disabled={loading}>
-        {title || 'Excel Export' (loading && <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>)}
+        <>
+            <LuDatabase size={22} style={{ marginRight: 8 }} />
+            {title}
+            {loading && (
+                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ marginLeft: 8 }}></span>
+            )}
+        </>
   </Button>
 }
 

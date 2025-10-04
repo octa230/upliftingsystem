@@ -51,6 +51,18 @@ ProductRouter.get(
         })
     )
 )
+
+
+ProductRouter.get('/gallery', expressAsyncHandler(async(req, res)=>{
+  const {limit, price} = req.query
+  const products = await Product.find({identifier:"ARRANGEMENT"})
+  .limit(limit || 30)
+  .sort({price: -1})
+  res.send(products)
+}))
+
+
+
 ProductRouter.get(
     '/names',
     expressAsyncHandler(
@@ -67,14 +79,14 @@ ProductRouter.post(
             const {name, code, price, inStock, purchasePrice, identifier, photo} = req.body
             const newProduct = new Product(
                 {
-                    name: name.toUpperCase(),
+                    name: name,
                     price: price,
-                    code: code.toUpperCase(),
+                    code: code,
                     photo: photo,
                     inStock: inStock,
                     purchase: inStock,
                     purchasePrice: purchasePrice,
-                    identifier: identifier.toUpperCase(),
+                    identifier: identifier?.toUpperCase(),
                     closingStock: inStock,
                 }
             )
@@ -83,6 +95,7 @@ ProductRouter.post(
         }
     )
 )
+
 ProductRouter.delete(
     '/delete/:id',
     expressAsyncHandler(

@@ -1,6 +1,7 @@
-import React, { useContext, useState, useEffect } from 'react'
+import { useContext, useState, useEffect } from 'react'
 import { Store } from '../utils/Store'
 import Col from 'react-bootstrap/esm/Col'
+import Stack from 'react-bootstrap/esm/Stack'
 import Form from 'react-bootstrap/esm/Form'
 import ListGroup from 'react-bootstrap/esm/ListGroup'
 import Container from 'react-bootstrap/esm/Container'
@@ -10,10 +11,11 @@ import { BsXCircle } from 'react-icons/bs'
 import axios from 'axios'
 import Alert from 'react-bootstrap/esm/Alert'
 import { BsPaperclip } from 'react-icons/bs'
-import SaleDetailsModal from './SaleDetailsModal'
-import MessageBox from './MessageBox'
+import SaleDetailsModal from '../components/SaleDetailsModal'
+import MessageBox from '../components/MessageBox'
 import { FaEye } from 'react-icons/fa'
 import { getError } from '../utils/getError'
+import { LuCheckCircle2, LuTrash2 } from 'react-icons/lu'
 
 
 
@@ -24,12 +26,13 @@ const FilingScreen = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { selectedItems, todaySales } = state
 
-  const recordTypes = ['purchase', 'sale', 'damage', 'hotel', 'returned']
+  const recordTypes = ['purchase', 'sale', 'damage', 'hotel', 'returned', 'purchase_order']
 
 
   const [recordType, setRecordType] = useState('')
   const [itemQuantities, setItemQuantities] = useState({})
   const [deliveryNote, setdeliveryNote] = useState('')
+  const [orderFrom, setOrderFrom] = useState('')
   const [invoices, setInvoices] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [selectedSale, setSelectedSale] = useState({})
@@ -44,7 +47,8 @@ const FilingScreen = () => {
   useEffect(() => {
     if (recordType === 'sale') {
       (async () => {
-        setInvoices(todaySales || [])
+        const { data } = await axios.get(`/api/sale/today-sales`)
+        setInvoices(data)
         const storedSale = await JSON.parse(localStorage.getItem('selectedSale'))
         if (storedSale && !selectedSale._id) {
           setSelectedSale(storedSale);
@@ -53,8 +57,6 @@ const FilingScreen = () => {
     }
   }, [recordType, todaySales]);
 
-
-  /* [recordType, selectedItems, invoices, selectedSale, todaySales] */
 
   const getPurchase = async (e) => {
     if (deliveryNote !== '') {
@@ -81,7 +83,7 @@ const FilingScreen = () => {
     }
   }
 
-  const selectedProducts = selectedItems.map(item => ({
+  const selectedProducts = Array(selectedItems)?.map(item => ({
     product: item._id,
     productName: item.name,
     purchasePrice: item.purchasePrice,
@@ -155,6 +157,19 @@ const FilingScreen = () => {
         } catch (error) {
           console.log(error)
         }
+        break
+      case "purchase_order":
+        try {
+          if (purchase.Items && deliveryNote) {
+            await axios.put(`/api/transactions/${deliveryNote}`, {
+              purchase,
+              total: newTotal,
+              type: recordType
+            })
+          }
+        } catch (error) {
+          console.log(error)
+        }
         break;
       default:
         break
@@ -202,127 +217,170 @@ const FilingScreen = () => {
 
 
   const addSale = async (saleId) => {
-    const { data } = await axios.get(`/api/multiple/get-sale/${saleId}`)
-    localStorage.setItem('selectedSale', JSON.stringify(data))
-    ctxDispatch({ type: "ADD_SELECTED_SALE", payload: data })
+    const { data } = await axios.get(`/api/sale/get-sale/${saleId}`)
+    setSelectedSale(data)
+    //localStorage.setItem('selectedSale', JSON.stringify(data))
+    //ctxDispatch({ type: "ADD_SELECTED_SALE", payload: data })
     toast.success('sale attched successfully')
   }
 
   const clearSelectedItems = () => {
     ctxDispatch({ type: "CLEAR_SELECTED_ITEMS" })
-    localStorage.removeItem('selectedItems')
+    //localStorage.removeItem('selectedItems')
   }
+
+
+  const handleRecordChange = (e) => {
+    setRecordType(e.target.value)
+    console.log(recordType)
+  }
+
 
   return (
     <Container fluid className='my-2'>
       <div className='d-flex justify-content-between'>
         <div>
           <Form.Label>Record Type</Form.Label>
-          <Form.Control as='select' onChange={(e) => setRecordType(e.target.value)} value={recordType}>
+          <Form.Select as='select' onChange={(e) => setRecordType(e.target.value)} value={recordType}>
             <option>---select---</option>
-            {recordTypes.map((record) => (
-              <option key={record}>{record}</option>
+            {recordTypes.map((record, index) => (
+              <option key={index}>{record}</option>
             ))}
-          </Form.Control>
+          </Form.Select>
         </div>
+
+
         <div>
-          {recordType === "purchase" ? (
-            <Form.Group>
-              <Form.Label>Delivery Note Number</Form.Label>
-              <Form.Control
-                type='text'
-                placeholder='invoice / Delivery Note Number'
-                value={deliveryNote}
-                onChange={(e) => setdeliveryNote(e.target.value)}
-              />
-            </Form.Group>
-          ) : recordType === "returned" ? (
-            <Form.Group>
-              <Form.Label>Delivery Note Number</Form.Label>
-              <Form.Control
-                type='text'
-                placeholder='invoice / Delivery Note Number'
-                value={deliveryNote}
-                onChange={(e) => setdeliveryNote(e.target.value)}
-              />
-              <Button onClick={getPurchase} className='p-1 m-2'>Find</Button>
-            </Form.Group>
-          ) : selectedSale && recordType !== "damage" ? (
-            <div>
-              <Alert variant="success">
-                {selectedSale.InvoiceCode || "No Invoice"}
-              </Alert>
-              <Form.Group>
-                <Form.Label>Arrangement</Form.Label>
-                <Form.Control
-                  as='select'
-                  value={arrangement}
-                  onChange={(e) => setArrangement(e.target.value)}
-                >
-                  <option>--select--</option>
-                  {selectedSale.saleItems?.map((item) => (
-                    <option key={item._id}>{item.arrangement}</option> // Ensure to use a unique key
-                  ))}
-                </Form.Control>
-              </Form.Group>
-            </div>
-          ) : (
-            <div>No selection</div>
-          )}
+          {(() => {
+            switch (recordType) {
+              case "purchase":
+                return (
+                  <Form.Group>
+                    <Form.Label>Delivery Note Number</Form.Label>
+                    <Form.Control
+                      type='text'
+                      placeholder='invoice / Delivery Note Number'
+                      value={deliveryNote}
+                      onChange={(e) => setdeliveryNote(e.target.value)}
+                    />
+                  </Form.Group>
+                );
+
+              case "returned":
+                return (
+                  <Form.Group>
+                    <Form.Label>Delivery Note Number</Form.Label>
+                    <Form.Control
+                      type='text'
+                      placeholder='invoice / Delivery Note Number'
+                      value={deliveryNote}
+                      onChange={(e) => setdeliveryNote(e.target.value)}
+                    />
+                    <Button onClick={getPurchase} className='p-1 m-2'>Find</Button>
+                  </Form.Group>
+                );
+
+              case "purchase_order":
+                return (
+                  <Form.Group>
+                    <Form.Label>Send Purchase Order To</Form.Label>
+                    <Form.Control
+                      type='text'
+                      value={orderFrom}
+                      onChange={(e) => setOrderFrom(e.target.value)}
+                    />
+                  </Form.Group>
+                );
+
+              case "damage":
+                return <div>File Selected Items As Damage</div>;
+
+              case "sale":
+                return selectedSale && (
+                  <div>
+                    <Alert variant="success">
+                      {selectedSale.InvoiceCode || "No Invoice"}
+                    </Alert>
+                    <Form.Group>
+                      <Form.Label>Arrangement</Form.Label>
+                      <Form.Control
+                        as='select'
+                        value={arrangement}
+                        onChange={(e) => setArrangement(e.target.value)}
+                      >
+                        <option>--select--</option>
+                        {selectedSale.saleItems?.map((item) => (
+                          <option key={item._id}>{item.arrangement}</option>
+                        ))}
+                      </Form.Control>
+                    </Form.Group>
+                  </div>
+                );
+
+              default:
+                return <div>Select Record Type</div>;
+            }
+          })()}
         </div>
 
         <div>
-          <Button onClick={() => clearSelectedItems()} disabled>
-            Clear All
+          <Stack className='gap-3'>
+          <Button
+            className='btn-sm'
+            onClick={clearSelectedItems}
+            variant='warning'>
+            Clear <LuTrash2 size={22} color='red' />
           </Button>
+          <Button onClick={handleSubmit} variant='danger'>
+            Submit <LuCheckCircle2 size={22} color='#eaefef'/>
+          </Button>
+        </Stack>
         </div>
       </div>
       <ListGroup className='my-3'>
-        {selectedItems && selectedItems.length > 0 ?
-          selectedItems.map((item) => (
-            <ListGroup.Item key={item._id} className='d-flex my-1 justify-content-between'>
-              <Col>{item.name}</Col>
-              {recordType === 'purchase' ? (
-                <Col>
-                  <Form.Control type='Number'
-                    value={itemQuantities[item._id] || ''}
-                    onChange={(e) => handleQuantityChange(item._id, e.target.value)}
-                  />
-                </Col>
-              ) : (
-                <Col>
-                  <Form.Control as="select"
-                    value={itemQuantities[item._id] || ''}
-                    onChange={(e) => handleQuantityChange(item?._id, e.target.value)}>
-                    <option>--select--</option>
-                    {[...Array(item?.inStock).keys() || 0].map((val) => (
-                      <option key={val + 1} value={val + 1}>{val + 1}</option>
-                    ))}
-                  </Form.Control>
-                </Col>
-              )}
+        {selectedItems.length && selectedItems?.map((item) => (
+          <ListGroup.Item key={item._id} className='d-flex my-1 justify-content-between'>
+            <Col>{item.name}</Col>
+            {recordType === 'purchase' || "purchase_order"? (
               <Col>
-                <Button variant='' onClick={() => removeItemHandler(item)}>
-                  <BsXCircle />
-                </Button>
+                <Form.Control type='Number'
+                  value={itemQuantities[item._id] || ''}
+                  onChange={(e) => handleQuantityChange(item._id, e.target.value)}
+                  placeholder='input qty'
+                />
               </Col>
-            </ListGroup.Item>
-          )) : (
-            <MessageBox>ADD DATA FROM INVENTORY</MessageBox>
-          )}
+            ) : (
+              <Col>
+                <Form.Control as="select"
+                  value={itemQuantities[item._id] || ''}
+                  onChange={(e) => handleQuantityChange(item?._id, e.target.value)}>
+                  <option>--select--</option>
+                  {[...Array(item?.inStock).keys() || 0].map((val) => (
+                    <option key={val + 1} value={val + 1}>{val + 1}</option>
+                  ))}
+                </Form.Control>
+              </Col>
+            )}
+            <Col>
+              <Button variant='outline-secondary' onClick={() => removeItemHandler(item)}>
+                <BsXCircle />
+              </Button>
+            </Col>
+          </ListGroup.Item>
+        ))
+        }
       </ListGroup>
-      <Button onClick={handleSubmit}>Submit</Button>
 
       <div className='my-3'>
-        {recordType !== "purchase"
+        {recordType === "sale"
           ? (<ListGroup className='my-3'>
-            {recordType !== "damage" && invoices.map((invoice) => (
-              <ListGroup.Item className='d-flex justify-content-between' key={invoice.InvoiceCode}>
+            {recordType !== ("damage" || "purchase_order") && invoices?.map((invoice) => (
+              <ListGroup.Item className='d-flex justify-content-between' key={invoice?.InvoiceCode}>
                 <Button onClick={() => handleViewSale(invoice._id)} className='bg-primary border'>
                   <span className='px-1'>
                     <FaEye />
                   </span>
-                  {invoice.InvoiceCode}
+                  {invoice?.InvoiceCode}
                 </Button>
                 <div>
                   <Button variant='warning' onClick={() => addSale(invoice._id)}>

@@ -3,8 +3,9 @@ import { Expense_Acc, Expense } from "../models/expense.js";
 import asyncHandler from 'express-async-handler'
 import fs from 'fs'
 import path from "path";
+import puppeteer from "puppeteer";
+import Handlebars from "handlebars";
 import { fileURLToPath } from "url";
-
 
 const expenseRouter = Router()
 
@@ -188,6 +189,38 @@ class Expenses {
         };
     }
 
+
+    async printReport(data){
+        const {expenses} = data
+        try{
+            const totalAmount = await expenses?.reduce((sum, expenses) => sum + expenses.amount, 0);
+            const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+            console.log(expenses, totalAmount)
+
+            //const templateSource = fs.readFileSync('../templates/expenseReport.hbs', 'utf-8')
+            const templateSource = fs.readFileSync(path.join(__dirname, '../templates', 'expenseReport.hbs'), 'utf-8');
+            const template = Handlebars.compile(templateSource)
+            const htmlContent = template({expenses, totalAmount})
+
+            const browser = await puppeteer.launch({
+                headless: true,
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            })
+            const page = await browser.newPage()
+            await page.setContent(htmlContent)
+            const PDFBUFFER = await page.pdf({
+                path: 'expenseReport.pdf', format:"A4",
+                printBackground: true
+            })
+            await browser.close()
+            return PDFBUFFER
+        }catch(error){
+            console.log(error)
+        }
+        
+    }
+
 }
 
 const expenses = new Expenses()
@@ -231,6 +264,18 @@ expenseRouter.get('/bill/:id', asyncHandler(async (req, res) => {
         }
     })
 
+}))
+
+
+expenseRouter.post('/print-report', asyncHandler(async(req, res)=> {
+
+    const report = await expenses.printReport(req.body)
+    res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename=expenseReport.pdf',
+        'Content-Length': report.length
+    });
+    res.send(report);
 }))
 
 

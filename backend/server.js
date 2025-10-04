@@ -12,6 +12,8 @@ import TransactionRouter from './routes/transactionRoutes.js';
 import { ErrorHandler, UploadRouter } from './Helpers.js';
 import SaleRouter from './routes/SaleRoutes.js';
 import expenseRouter from './routes/expenseRoutes.js';
+import settingsRouter from './routes/settingRoutes.js';
+import letterheadRouter from './routes/letterHead.js';
 
 const app = express();
 dotenv.config()
@@ -36,6 +38,8 @@ app.use('/api/sale', SaleRouter)
 app.use('/api/upload', UploadRouter)
 app.use('/api/transactions', TransactionRouter)
 app.use('/api/expenses', expenseRouter)
+app.use('/api/settings', settingsRouter)
+app.use('/api/letter-head', letterheadRouter)
 
 //errorMiddleware
 app.use(ErrorHandler)

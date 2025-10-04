@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Card, Form, Table } from 'react-bootstrap'
-import { BsCardText, BsCheck2Circle, BsInfoCircle } from 'react-icons/bs'
+import { BsCardText, BsCheck2Circle, BsInfoCircle, BsPrinterFill } from 'react-icons/bs'
 import axios from 'axios'
 import Chart from 'react-google-charts'
+import Calculator from '../components/Calculator'
 
 const Expenses = () => {
   const [account, setAccount] = useState({
@@ -24,7 +25,6 @@ const Expenses = () => {
   const [users, setUsers] = useState([])
   const [expense_Accs, setExpense_Accs] = useState([])
   const [file, setFile] = useState(Boolean)
-  const [input, setInput] = useState('0')
   const [summaryData, setSummaryData] = useState({ PieData: [], ColumnData: [] });
   const [queryKeys, setQueryKeys] = useState({
     startDate: new Date().toISOString().split('T')[0],
@@ -33,22 +33,6 @@ const Expenses = () => {
   })
 
   const types = ['Utilities', 'Supplies', 'Personal', 'Others']
-  /* const PieData = [
-    ["Task", "Hours per Day"],
-    ["Work", 9],
-    ["Eat", 2],
-    ["Commute", 2],
-    ["Watch TV", 2],
-    ["Sleep", 7],
-  ];
-
-  const ColumnData = [
-    ["Element", "Density", { role: "style" }],
-    ["Copper", 8.94, "#b87333"], // RGB value
-    ["Silver", 10.49, "silver"], // English color name
-    ["Gold", 19.3, "gold"],
-    ["Platinum", 21.45, "color: #e5e4e2"], // CSS-style declaration
-  ]; */
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -78,68 +62,6 @@ const Expenses = () => {
       }
     }
   };
-
-
-  const isLastCharOperator = (str) => /[+\-*/]$/.test(str);
-
-  // Handle calc button clicks
-  const handleCalcClick = (value) => {
-    if (value === '=') {
-      try {
-        // Only evaluate if the expression is valid
-        if (isLastCharOperator(input)) {
-          setInput('Error'); // Prevent evaluation if the last character is an operator
-        } else {
-          setInput(eval(input).toString());
-        }
-      } catch (e) {
-        setInput('Error');
-      }
-    } else if (value === 'C') {
-      setInput('0'); // Reset input
-    } else if (value === '.' && !input.includes('.')) {
-      // Prevent adding multiple decimals
-      setInput((prev) => prev + value);
-    } else if (isLastCharOperator(input) && /[+\-*/]/.test(value)) {
-      // Prevent appending an operator directly after another operator
-      return;
-    } else {
-      setInput((prev) => (prev === '0' ? value : prev + value));
-    }
-  };
-
-  // Handle keyboard input
-  useEffect(() => {
-    const handleKeydown = (event) => {
-      const key = event.key;
-
-      // Handle Backspace
-      if (key === 'Backspace') {
-        setInput((prev) => (prev.length === 1 ? '0' : prev.slice(0, -1))); // Remove the last character
-      }
-
-      // Handle calculator keys
-      else if ('0123456789'.includes(key)) {
-        handleCalcClick(key); // Numbers
-      } else if ('+-*/'.includes(key)) {
-        handleCalcClick(key); // Operators
-      } else if (key === '.') {
-        handleCalcClick('.'); // Decimal point
-      } else if (key === 'Enter' || key === '=') {
-        handleCalcClick('='); // Equals
-      } else if (key === 'Escape' || key === 'C') {
-        handleCalcClick('C'); // Clear
-      }
-    };
-
-    // Add event listener when component mounts
-    window.addEventListener('keydown', handleKeydown);
-
-    // Cleanup the event listener when component unmounts
-    return () => {
-      window.removeEventListener('keydown', handleKeydown);
-    };
-  }, [input]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -188,13 +110,24 @@ const Expenses = () => {
   }
 
 
-  const getBill = async(expenseId)=>{
-    const {data} = await axios.get(`/api/expenses/bill/${expenseId}`, {
-      responseType:"blob"
+  const getBill = async (expenseId) => {
+    const { data } = await axios.get(`/api/expenses/bill/${expenseId}`, {
+      responseType: "blob"
     })
     const fileURL = URL.createObjectURL(data)
     window.open(fileURL, '_blank')
   }
+
+
+  const exportExpenses =async()=>{
+    const {data} = await axios.post(`/api/expenses/print-report`,{
+      expenses
+    },
+    {responseType: 'blob'})
+    const fileURL = URL.createObjectURL(data)
+    window.open(fileURL, '_blank')
+  }
+
 
   return (
     <>
@@ -228,30 +161,7 @@ const Expenses = () => {
 
           {/**CALCULATOR */}
 
-          <Card className='d-flex flex-column align-items-center justify-content-center p-2'>
-            <Card.Header className='w-100 text-center border rounded text-success mb-3'>
-              <h6>{input}</h6>
-            </Card.Header>
-            <Card.Body className='w-100 d-flex flex-wrap justify-content-center p-0 gap-2'>
-              {[
-                '7', '8', '9', '/',
-                '4', '5', '6', '*',
-                '1', '2', '3', '-',
-                '0', '.', '=', '+',
-                'C', '00', '000'
-              ].map((btn) => (
-                <Button
-                  variant='outline-danger'
-                  key={btn}
-                  onClick={() => handleCalcClick(btn)}
-                  className='w-25'
-                  style={{ minWidth: '40px', fontSize: '1.5rem' }}
-                >
-                  {btn}
-                </Button>
-              ))}
-            </Card.Body>
-          </Card>
+          <Calculator/>
         </div>
 
 
@@ -365,6 +275,13 @@ const Expenses = () => {
 
       {/**DAILY EXPENSE TABLE */}
 
+      <div className='d-flex justify-content-end mx-3'>
+        {expenses?.length && (
+          <Button onClick={exportExpenses} variant='outline-primary'>
+            Export <BsPrinterFill />
+          </Button>
+        )}
+      </div>
       <Table striped responsive className='table-sm'>
         <thead>
           <tr>
@@ -381,7 +298,7 @@ const Expenses = () => {
               <td className='text-capitalize'>{expense?.account.name}</td>
               <td>{expense?.amount}</td>
               <td>{new Date(expense?.submittedOn).toDateString()}</td>
-              <td>{expense?.billFile ? <BsCardText size={22} color='green' onClick={()=>getBill(expense?._id)}/> : <BsInfoCircle size={22} color='tomato' />}</td>
+              <td>{expense?.billFile ? <BsCardText size={22} color='green' onClick={() => getBill(expense?._id)} /> : <BsInfoCircle size={22} color='tomato' />}</td>
               <td>{expense?.status || "Pending"}</td>
             </tr>
           ))}

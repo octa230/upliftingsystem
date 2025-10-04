@@ -8,7 +8,7 @@ import Calendar from 'react-calendar';
 import Button from 'react-bootstrap/esm/Button';
 import { useReactToPrint } from 'react-to-print';
 import axios from 'axios';
-import MessageBox from './MessageBox';
+import MessageBox from '../components/MessageBox';
 
 const reducer = (state, action) => {
   switch (action.type) {

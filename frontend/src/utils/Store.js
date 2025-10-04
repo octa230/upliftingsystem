@@ -63,7 +63,7 @@ function reducer(state, action){
         }
 
         case 'CLEAR_SELECTED_ITEMS':
-            return{...state, selectedItems: {...state.selectedItems, selectedItems:[]}}
+            return{...state, selectedItems: []}
             
         default:
             return state;   

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tax Invoice</title>
+    <style>
+        :root {
+            --primary-color: #333333;
+            --secondary-color: #666666;
+            --border-color: #e0e0e0;
+            --light-bg: #FFE066;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+        }
+
+        body {
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo-container {
+            width: 160px;
+        }
+
+        .logo {
+            max-width: 100%;
+            height: auto;
+            max-height: 100px;
+        }
+
+        .invoice-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Info Section */
+        .info-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .info-column {
+            width: 48%;
+        }
+
+        .label {
+            font-size: 10px;
+            color: var(--secondary-color);
+            margin-bottom: 3px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .value {
+            font-size: 10px;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Table */
+        .table {
+            width: 100%;
+            margin-bottom: 30px;
+            border-collapse: collapse;
+        }
+
+        .table-header {
+            background-color: var(--light-bg);
+            //border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-header th {
+            padding: 10px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: #e0e0e0 0.5px solid
+        }
+
+        .table-row {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .table-row td {
+            padding: 10px 8px;
+            font-size: 10px;
+            vertical-align: middle;
+            border: #e0e0e0 0.5px solid
+        }
+
+        /* Column widths and alignment */
+        .item-cell {
+            width: 45%;
+            text-align: left;
+        }
+
+        .quantity-cell {
+            width: 15%;
+            text-align: center;
+        }
+
+        .rate-cell {
+            width: 20%;
+            text-align: right;
+        }
+
+        .amount-cell {
+            width: 20%;
+            text-align: right;
+        }
+
+        /* Totals */
+        .totals-container {
+            margin-left: auto;
+            width: 40%;
+            margin-top: 20px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .total-label {
+            font-size: 10px;
+            color: var(--secondary-color);
+        }
+
+        .total-value {
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .grand-total {
+            border-top: 1px solid var(--primary-color);
+            padding-top: 5px;
+            margin-top: 5px;
+        }
+
+        .grand-total .total-label,
+        .grand-total .total-value {
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 30px;
+            left: 40px;
+            right: 40px;
+            font-size: 8px;
+            color: #999999;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+
+        .footer p {
+            margin: 3px 0;
+        }
+
+        /* Watermark */
+        .watermark {
+            position: fixed;
+            bottom: 30%;
+            border: #5F904D 1px dotted;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #5F904D;
+            font-size: 60px;
+            font-weight: bold;
+            opacity: 0.2;
+            transform: rotate(-30deg);
+            z-index: -1;
+        }
+
+        @media print {
+            body {
+                padding: 20px;
+            }
+            .footer {
+                position: fixed;
+                bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Watermark -->
+    <div class="watermark">
+        {{#if sale.free}}
+        NOT PAID
+        {{else}}
+        PAID
+        {{/if}}
+    </div>
+
+    <!-- Header with logo and invoice title -->
+    <div class="header">
+        <div class="logo-container">
+            <img class="logo" src="{{company.logo}}" alt="Company Logo" />
+        </div>
+        <div class="invoice-title">TAX INVOICE</div>
+    </div>
+
+    <!-- Company and invoice info -->
+    <div class="info-container">
+        <div class="info-column">
+            <div class="label">{{company.name}}</div>
+            <div class="value">{{company.address}}</div>
+            <div class="value">TRN: {{company.trn}}</div>
+        </div>
+        <div class="info-column">
+            <div class="label">Invoice #</div>
+            <div class="value">{{sale.InvoiceCode}}</div>
+            
+            <div class="label">Date</div>   
+            <div class="value">{{formatDate sale.createdAt}}</div>         
+            <div class="label">Prepared By</div>
+            <div class="value">{{sale.preparedBy}}</div>
+        </div>
+    </div>
+
+    <!-- Billing info -->
+    <div class="section-title">BILL TO</div>
+    <div class="info-container">
+        <div class="info-column">
+            <div class="value">{{#if sale.name}}{{sale.name}}{{else}}Not provided{{/if}}</div>
+            <div class="value">{{#if sale.phone}}{{sale.phone}}{{else}}Not provided{{/if}}</div>
+        </div>
+        <div class="info-column">
+            <div class="value">{{#if sale.email}}{{sale.email}}{{else}}Not provided{{/if}}</div>
+            <div class="value">{{#if sale.paidBy}}{{sale.paidBy}}{{else}}Not provided{{/if}}</div>
+        </div>
+    </div>
+
+    <!-- Items table -->
+    <table class="table">
+        <thead class="table-header">
+            <tr>
+                <th class="item-cell">ITEM</th>
+                <th class="quantity-cell">QTY</th>
+                <th class="rate-cell">RATE</th>
+                <th class="amount-cell">AMOUNT</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each sale.saleItems}}
+            <tr class="table-row">
+                <td class="item-cell">{{productName}}</td>
+                <td class="quantity-cell">{{quantity}}</td>
+                <td class="rate-cell">AED {{formatCurrency price}}</td>
+                <td class="amount-cell">AED {{formatCurrency total}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="totals-container">
+        <div class="total-row">
+            <div class="total-label">Subtotal:</div>
+            <div class="total-value">AED {{formatCurrency sale.subTotal}}</div>
+        </div>
+        <div class="total-row">
+            <div class="total-label">Discount:</div>
+            <div class="total-value">- AED {{formatCurrency sale.discount}}</div>
+        </div>
+        <div class="total-row">
+            <div class="total-label">Taxable Amount:</div>
+            <div class="total-value">AED {{formatCurrency sale.subTotal}}</div>
+        </div>
+        <div class="total-row">
+            <div class="total-label">VAT (5%):</div>
+            <div class="total-value">AED {{formatCurrency sale.vat}}</div>
+        </div>
+        <div class="total-row grand-total">
+            <div class="total-label">TOTAL DUE:</div>
+            <div class="total-value">AED {{formatCurrency sale.total}}</div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>{{company.name}} | {{company.address}}, {{company.region}} | TRN: {{company.trn}}</p>
+        <p>Website: {{company.website}} | Phone: {{company.phone}} | Email: {{company.email}}</p>
+        <p style="margin-top: 5px;">This is a computer generated invoice and does not require a signature</p>
+    </div>
+</body>
+</html>
