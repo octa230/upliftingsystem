@@ -1,10 +1,8 @@
 import mongoose from "mongoose";
 
-
-
 const productSchema = new mongoose.Schema({
     name: {type: String, uppercase: true,},
-    identifier: {type: String, Enumerator:['STEM', 'PLANT', 'BUNCH', 'TOOL', 'ACCESSORY', 'ARRANGEMENT']},
+    identifier: {type: String, enum:['STEM', 'PLANT', 'BUNCH', 'TOOL', 'ACCESSORY', 'ARRANGEMENT']},
     purchase: {type: Number, default: 0},
     photo: {type: String},
     waste: {type: Number, default: 0},
@@ -21,14 +19,13 @@ const productSchema = new mongoose.Schema({
     timestamps: true
 })
 
-
 const transactionSchema = new mongoose.Schema({
     product: {type: mongoose.Schema.Types.ObjectId, ref: 'Product'},
     productName: {type: String},
     purchasePrice: {type: Number, default: 0},
     sellingPrice: {type: Number, default: 0},
     type: {type: String, enum: ['purchase', 'sale', 'damage', 'returned', 'hotel'], required: true},
-    identifier: {type: String, Enumerator:['STEM', 'PLANT', 'BUNCH', 'TOOL', 'ACCESSORY', 'ARRANGEMENT']},
+    identifier: {type: String, enum:['STEM', 'PLANT', 'BUNCH', 'TOOL', 'ACCESSORY', 'ARRANGEMENT']},
     quantity: {type: Number, required: true},
     deliveryNote: String
 },
@@ -37,18 +34,15 @@ const transactionSchema = new mongoose.Schema({
 })
 
 productSchema.pre('save', function(next) {
-  // `this` refers to the document being saved
   if (!this.code) {
-    this.code = Math.random().toString(36).slice(2, 10).toUpperCase(); // Random 10-character code
+    this.code = Math.random().toString(36).slice(2, 10).toUpperCase();
   }
-
   if (!this.name) {
-    this.name = `Product-${Math.random().toString(36).slice(2, 5).toUpperCase()}`; // Random name
+    this.name = `Product-${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
   }
-
-  next(); // Proceed with save
+  next();
 });
 
-export const Transaction = mongoose.model("Transaction", transactionSchema)
-export const Product = mongoose.model('Product', productSchema);
-
+// Check if model exists before creating
+export const Transaction = mongoose.models.Transaction || mongoose.model("Transaction", transactionSchema);
+export const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
