@@ -2,7 +2,7 @@ import expressAsyncHandler from 'express-async-handler'
 import { Router } from 'express'
 import { Purchase, Sale } from '../models/Transactions.js'
 import { Expense } from '../models/expense.js'
-import { Transaction, Product } from '../models/Product.js'
+import { Transaction, Product } from '../models/product.js'
 
 
 
