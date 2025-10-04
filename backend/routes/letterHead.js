@@ -3,7 +3,7 @@ import { Router } from 'express';
 import Company from '../models/company.js'
 import Handlebars from 'handlebars';
 import fs from 'fs'
-import puppeteer from 'puppeteer';
+import puppeteer, { executablePath } from 'puppeteer';
 import path from 'path';
 
 
@@ -29,6 +29,7 @@ letterheadRouter.get('/', expressAsyncHandler(async (req, res) => {
 
     browser = await puppeteer.launch({
       headless: 'new',
+      executablePath: "/usr/bin/chromium-browser",
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
