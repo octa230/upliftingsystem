@@ -1,6 +1,5 @@
 import cronJob from 'node-cron';
-import { Product } from '../models/Product.js';
-
+import { Product } from '../models/product.js';
 
 
 Product.schema.virtual("nextWasteResetTime").get(function () {
