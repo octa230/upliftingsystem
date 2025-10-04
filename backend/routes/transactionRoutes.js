@@ -1,11 +1,12 @@
 import expressAsyncHandler from 'express-async-handler'
-import express from 'express'
+import { Router } from 'express'
 import { Purchase, Sale } from '../models/Transactions.js'
+import { Expense } from '../models/expense.js'
 import { Transaction, Product } from '../models/Product.js'
 
 
 
-const TransactionRouter = express.Router()
+const TransactionRouter = Router()
 
 
 TransactionRouter.post(
@@ -136,7 +137,7 @@ TransactionRouter.get(
         query.createdAt = {
           $gte: new Date(startDate),
           $lte: new Date(endDate)
-          .setHours(23, 59, 59, 999)
+            .setHours(23, 59, 59, 999)
         };
       }
 
@@ -178,6 +179,147 @@ TransactionRouter.get(
 
 
 
+TransactionRouter.get('/daily-summary', expressAsyncHandler(async(req, res)=> {
+  const { date } = req.query;
+  
+  // If date is provided, use it; otherwise use today
+  const targetDate = date ? new Date(date) : new Date();
+  
+  // Set to start of day (00:00:00)
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  
+  // Set to end of day (23:59:59)
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23, 59, 59, 999);
+  
+  // Purchases
+  const purchases = await Purchase.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startOfDay, $lte: endOfDay }
+      }
+    },
+    {
+      $facet: {
+        summary: [
+          {
+            $group: {
+              _id: null,
+              count: { $sum: 1 },
+              total: { $sum: '$total' }
+            }
+          }
+        ],
+        records: [
+          { $match: {} }
+        ]
+      }
+    }
+  ]);
+  
+  // Sales
+  const sales = await Sale.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startOfDay, $lte: endOfDay }
+      }
+    },
+    {
+      $facet: {
+        summary: [
+          {
+            $group: {
+              _id: null,
+              count: { $sum: 1 },
+              total: { $sum: '$total' }
+            }
+          }
+        ],
+        records: [
+          {$unset: 'saleItems'},
+          { $match: {} }
+        ]
+      }
+    }
+  ]);
+  
+  // Damages (from Transaction collection)
+  const damages = await Transaction.aggregate([
+    {
+      $match: {
+        type: 'damage',
+        createdAt: { $gte: startOfDay, $lte: endOfDay }
+      }
+    },
+    {
+      $facet: {
+        summary: [
+          {
+            $group: {
+              _id: null,
+              count: { $sum: 1 },
+              total: { $sum: '$amount' }
+            }
+          }
+        ],
+        records: [
+          { $match: {} }
+        ]
+      }
+    }
+  ]);
+  
+  // Expenses (separate collection)
+  const expenses = await Expense.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startOfDay, $lte: endOfDay }
+      }
+    },
+    {
+      $facet: {
+        summary: [
+          {
+            $group: {
+              _id: null,
+              count: { $sum: 1 },
+              total: { $sum: '$amount' }
+            }
+          }
+        ],
+        records: [
+          { $match: {} }
+        ]
+      }
+    }
+  ]);
+  
+  // Format response
+  res.json({
+    date: targetDate.toLocaleDateString('en-GB'),
+      purchases: {
+        count: purchases[0].summary[0]?.count || 0,
+        total: purchases[0].summary[0]?.total || 0,
+        data: purchases[0].records
+      },
+      sales: {
+        count: sales[0].summary[0]?.count || 0,
+        total: sales[0].summary[0]?.total || 0,
+        data: sales[0].records
+      },
+      damages: {
+        count: damages[0].summary[0]?.count || 0,
+        total: damages[0].summary[0]?.total || 0,
+        data: damages[0].records
+      },
+      expenses: {
+        count: expenses[0].summary[0]?.count || 0,
+        total: expenses[0].summary[0]?.total || 0,
+        data: expenses[0].records
+      }
+  });
+}));
 
 TransactionRouter.get(
   '/daily-report',
@@ -688,6 +830,7 @@ function mergeResults(transactions, sales) {
     a._id.year - b._id.year || a._id.month - b._id.month
   );
 }
+
 TransactionRouter.post(
   '/damages',
   expressAsyncHandler(
@@ -739,7 +882,7 @@ TransactionRouter.post(
 TransactionRouter.get(
   '/',
   expressAsyncHandler(async (req, res) => {
-    const {startDate, endDate, limit, deliveryNote} = req.query
+    const { startDate, endDate, limit, deliveryNote } = req.query
     let query = {}
     try {
 
@@ -747,28 +890,28 @@ TransactionRouter.get(
         query.deliveryNote = deliveryNote;
       }
 
-      if(startDate || endDate){
+      if (startDate || endDate) {
         query.createdAt = {}
-        if(startDate){
+        if (startDate) {
           query.createdAt.$gte = new Date(startDate)
         }
-        if(endDate){
+        if (endDate) {
           const end = new Date(endDate);
           end.setHours(23, 59, 59, 999) ///full day hours and micro secs
           query.createdAt.$lte = end
         }
       }
-      
+
       const purchases = await Purchase.aggregate([
-        {$match: query},
+        { $match: query },
         {
-          $facet:{
-            purchases:[
+          $facet: {
+            purchases: [
               //{$match: {deliveryNote: deliveryNote}},
-              {$sort: {createdAt: -1}},
-              {$limit: parseInt(limit) || 50}
+              { $sort: { createdAt: -1 } },
+              { $limit: parseInt(limit) || 50 }
             ],
-            totalCount: [{$count: 'count'}],
+            totalCount: [{ $count: 'count' }],
             totalValue: [
               {
                 $group: {

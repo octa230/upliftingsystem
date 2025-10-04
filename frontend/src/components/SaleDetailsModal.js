@@ -1,13 +1,9 @@
-import React from 'react';
-import Button from 'react-bootstrap/esm/Button';
 import Modal from 'react-bootstrap/esm/Modal';
 import Table from 'react-bootstrap/esm/Table';
-import {PDFDownloadLink } from '@react-pdf/renderer'
-import Invoice from '../utils/Invoice'
 
 
-export default function SaleDetailsModal({selectedSale, show, onHide}) {
-    
+export default function SaleDetailsModal({ selectedSale, show, onHide }) {
+
   return (
     <Modal size="lg" centered aria-labelledby="sale-details" show={show} onHide={onHide}>
       <Modal.Header closeButton>
@@ -16,18 +12,56 @@ export default function SaleDetailsModal({selectedSale, show, onHide}) {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <div>
-          <p>Code: {selectedSale.InvoiceCode}</p>
-          <p>Prepared By: {selectedSale.preparedBy}</p>
-          <p>Paid By: {selectedSale.paidBy}</p>
-          <p>Date: {selectedSale.date}</p>
-          <p>Service: {selectedSale.service}</p>
-          <p>Customer: {selectedSale.name}</p>
-          <p>Phone: {selectedSale.phone}</p>
-          <p>Status: {selectedSale.free ? "F.O.C" : "CHARGED"}</p>
-          <p>Subtotal: {selectedSale.subTotal}</p>
-          <p>Total: {selectedSale.total}</p>
-        </div>
+        <Table responsive striped>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Code</strong></td>
+              <td>{selectedSale.InvoiceCode}</td>
+            </tr>
+            <tr>
+              <td><strong>Prepared By</strong></td>
+              <td>{selectedSale.preparedBy}</td>
+            </tr>
+            <tr>
+              <td><strong>Paid By</strong></td>
+              <td>{selectedSale.paidBy}</td>
+            </tr>
+            <tr>
+              <td><strong>Date</strong></td>
+              <td>{selectedSale.date}</td>
+            </tr>
+            <tr>
+              <td><strong>Service</strong></td>
+              <td>{selectedSale.service}</td>
+            </tr>
+            <tr>
+              <td><strong>Customer</strong></td>
+              <td>{selectedSale.name}</td>
+            </tr>
+            <tr>
+              <td><strong>Phone</strong></td>
+              <td>{selectedSale.phone}</td>
+            </tr>
+            <tr>
+              <td><strong>Status</strong></td>
+              <td>{selectedSale.free ? "F.O.C" : "CHARGED"}</td>
+            </tr>
+            <tr>
+              <td><strong>Subtotal</strong></td>
+              <td>{selectedSale.subTotal}</td>
+            </tr>
+            <tr>
+              <td><strong>Total</strong></td>
+              <td>{selectedSale.total}</td>
+            </tr>
+          </tbody>
+        </Table>
         <div>
           <h4>Sale Items:</h4>
           <Table striped bordered hover>
@@ -47,7 +81,7 @@ export default function SaleDetailsModal({selectedSale, show, onHide}) {
                   <td>{item.price}</td>
                   <td>{item.quantity}</td>
                   <td>{item.arrangement}</td>
-                  <td>{item.photo && <img src={item.photo} className='img-thumbnail' alt='product' />}</td>
+                  <td>{item.photo && <img src={item.photo} alt='product' style={{ width: '100px' }} />}</td>
                 </tr>
               ))}
             </tbody>
@@ -76,17 +110,7 @@ export default function SaleDetailsModal({selectedSale, show, onHide}) {
             </tbody>
           </Table>
         </div>
-      </Modal.Body>
-      <Modal.Footer>
-        <>
-        {selectedSale && (
-                <PDFDownloadLink document={<Invoice sale={selectedSale} />} fileName={`Invoice_${selectedSale.InvoiceCode}.pdf`}>
-                <Button>Print</Button>
-              </PDFDownloadLink>
-            )}
-        </>
-        <Button onClick={onHide}>Close</Button>
-      </Modal.Footer>
-    </Modal>
+      </Modal.Body >
+    </Modal >
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Button, Form, ListGroup, Modal, InputGroup, Image } from 'react-bootstrap'
 import { uploadFileHandler } from '../utils/helpers'
-import LoadingBox from './Spinner'
+import LoadingBox from '../components/Spinner'
 import axios from 'axios'
 import { getError } from '../utils/getError'
 import { toast } from 'react-toastify'

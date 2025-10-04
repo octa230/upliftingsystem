@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Report</title>
+  <style>
+    /* Custom Styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f7f6;
+    }
+
+    .container {
+      width: 80%;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th, table td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    table th {
+      background-color: #f1f1f1;
+    }
+
+    .alert {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px;
+      text-align: center;
+    }
+
+    .info-icon {
+      font-size: 22px;
+      color: tomato;
+    }
+
+    .check-icon {
+      font-size: 22px;
+      color: green;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      table {
+        font-size: 14px;
+      }
+
+      th, td {
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Expense Report</h1>
+
+    <!-- Expense Table -->
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Amount (AED)</th>
+          <th>Date</th>
+          <th>Bill</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each expenses}}
+          <tr>
+            <td class="text-capitalize">{{account.name}}</td>
+            <td>{{amount}}</td>
+            <td>{{formatDate submittedOn}}</td>
+            <td>{{status}}</td>
+          </tr>
+        {{else}}
+          <tr>
+            <td colspan="5">No expenses found for the selected period.</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <!-- Total Expenses Summary -->
+    <div class="alert">
+      <h5><strong>Total Expenses: AED {{totalAmount}}</strong></h5>
+    </div>
+  </div>
+</body>
+</html>

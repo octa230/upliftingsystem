@@ -1,19 +1,19 @@
 import express from 'express';
 import multer from 'multer';
 import {v2 as cloudinary} from 'cloudinary';
+import {v4 as uuidv4} from 'uuid'
 import path from 'path';
 import streamifier from 'streamifier';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv'
+import Handlebars from 'handlebars';
+import {ToWords} from 'to-words'
 
 
 
 dotenv.config()
 
 const upload = multer();
-
-
-
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb){
@@ -68,6 +68,8 @@ UploadRouter.post(
     }
   }
 );
+
+
 
 UploadRouter.post('/bill', dskUploads.single('file'), (req, res)=>{
   if (!req.file) {
@@ -135,6 +137,43 @@ export const ErrorHandler = (err, req, res, next)=>{
         stack: process.env.NODE_ENV === "development" ? 
         err.stack : null
     })
-
 }
 
+const toWordsInstance = new ToWords({
+  localeCode: 'en-AE', // Ensure correct locale
+  converterOptions: {
+    currency: true, // Enable currency mode
+    currencyOptions: {
+      name: 'Dirham',
+      plural: 'Dirhams',
+      symbol: 'AED',
+      fractionalUnit: {
+        name: 'fill',
+        plural: 'fills',
+        symbol: '',
+      },
+    },
+  },
+});
+
+
+export const toWords =async(number)=> {
+  return toWordsInstance.convert(number)
+}
+
+
+Handlebars.registerHelper('formatDate', function(date) {
+  if(!date) return 'N/A';
+      return new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+})
+
+Handlebars.registerHelper('formatCurrency', function(number) {
+  return (number || 0).toFixed(2)
+})
+
+
+export const generateId = async()=> uuidv4().slice(0, 8).toString()
