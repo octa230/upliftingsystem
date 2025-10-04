@@ -1,5 +1,5 @@
 import expressAsyncHandler from 'express-async-handler';
-import { Transaction, Product } from '../models/Product.js';
+import { Transaction, Product } from '../models/product.js';
 import express from 'express';
 import { Sale } from '../models/Transactions.js';
 import Company from '../models/company.js'
