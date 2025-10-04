@@ -1,7 +1,5 @@
 import expressAsyncHandler from 'express-async-handler';
-import { Transaction, Product } from '../models/Product.js';
-import express, { Router } from 'express';
-import { Sale } from '../models/Transactions.js';
+import { Router } from 'express';
 import Company from '../models/company.js'
 import Handlebars from 'handlebars';
 import fs from 'fs'
@@ -15,8 +13,6 @@ const letterheadRouter = Router()
 letterheadRouter.get('/', expressAsyncHandler(async (req, res) => {
   let browser = null;
 
-
-  //letter head case sensitive
   try {
     console.log('Fetching sale and company data...');
 
