@@ -25,20 +25,20 @@ const Settings = () => {
 
     const [showSetting, setShowSetting] = useState(false)
     const [loadingLogo, setLoadingLogo] = useState(false)
-    const {state} = useContext(Store)
-    const {userInfoToken} = state
+    const { state } = useContext(Store)
+    const { userInfoToken } = state
 
-    const handleUploadLogo = async(e)=>{
+    const handleUploadLogo = async (e) => {
         const file = e.target.files[0]
-        if(!file )return;
+        if (!file) return;
 
         try {
             setLoadingLogo(true)
             const fileUrl = await uploadFileHandler(file, userInfoToken)
-            setCompany((prev)=> ({...prev, logo: fileUrl}))
+            setCompany((prev) => ({ ...prev, logo: fileUrl }))
         } catch (error) {
             toast.error(error)
-        }finally{
+        } finally {
             setLoadingLogo(false)
         }
     }
@@ -54,26 +54,24 @@ const Settings = () => {
         }
     }
 
-    const handleShow =async()=> {
-        const {data} = await axios.get(`/api/settings/company`)
-        if(!company){
+    const handleShow = async () => {
+        if (!company._id) {
+            const { data } = await axios.get(`/api/settings/company`)
             setCompany(data)
-            setShowSetting(!showSetting)
         }
-
+        setShowSetting(prev => !prev) // Toggle based on previous state
     }
-
 
 
 
     return (
         <div>
-            <Button variant='outline-success' onClick={() => { }}>
+            <Button variant='outline-success' onClick={handleShow}>
                 <span className='mx-2'>
-                    <LuCog size={22} onClick={handleShow}/>
+                    <LuCog size={22} />
                 </span>
             </Button>
-            <Offcanvas show={showSetting} onHide={()=> setShowSetting(false)} placement="end">
+            <Offcanvas show={showSetting} onHide={() => setShowSetting(false)} placement="end">
                 <Offcanvas.Header closeButton>
                     <Offcanvas.Title>System Settings</Offcanvas.Title>
                 </Offcanvas.Header>
@@ -88,9 +86,9 @@ const Settings = () => {
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Logo</Form.Label>
-                            <Form.Control type='file' onChange={handleUploadLogo}/>
-                            {loadingLogo ?  <Spinner animation="border"/> : company.logo && (
-                                <img src={company.logo} className='img-thumbnail'/>
+                            <Form.Control type='file' onChange={handleUploadLogo} />
+                            {loadingLogo ? <Spinner animation="border" /> : company.logo && (
+                                <img src={company.logo} className='img-thumbnail' alt='logo' />
                             )}
                         </Form.Group>
                         <Form.Group>
