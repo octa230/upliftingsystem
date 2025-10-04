@@ -20,7 +20,7 @@ letterheadRouter.get('/', expressAsyncHandler(async (req, res) => {
     if (!company) return
 
     // Read and compile template
-    const templatePath = path.join(process.cwd(), 'templates', 'LetterHead.hbs');
+    const templatePath = path.join(process.cwd(), 'templates', 'Letterhead.hbs');
 
     const templateSource = fs.readFileSync(templatePath, 'utf8');
     const template = Handlebars.compile(templateSource);
