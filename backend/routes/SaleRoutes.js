@@ -5,7 +5,7 @@ import { Sale } from '../models/Transactions.js';
 import Company from '../models/company.js'
 import Handlebars from 'handlebars';
 import fs from 'fs'
-import puppeteer from 'puppeteer';
+import puppeteer, { executablePath } from 'puppeteer';
 import path from 'path';
 
 
@@ -42,6 +42,7 @@ SaleRouter.post('/print-sale/:id', expressAsyncHandler(async (req, res) => {
 
     browser = await puppeteer.launch({
       headless: 'new',
+      executablePath:"/usr/bin/chromium-browser",
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -356,6 +357,7 @@ SaleRouter.post(
 
       browser = await puppeteer.launch({
         headless: 'new',
+        executablePath:"/usr/bin/chromium-browser",
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
