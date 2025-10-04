@@ -15,6 +15,8 @@ const letterheadRouter = Router()
 letterheadRouter.get('/', expressAsyncHandler(async (req, res) => {
   let browser = null;
 
+
+  //letter head case sensitive
   try {
     console.log('Fetching sale and company data...');
 
