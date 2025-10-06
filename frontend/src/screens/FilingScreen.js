@@ -17,17 +17,11 @@ import { FaEye } from 'react-icons/fa'
 import { getError } from '../utils/getError'
 import { LuCheckCircle2, LuTrash2 } from 'react-icons/lu'
 
-
-
-
-
 const FilingScreen = () => {
-
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { selectedItems, todaySales } = state
 
   const recordTypes = ['purchase', 'sale', 'damage', 'hotel', 'returned', 'purchase_order']
-
 
   const [recordType, setRecordType] = useState('')
   const [itemQuantities, setItemQuantities] = useState({})
@@ -40,9 +34,7 @@ const FilingScreen = () => {
   const [showSale, setShow] = useState({})
   const [purchase, setPurchase] = useState({})
   const [newTotal, setNewTotal] = useState(0)
-  const [loading, setLoading] = useState(false);
-
-
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (recordType === 'sale') {
@@ -51,26 +43,28 @@ const FilingScreen = () => {
         setInvoices(data)
         const storedSale = await JSON.parse(localStorage.getItem('selectedSale'))
         if (storedSale && !selectedSale._id) {
-          setSelectedSale(storedSale);
+          setSelectedSale(storedSale)
         }
       })()
     }
-  }, [recordType, todaySales]);
-
+  }, [recordType, todaySales])
 
   const getPurchase = async (e) => {
     if (deliveryNote !== '') {
-      const { data } = await axios.get(`/api/transactions/${deliveryNote}`)
-      setPurchase(data)
+      try {
+        const { data } = await axios.get(`/api/transactions/${deliveryNote}`)
+        setPurchase(data)
+      } catch (error) {
+        toast.error(getError(error))
+      }
     }
   }
-
 
   const handleQuantityChange = (itemId, value) => {
     setItemQuantities(prevState => ({
       ...prevState,
       [itemId]: value
-    }));
+    }))
   }
 
   const handleViewSale = async (saleId) => {
@@ -83,158 +77,144 @@ const FilingScreen = () => {
     }
   }
 
-  const selectedProducts = Array(selectedItems)?.map(item => ({
+  // FIX: Properly map selectedItems array
+  const selectedProducts = selectedItems?.map(item => ({
     product: item._id,
     productName: item.name,
     purchasePrice: item.purchasePrice,
     quantity: itemQuantities[item._id] || 0
-  }));
+  }))
+  
   const calculateTotal = (products) => {
     return products.reduce((total, product) => {
       return total + (product.quantity * product.purchasePrice)
     }, 0)
-
   }
 
   const handleSubmit = async () => {
-    if (loading) return; // Prevent submitting while loading
-    setLoading(true);
-    switch (recordType) {
-      case "purchase":
-        try {
+    if (loading) return
+    
+    setLoading(true)
+    try {
+      switch (recordType) {
+        case "purchase":
           const total = calculateTotal(selectedProducts)
           if (!deliveryNote) {
             toast.error('Add delivery note number')
+            setLoading(false)
             return
           }
           await axios.post('/api/transactions/purchase', {
-            selectedProducts, deliveryNote,
+            selectedProducts,
+            deliveryNote,
             total
           })
           toast.success('Done')
-        } catch (error) {
-          toast.error('something went wrong')
-          console.log(error)
-        }
-        break;
-      case "sale":
-        try {
+          break
+
+        case "sale":
           await axios.post(`/api/sale/${selectedSale._id}/add-units`, {
             selectedProducts,
             unitName: arrangement
           })
           localStorage.removeItem('selectedSale')
           toast.success('Done')
-        } catch (error) {
-          toast.error('something went wrong')
-          console.log(error)
-        }
-        break;
-      case "damage":
-        try {
+          break
+
+        case "damage":
           await axios.post('/api/transactions/damages', {
             selectedProducts
           })
           toast.success('Done')
-        } catch (error) {
-          toast.error('something went wrong')
-          console.log(error)
-        }
-        break;
-      case "hotel":
-        toast.error('still building')
-        //console.log({selectedItems, recordType})
-        break;
-      case "returned":
-        try {
+          break
+
+        case "hotel":
+          toast.error('still building')
+          break
+
+        case "returned":
           if (purchase.Items && deliveryNote) {
             await axios.put(`/api/transactions/${deliveryNote}`, {
               purchase,
               total: newTotal,
               type: recordType
             })
+            toast.success('Done')
           }
-        } catch (error) {
-          console.log(error)
-        }
-        break
-      case "purchase_order":
-        try {
+          break
+
+        case "purchase_order":
           if (purchase.Items && deliveryNote) {
             await axios.put(`/api/transactions/${deliveryNote}`, {
               purchase,
               total: newTotal,
               type: recordType
             })
+            toast.success('Done')
           }
-        } catch (error) {
-          console.log(error)
-        }
-        break;
-      default:
-        break
-      //console.log('unknown Action')
+          break
+
+        default:
+          toast.error('Unknown action')
+          break
+      }
+    } catch (error) {
+      toast.error('Something went wrong')
+      console.log(error)
+    } finally {
+      setLoading(false)
     }
   }
 
   const removeItemHandler = (item) => {
     const newselectedItems = selectedItems.filter((x) => x._id !== item._id)
     ctxDispatch({ type: "REMOVE_SELECTED_ITEM", payload: newselectedItems })
-  };
+  }
 
   const removePurchaseItem = (item) => {
-    const newItems = purchase?.Items.filter((x) => x.product !== item.product);
-
-    const total = newItems.reduce((acc, item) => acc + (item.quantity * item.purchasePrice), 0);
+    const newItems = purchase?.Items.filter((x) => x.product !== item.product)
+    const total = newItems.reduce((acc, item) => acc + (item.quantity * item.purchasePrice), 0)
 
     setPurchase(prevState => ({
       ...prevState,
       Items: newItems,
       total: total
-    }));
+    }))
 
-    setNewTotal(total);
-  };
-
+    setNewTotal(total)
+  }
 
   const handleReturnChange = (productId, newQuantity) => {
-
     setPurchase(prevState => {
-
       const updatedItems = prevState.Items.map(item =>
         item.product === productId ? { ...item, quantity: parseInt(newQuantity) } : item
-      );
-      const updatedTotal = updatedItems.reduce((acc, item) => acc + (item.quantity * item.purchasePrice), 0);
+      )
+      const updatedTotal = updatedItems.reduce((acc, item) => acc + (item.quantity * item.purchasePrice), 0)
 
       setNewTotal(updatedTotal)
       return {
         ...prevState,
         Items: updatedItems,
         total: updatedTotal
-      };
-    });
-  };
-
+      }
+    })
+  }
 
   const addSale = async (saleId) => {
-    const { data } = await axios.get(`/api/sale/get-sale/${saleId}`)
-    setSelectedSale(data)
-    //localStorage.setItem('selectedSale', JSON.stringify(data))
-    //ctxDispatch({ type: "ADD_SELECTED_SALE", payload: data })
-    toast.success('sale attched successfully')
+    try {
+      const { data } = await axios.get(`/api/sale/get-sale/${saleId}`)
+      setSelectedSale(data)
+      localStorage.setItem('selectedSale', JSON.stringify(data))
+      toast.success('Sale attached successfully')
+    } catch (error) {
+      toast.error(getError(error))
+    }
   }
 
   const clearSelectedItems = () => {
     ctxDispatch({ type: "CLEAR_SELECTED_ITEMS" })
-    //localStorage.removeItem('selectedItems')
+    setItemQuantities({})
   }
-
-
-  const handleRecordChange = (e) => {
-    setRecordType(e.target.value)
-    console.log(recordType)
-  }
-
 
   return (
     <Container fluid className='my-2'>
@@ -248,7 +228,6 @@ const FilingScreen = () => {
             ))}
           </Form.Select>
         </div>
-
 
         <div>
           {(() => {
@@ -264,7 +243,7 @@ const FilingScreen = () => {
                       onChange={(e) => setdeliveryNote(e.target.value)}
                     />
                   </Form.Group>
-                );
+                )
 
               case "returned":
                 return (
@@ -278,7 +257,7 @@ const FilingScreen = () => {
                     />
                     <Button onClick={getPurchase} className='p-1 m-2'>Find</Button>
                   </Form.Group>
-                );
+                )
 
               case "purchase_order":
                 return (
@@ -290,10 +269,10 @@ const FilingScreen = () => {
                       onChange={(e) => setOrderFrom(e.target.value)}
                     />
                   </Form.Group>
-                );
+                )
 
               case "damage":
-                return <div>File Selected Items As Damage</div>;
+                return <div>File Selected Items As Damage</div>
 
               case "sale":
                 return selectedSale && (
@@ -315,35 +294,39 @@ const FilingScreen = () => {
                       </Form.Control>
                     </Form.Group>
                   </div>
-                );
+                )
 
               default:
-                return <div>Select Record Type</div>;
+                return <div>Select Record Type</div>
             }
           })()}
         </div>
 
         <div>
           <Stack className='gap-3'>
-          <Button
-            className='btn-sm'
-            onClick={clearSelectedItems}
-            variant='warning'>
-            Clear <LuTrash2 size={22} color='red' />
-          </Button>
-          <Button onClick={handleSubmit} variant='danger'>
-            Submit <LuCheckCircle2 size={22} color='#eaefef'/>
-          </Button>
-        </Stack>
+            <Button
+              className='btn-sm'
+              onClick={clearSelectedItems}
+              variant='warning'>
+              Clear <LuTrash2 size={22} color='red' />
+            </Button>
+            <Button onClick={handleSubmit} variant='danger' disabled={loading}>
+              {loading ? 'Submitting...' : 'Submit'} <LuCheckCircle2 size={22} color='#eaefef'/>
+            </Button>
+          </Stack>
         </div>
       </div>
+
       <ListGroup className='my-3'>
-        {selectedItems.length && selectedItems?.map((item) => (
+        {/* FIX: Check if selectedItems exists and has length */}
+        {selectedItems && selectedItems.length > 0 && selectedItems.map((item) => (
           <ListGroup.Item key={item._id} className='d-flex my-1 justify-content-between'>
             <Col>{item.name}</Col>
-            {recordType === 'purchase' || "purchase_order"? (
+            {/* FIX: Corrected condition - was using || instead of === */}
+            {(recordType === 'purchase' || recordType === 'purchase_order') ? (
               <Col>
-                <Form.Control type='Number'
+                <Form.Control 
+                  type='number'
                   value={itemQuantities[item._id] || ''}
                   onChange={(e) => handleQuantityChange(item._id, e.target.value)}
                   placeholder='input qty'
@@ -351,11 +334,12 @@ const FilingScreen = () => {
               </Col>
             ) : (
               <Col>
-                <Form.Control as="select"
+                <Form.Control 
+                  as="select"
                   value={itemQuantities[item._id] || ''}
-                  onChange={(e) => handleQuantityChange(item?._id, e.target.value)}>
+                  onChange={(e) => handleQuantityChange(item._id, e.target.value)}>
                   <option>--select--</option>
-                  {[...Array(item?.inStock).keys() || 0].map((val) => (
+                  {[...Array(item?.inStock || 0).keys()].map((val) => (
                     <option key={val + 1} value={val + 1}>{val + 1}</option>
                   ))}
                 </Form.Control>
@@ -367,14 +351,13 @@ const FilingScreen = () => {
               </Button>
             </Col>
           </ListGroup.Item>
-        ))
-        }
+        ))}
       </ListGroup>
 
       <div className='my-3'>
-        {recordType === "sale"
-          ? (<ListGroup className='my-3'>
-            {recordType !== ("damage" || "purchase_order") && invoices?.map((invoice) => (
+        {recordType === "sale" ? (
+          <ListGroup className='my-3'>
+            {invoices?.map((invoice) => (
               <ListGroup.Item className='d-flex justify-content-between' key={invoice?.InvoiceCode}>
                 <Button onClick={() => handleViewSale(invoice._id)} className='bg-primary border'>
                   <span className='px-1'>
@@ -390,33 +373,37 @@ const FilingScreen = () => {
               </ListGroup.Item>
             ))}
           </ListGroup>
-          ) : (
-            <MessageBox>Not Required</MessageBox>
-          )
-        }
+        ) : (
+          <MessageBox>Not Required</MessageBox>
+        )}
         <SaleDetailsModal show={showModal} onHide={() => setShowModal(false)} selectedSale={showSale} />
       </div>
 
-      {recordType === 'returned' && purchase.Items?.map((item) => (
-        <ListGroup.Item key={item.product} className='d-flex my-1 justify-content-between'>
-          <Col>{item.productName}</Col>
-          <Col>
-            <Form.Control as="select"
-              value={itemQuantities[item.product] || item.quantity}
-              onChange={(e) => handleReturnChange(item.product, e.target.value)}>
-              <option>--select--</option>
-              {[...Array(item.quantity).keys()].map((val) => (
-                <option key={val + 1} value={val + 1}>{val + 1}</option>
-              ))}
-            </Form.Control>
-          </Col>
-          <Col>
-            <Button variant='' onClick={() => removePurchaseItem(item)}>
-              <BsXCircle />
-            </Button>
-          </Col>
-        </ListGroup.Item>
-      ))}
+      {recordType === 'returned' && purchase.Items && (
+        <ListGroup>
+          {purchase.Items.map((item) => (
+            <ListGroup.Item key={item.product} className='d-flex my-1 justify-content-between'>
+              <Col>{item.productName}</Col>
+              <Col>
+                <Form.Control 
+                  as="select"
+                  value={itemQuantities[item.product] || item.quantity}
+                  onChange={(e) => handleReturnChange(item.product, e.target.value)}>
+                  <option>--select--</option>
+                  {[...Array(item.quantity).keys()].map((val) => (
+                    <option key={val + 1} value={val + 1}>{val + 1}</option>
+                  ))}
+                </Form.Control>
+              </Col>
+              <Col>
+                <Button variant='' onClick={() => removePurchaseItem(item)}>
+                  <BsXCircle />
+                </Button>
+              </Col>
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
+      )}
     </Container>
   )
 }

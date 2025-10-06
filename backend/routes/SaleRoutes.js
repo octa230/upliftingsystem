@@ -117,6 +117,197 @@ SaleRouter.post('/print-sale/:id', expressAsyncHandler(async (req, res) => {
   }
 }))
 
+SaleRouter.post(
+  '/new-sale',
+  expressAsyncHandler(async (req, res) => {
+    let browser = null;
+    try {
+      const lastSale = await Sale.findOne({}).sort({ createdAt: -1 });
+      const invNumber = parseInt(lastSale.InvoiceCode.match(/\d+/)?.[0] || '0') + 1;
+      const itemsTotal = req.body.products.reduce((total, item) => {
+        return total + (item.quantity * item.price);
+      }, 0);
+      
+      const newSale = new Sale({
+        saleItems: req.body.products.map((x) => ({
+          ...x,
+          quantity: x.quantity,
+          productName: x.name,
+          total: Number(x.quantity * x.price).toFixed(2),
+          price: x.price,
+          arrangement: x.arrangement,
+          photo: x.photo,
+        })),
+        InvoiceCode: `UPLDXB_${invNumber}`,
+        total: itemsTotal,
+        date: req.body.time,
+        ...req.body,
+        free: req.body.paidBy === 'F.O.C'
+      });
+
+      const sale = (await newSale.save()).toObject();
+      const company = await Company.findOne().lean();
+
+      if (!sale || !company) {
+        return res.status(404).json({ error: 'Sale or Company not found' });
+      }
+
+      const templatePath = path.join(process.cwd(), 'templates', 'Invoice.hbs');
+      const templateSource = fs.readFileSync(templatePath, 'utf8');
+      const template = Handlebars.compile(templateSource);
+      const htmlContent = template({ company, sale });
+
+      browser = await puppeteer.launch({
+        headless: 'new',
+        //executablePath:"/usr/bin/chromium-browser",
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--disable-gpu',
+        ],
+      });
+
+      console.log('Browser launched, creating page...');
+      const page = await browser.newPage();
+
+      // Set viewport
+      await page.setViewport({ width: 1200, height: 1600 });
+
+      console.log('Setting content...');
+      await page.setContent(htmlContent, {
+        waitUntil: 'networkidle0',
+        timeout: 30000,
+      });
+
+      console.log('Generating PDF...');
+      // Generate PDF without path option
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        preferCSSPageSize: false,
+        margin: {
+          top: '20px',
+          right: '20px',
+          bottom: '20px',
+          left: '20px',
+        },
+      });
+
+      await browser.close();
+      browser = null;
+
+      // Verify buffer is not empty
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error('Generated PDF buffer is empty');
+      }
+
+      // Set response headers and send the PDF
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `inline; filename="invoice-${sale.InvoiceCode || sale._id}.pdf"`
+      );
+      res.setHeader('Content-Length', pdfBuffer.length);
+
+      // Send the PDF buffer as the response
+      res.end(pdfBuffer, 'binary');
+    } catch (error) {
+      console.error('PDF Generation Error:', error);
+      console.error('Error stack:', error.stack);
+
+      // Close browser if it's still open
+      if (browser) {
+        try {
+          await browser.close();
+        } catch (closeError) {
+          console.error('Error closing browser:', closeError);
+        }
+      }
+
+      // Send error response
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: 'Failed to generate PDF',
+          details: error.message,
+          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        });
+      }
+    }
+  })
+);
+
+SaleRouter.post(
+  '/:id/add-units',
+  expressAsyncHandler(
+    async (req, res) => {
+      console.log(req.body.selectedProducts)
+      const saleId = req.params.id
+      const { selectedProducts, unitName } = req.body
+
+
+      if (!saleId) {
+        res.status(404).send('no sale found');
+        return
+      }
+      try {
+
+        const sale = await Sale.findById(saleId)
+        if (!selectedProducts || selectedProducts.length === 0) {
+          return res.status(400).json({ error: 'No products or quantities submitted' });
+        }
+        if (!sale) {
+          return res.status(404).json({ error: 'Sale not found' });
+        }
+        for (const selectedProduct of selectedProducts) {
+          const product = await Product.findById(selectedProduct.product)
+          if (!product) {
+            res.status(404).send(`product${selectedProduct.product} not found`)
+            return
+          }
+          if (product.inStock < selectedProduct.quantity) {
+            res.status(400).send('insufficient stock')
+            return
+          }
+          product.inStock -= selectedProduct.quantity
+          product.closingStock -= selectedProduct.quantity
+          product.sold += parseInt(selectedProduct.quantity)
+          await product.save()
+
+          const transaction = new Transaction({
+            product: selectedProduct.product,
+            productName: product.name,
+            purchasePrice: product.purchasePrice,
+            sellingPrice: product.price,
+            type: 'sale',
+            quantity: selectedProduct.quantity
+          })
+
+          await transaction.save()
+        }
+        sale.units.push({
+          arrangement: unitName,
+          products: selectedProducts.map((x) => ({
+            ...x,
+            product: x.product,
+            productName: x.productName,
+            quantity: x.quantity,
+          }))
+        })
+
+        await sale.save()
+
+        res.status(200).send({ message: 'data added successfully' })
+      } catch (error) {
+        console.log(error)
+        res.status(500).send({ message: 'something went wrong' })
+
+      }
+    }
+  )
+)
+
 SaleRouter.patch('/status/:id', expressAsyncHandler(async (req, res) => {
   const { status } = req.body
   const sale = await Sale.findById(req.params.id)
@@ -315,128 +506,6 @@ SaleRouter.put(
   )
 )
 
-SaleRouter.post(
-  '/new-sale',
-  expressAsyncHandler(async (req, res) => {
-    let browser = null;
-    try {
-      const lastSale = await Sale.findOne({}).sort({ createdAt: -1 });
-      const invNumber = parseInt(lastSale.InvoiceCode.match(/\d+/)?.[0] || '0') + 1;
-      const itemsTotal = req.body.products.reduce((total, item) => {
-        return total + (item.quantity * item.price);
-      }, 0);
-      
-      const newSale = new Sale({
-        saleItems: req.body.products.map((x) => ({
-          ...x,
-          quantity: x.quantity,
-          productName: x.name,
-          total: Number(x.quantity * x.price).toFixed(2),
-          price: x.price,
-          arrangement: x.arrangement,
-          photo: x.photo,
-        })),
-        InvoiceCode: `UPLDXB_${invNumber}`,
-        total: itemsTotal,
-        date: req.body.time,
-        ...req.body,
-        free: req.body.paidBy === 'F.O.C'
-      });
-
-      const sale = (await newSale.save()).toObject();
-      const company = await Company.findOne().lean();
-
-      if (!sale || !company) {
-        return res.status(404).json({ error: 'Sale or Company not found' });
-      }
-
-      const templatePath = path.join(process.cwd(), 'templates', 'Invoice.hbs');
-      const templateSource = fs.readFileSync(templatePath, 'utf8');
-      const template = Handlebars.compile(templateSource);
-      const htmlContent = template({ company, sale });
-
-      browser = await puppeteer.launch({
-        headless: 'new',
-        executablePath:"/usr/bin/chromium-browser",
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--disable-gpu',
-        ],
-      });
-
-      console.log('Browser launched, creating page...');
-      const page = await browser.newPage();
-
-      // Set viewport
-      await page.setViewport({ width: 1200, height: 1600 });
-
-      console.log('Setting content...');
-      await page.setContent(htmlContent, {
-        waitUntil: 'networkidle0',
-        timeout: 30000,
-      });
-
-      console.log('Generating PDF...');
-      // Generate PDF without path option
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        preferCSSPageSize: false,
-        margin: {
-          top: '20px',
-          right: '20px',
-          bottom: '20px',
-          left: '20px',
-        },
-      });
-
-      await browser.close();
-      browser = null;
-
-      // Verify buffer is not empty
-      if (!pdfBuffer || pdfBuffer.length === 0) {
-        throw new Error('Generated PDF buffer is empty');
-      }
-
-      // Set response headers and send the PDF
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader(
-        'Content-Disposition',
-        `inline; filename="invoice-${sale.InvoiceCode || sale._id}.pdf"`
-      );
-      res.setHeader('Content-Length', pdfBuffer.length);
-
-      // Send the PDF buffer as the response
-      res.end(pdfBuffer, 'binary');
-    } catch (error) {
-      console.error('PDF Generation Error:', error);
-      console.error('Error stack:', error.stack);
-
-      // Close browser if it's still open
-      if (browser) {
-        try {
-          await browser.close();
-        } catch (closeError) {
-          console.error('Error closing browser:', closeError);
-        }
-      }
-
-      // Send error response
-      if (!res.headersSent) {
-        res.status(500).json({
-          error: 'Failed to generate PDF',
-          details: error.message,
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-        });
-      }
-    }
-  })
-);
-
-
 SaleRouter.get(
   '/list',
   expressAsyncHandler(
@@ -486,76 +555,6 @@ SaleRouter.get(
     }
   )
 )
-
-SaleRouter.post(
-  '/:id/add-units',
-  expressAsyncHandler(
-    async (req, res) => {
-      const saleId = req.params.id
-      const { selectedProducts, unitName } = req.body
-
-
-      if (!saleId) {
-        res.status(404).send('no sale found');
-        return
-      }
-      try {
-
-        const sale = await Sale.findById(saleId)
-        if (!selectedProducts || selectedProducts.length === 0) {
-          return res.status(400).json({ error: 'No products or quantities submitted' });
-        }
-        if (!sale) {
-          return res.status(404).json({ error: 'Sale not found' });
-        }
-        for (const selectedProduct of selectedProducts) {
-          const product = await Product.findById(selectedProduct.product)
-          if (!product) {
-            res.status(404).send(`product${selectedProduct.product} not found`)
-            return
-          }
-          if (product.inStock < selectedProduct.quantity) {
-            res.status(400).send('insufficient stock')
-            return
-          }
-          product.inStock -= selectedProduct.quantity
-          product.closingStock -= selectedProduct.quantity
-          product.sold += parseInt(selectedProduct.quantity)
-          await product.save()
-
-          const transaction = new Transaction({
-            product: selectedProduct.product,
-            productName: product.name,
-            purchasePrice: product.purchasePrice,
-            sellingPrice: product.price,
-            type: 'sale',
-            quantity: selectedProduct.quantity
-          })
-
-          await transaction.save()
-        }
-        sale.units.push({
-          arrangement: unitName,
-          products: selectedProducts.map((x) => ({
-            ...x,
-            product: x.product,
-            productName: x.productName,
-            quantity: x.quantity,
-          }))
-        })
-
-        await sale.save()
-
-        res.status(200).send({ message: 'data added successfully' })
-      } catch (error) {
-        console.log(error)
-        res.status(500).send({ message: 'something went wrong' })
-
-      }
-    }
-  )
-)
-
 
 SaleRouter.get('/options', expressAsyncHandler(async (req, res) => {
   const options = await Sale.aggregate([

@@ -160,7 +160,7 @@ const SaleTable = () => {
       
       const hasEmptyValues = selectFields.some((value) => !value);
       const hasNullValues = submitProducts.some(row => 
-        !row.name || !row.arrangement || !row.price || !row.quantity
+        !row.name || !row.arrangement || !row.price || !row.quantity || row.photo
       );
 
       if (hasEmptyValues) {
