@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema({
     name: {type: String, uppercase: true,},
-    identifier: {type: String, enum:['STEM', 'PLANT', 'BUNCH', 'TOOL', 'ACCESSORY', 'ARRANGEMENT']},
+    identifier: {type: String, enum:['STEM', 'PLANT', 'BUNCH', 'TOOL', 'ACCESSORY', 'ARRANGEMENT'], default: "STEM"},
     purchase: {type: Number, default: 0},
     photo: {type: String},
     waste: {type: Number, default: 0},
