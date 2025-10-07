@@ -25,7 +25,6 @@ const transactionSchema = new mongoose.Schema({
     purchasePrice: {type: Number, default: 0},
     sellingPrice: {type: Number, default: 0},
     type: {type: String, enum: ['purchase', 'sale', 'damage', 'returned', 'hotel'], required: true},
-    identifier: {type: String, enum:['STEM', 'PLANT', 'BUNCH', 'TOOL', 'ACCESSORY', 'ARRANGEMENT']},
     quantity: {type: Number, required: true},
     deliveryNote: String
 },
