@@ -1,10 +1,9 @@
-import React, { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import Table from 'react-bootstrap/Table';
 import Form from 'react-bootstrap/esm/Form';
 import Button from 'react-bootstrap/esm/Button';
 import Col from 'react-bootstrap/esm/Col';
 import Row from 'react-bootstrap/esm/Row';
-import Stack from 'react-bootstrap/esm/Stack';
 import axios from 'axios';
 import { Store } from '../utils/Store';
 import { getError } from '../utils/getError';
@@ -12,7 +11,7 @@ import { BsCamera } from 'react-icons/bs';
 import { round2 } from '../utils/helpers';
 import { LuBan, LuCloud } from 'react-icons/lu'
 import { toast } from 'react-toastify';
-import { BsBoxArrowDown, BsPlusSquare, BsFillTrash3Fill } from 'react-icons/bs';
+import { BsPlusSquare, BsFillTrash3Fill } from 'react-icons/bs';
 import { Container } from 'react-bootstrap';
 import CreatableSelect from 'react-select/creatable';
 
@@ -160,7 +159,7 @@ const SaleTable = () => {
       
       const hasEmptyValues = selectFields.some((value) => !value);
       const hasNullValues = submitProducts.some(row => 
-        !row.name || !row.arrangement || !row.price || !row.quantity || row.photo
+        !row.name || !row.arrangement || !row.price || !row.quantity || !row.photo
       );
 
       if (hasEmptyValues) {
