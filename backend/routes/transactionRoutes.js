@@ -1,5 +1,6 @@
 import expressAsyncHandler from 'express-async-handler'
 import { Router } from 'express'
+import mongoose from 'mongoose'
 import { Purchase, Sale } from '../models/Transactions.js'
 import { Expense } from '../models/expense.js'
 import { Transaction, Product } from '../models/product.js'
@@ -13,34 +14,41 @@ TransactionRouter.post(
   '/purchase',
   expressAsyncHandler(
     async (req, res) => {
+      const session = await mongoose.startSession();
+      session.startTransaction();
+
       try {
-        const { selectedProducts, deliveryNote, total } = req.body
+        const { selectedProducts, deliveryNote, total } = req.body;
 
-
+        // Create new Purchase object
         const newPurchase = new Purchase({
           deliveryNote: deliveryNote,
           Items: selectedProducts,
-          total: total
-        })
+          total: total,
+        });
 
-        await newPurchase.save()
+        // Save Purchase and associate session
+        await newPurchase.save({ session });
 
+        // Loop through each selected product to update inventory
         for (const selectedProduct of selectedProducts) {
-
-          const newProduct = await Product.findById(selectedProduct.product)
+          const newProduct = await Product.findById(selectedProduct.product).session(session);
 
           if (!newProduct) {
+            // Abort transaction and send error response
+            await session.abortTransaction();
             return res.status(404).json({ error: "Product not found" });
           }
 
+          // Update product stock and other properties
           newProduct.inStock += parseInt(selectedProduct.quantity);
           newProduct.closingStock += parseInt(selectedProduct.quantity);
-          newProduct.purchase += parseInt(selectedProduct.quantity)
+          newProduct.purchase += parseInt(selectedProduct.quantity);
 
+          // Save updated product
+          await newProduct.save({ session });
 
-          await newProduct.save()
-
-
+          // Create new transaction record for the purchase
           const transaction = new Transaction({
             product: selectedProduct.product,
             purchasePrice: newProduct.purchasePrice,
@@ -48,19 +56,29 @@ TransactionRouter.post(
             productName: newProduct.name,
             type: 'purchase',
             deliveryNote: deliveryNote,
-            quantity: parseInt(selectedProduct.quantity)
-          })
+            quantity: parseInt(selectedProduct.quantity),
+          });
 
-          await transaction.save()
+          // Save transaction record
+          await transaction.save({ session });
         }
+
+        // Commit the transaction after all operations are successful
+        await session.commitTransaction();
+        session.endSession();
+
         res.status(200).send({ message: "Bulk purchase successful" });
       } catch (error) {
-        console.log(error)
-        res.send(error)
+        // In case of any error, abort the transaction and send error response
+        await session.abortTransaction();
+        session.endSession();
+        console.log(error);
+        res.status(500).send({ error: "Something went wrong, transaction rolled back" });
       }
     }
   )
-)
+);
+
 
 
 TransactionRouter.post(
