@@ -1,6 +1,5 @@
 import expressAsyncHandler from 'express-async-handler'
 import { Router } from 'express'
-import mongoose from 'mongoose'
 import { Purchase, Sale } from '../models/Transactions.js'
 import { Expense } from '../models/expense.js'
 import { Transaction, Product } from '../models/product.js'
@@ -14,71 +13,64 @@ TransactionRouter.post(
   '/purchase',
   expressAsyncHandler(
     async (req, res) => {
-      const session = await mongoose.startSession();
-      session.startTransaction();
-
       try {
         const { selectedProducts, deliveryNote, total } = req.body;
 
-        // Create new Purchase object
         const newPurchase = new Purchase({
-          deliveryNote: deliveryNote,
+          deliveryNote,
           Items: selectedProducts,
-          total: total,
+          total
         });
 
-        // Save Purchase and associate session
-        await newPurchase.save({ session });
+        await newPurchase.save();
 
-        // Loop through each selected product to update inventory
         for (const selectedProduct of selectedProducts) {
-          const newProduct = await Product.findById(selectedProduct.product).session(session);
+          const quantity = parseInt(selectedProduct.quantity);
 
-          if (!newProduct) {
-            // Abort transaction and send error response
-            await session.abortTransaction();
+          // Update stock without triggering validation
+          await Product.findByIdAndUpdate(
+            selectedProduct.product,
+            {
+              $inc: {
+                inStock: quantity,
+                closingStock: quantity,
+                purchase: quantity
+              }
+            }
+          );
+
+          // Fetch required product info for transaction
+          const productInfo = await Product.findById(
+            selectedProduct.product,
+            'purchasePrice price name'
+          );
+
+          if (!productInfo) {
             return res.status(404).json({ error: "Product not found" });
           }
 
-          // Update product stock and other properties
-          newProduct.inStock += parseInt(selectedProduct.quantity);
-          newProduct.closingStock += parseInt(selectedProduct.quantity);
-          newProduct.purchase += parseInt(selectedProduct.quantity);
-
-          // Save updated product
-          await newProduct.save({ session });
-
-          // Create new transaction record for the purchase
           const transaction = new Transaction({
             product: selectedProduct.product,
-            purchasePrice: newProduct.purchasePrice,
-            sellingPrice: newProduct.price,
-            productName: newProduct.name,
+            purchasePrice: productInfo.purchasePrice,
+            sellingPrice: productInfo.price,
+            productName: productInfo.name,
             type: 'purchase',
-            deliveryNote: deliveryNote,
-            quantity: parseInt(selectedProduct.quantity),
+            deliveryNote,
+            quantity
           });
 
-          // Save transaction record
-          await transaction.save({ session });
+          await transaction.save();
         }
 
-        // Commit the transaction after all operations are successful
-        await session.commitTransaction();
-        session.endSession();
-
         res.status(200).send({ message: "Bulk purchase successful" });
+
       } catch (error) {
-        // In case of any error, abort the transaction and send error response
-        await session.abortTransaction();
-        session.endSession();
-        console.log(error);
-        res.status(500).send({ error: "Something went wrong, transaction rolled back" });
+        console.error("Purchase error:", error);
+        res.status(500).send({ error: "Internal server error", details: error.message });
       }
     }
   )
 );
-
 
 
 TransactionRouter.post(
@@ -245,20 +237,20 @@ TransactionRouter.get(
 
 
 
-TransactionRouter.get('/daily-summary', expressAsyncHandler(async(req, res)=> {
+TransactionRouter.get('/daily-summary', expressAsyncHandler(async (req, res) => {
   const { date } = req.query;
-  
+
   // If date is provided, use it; otherwise use today
   const targetDate = date ? new Date(date) : new Date();
-  
+
   // Set to start of day (00:00:00)
   const startOfDay = new Date(targetDate);
   startOfDay.setHours(0, 0, 0, 0);
-  
+
   // Set to end of day (23:59:59)
   const endOfDay = new Date(targetDate);
   endOfDay.setHours(23, 59, 59, 999);
-  
+
   // Purchases
   const purchases = await Purchase.aggregate([
     {
@@ -283,7 +275,7 @@ TransactionRouter.get('/daily-summary', expressAsyncHandler(async(req, res)=> {
       }
     }
   ]);
-  
+
   // Sales
   const sales = await Sale.aggregate([
     {
@@ -303,13 +295,13 @@ TransactionRouter.get('/daily-summary', expressAsyncHandler(async(req, res)=> {
           }
         ],
         records: [
-          {$unset: 'saleItems'},
+          { $unset: 'saleItems' },
           { $match: {} }
         ]
       }
     }
   ]);
-  
+
   // Damages (from Transaction collection)
   const damages = await Transaction.aggregate([
     {
@@ -335,7 +327,7 @@ TransactionRouter.get('/daily-summary', expressAsyncHandler(async(req, res)=> {
       }
     }
   ]);
-  
+
   // Expenses (separate collection)
   const expenses = await Expense.aggregate([
     {
@@ -360,30 +352,30 @@ TransactionRouter.get('/daily-summary', expressAsyncHandler(async(req, res)=> {
       }
     }
   ]);
-  
+
   // Format response
   res.json({
     date: targetDate.toLocaleDateString('en-GB'),
-      purchases: {
-        count: purchases[0].summary[0]?.count || 0,
-        total: purchases[0].summary[0]?.total || 0,
-        data: purchases[0].records
-      },
-      sales: {
-        count: sales[0].summary[0]?.count || 0,
-        total: sales[0].summary[0]?.total || 0,
-        data: sales[0].records
-      },
-      damages: {
-        count: damages[0].summary[0]?.count || 0,
-        total: damages[0].summary[0]?.total || 0,
-        data: damages[0].records
-      },
-      expenses: {
-        count: expenses[0].summary[0]?.count || 0,
-        total: expenses[0].summary[0]?.total || 0,
-        data: expenses[0].records
-      }
+    purchases: {
+      count: purchases[0].summary[0]?.count || 0,
+      total: purchases[0].summary[0]?.total || 0,
+      data: purchases[0].records
+    },
+    sales: {
+      count: sales[0].summary[0]?.count || 0,
+      total: sales[0].summary[0]?.total || 0,
+      data: sales[0].records
+    },
+    damages: {
+      count: damages[0].summary[0]?.count || 0,
+      total: damages[0].summary[0]?.total || 0,
+      data: damages[0].records
+    },
+    expenses: {
+      count: expenses[0].summary[0]?.count || 0,
+      total: expenses[0].summary[0]?.total || 0,
+      data: expenses[0].records
+    }
   });
 }));
 
