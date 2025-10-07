@@ -242,50 +242,66 @@ SaleRouter.post(
   '/:id/add-units',
   expressAsyncHandler(
     async (req, res) => {
-      console.log(req.body.selectedProducts)
-      const saleId = req.params.id
-      const { selectedProducts, unitName } = req.body
-
+      const saleId = req.params.id;
+      const { selectedProducts, unitName } = req.body;
 
       if (!saleId) {
-        res.status(404).send('no sale found');
-        return
+        return res.status(404).send('No sale ID provided');
       }
-      try {
 
-        const sale = await Sale.findById(saleId)
-        if (!selectedProducts || selectedProducts.length === 0) {
-          return res.status(400).json({ error: 'No products or quantities submitted' });
-        }
+      if (!selectedProducts || selectedProducts.length === 0) {
+        return res.status(400).json({ error: 'No products or quantities submitted' });
+      }
+
+      try {
+        const sale = await Sale.findById(saleId);
         if (!sale) {
           return res.status(404).json({ error: 'Sale not found' });
         }
-        for (const selectedProduct of selectedProducts) {
-          const product = await Product.findById(selectedProduct.product)
-          if (!product) {
-            res.status(404).send(`product${selectedProduct.product} not found`)
-            return
-          }
-          if (product.inStock < selectedProduct.quantity) {
-            res.status(400).send('insufficient stock')
-            return
-          }
-          product.inStock -= selectedProduct.quantity
-          product.closingStock -= selectedProduct.quantity
-          product.sold += parseInt(selectedProduct.quantity)
-          await product.save()
 
+        for (const selectedProduct of selectedProducts) {
+          const quantity = parseInt(selectedProduct.quantity);
+
+          // Fetch required product data for validation and transaction
+          const productInfo = await Product.findById(
+            selectedProduct.product,
+            'inStock closingStock sold price purchasePrice name'
+          );
+
+          if (!productInfo) {
+            return res.status(404).send(`Product ${selectedProduct.product} not found`);
+          }
+
+          if (productInfo.inStock < quantity) {
+            return res.status(400).send(`Insufficient stock for product ${productInfo.name}`);
+          }
+
+          // Decrease stock using atomic update
+          await Product.updateOne(
+            { _id: selectedProduct.product },
+            {
+              $inc: {
+                inStock: -quantity,
+                closingStock: -quantity,
+                sold: quantity
+              }
+            }
+          );
+
+          // Create transaction
           const transaction = new Transaction({
             product: selectedProduct.product,
-            productName: product.name,
-            purchasePrice: product.purchasePrice,
-            sellingPrice: product.price,
+            productName: productInfo.name,
+            purchasePrice: productInfo.purchasePrice,
+            sellingPrice: productInfo.price,
             type: 'sale',
-            quantity: selectedProduct.quantity
-          })
+            quantity: quantity
+          });
 
-          await transaction.save()
+          await transaction.save();
         }
+
+        // Add unit to sale
         sale.units.push({
           arrangement: unitName,
           products: selectedProducts.map((x) => ({
@@ -294,19 +310,19 @@ SaleRouter.post(
             productName: x.productName,
             quantity: x.quantity,
           }))
-        })
+        });
 
-        await sale.save()
+        await sale.save();
 
-        res.status(200).send({ message: 'data added successfully' })
+        res.status(200).send({ message: 'Data added successfully' });
       } catch (error) {
-        console.log(error)
-        res.status(500).send({ message: 'something went wrong' })
-
+        console.error('Add units error:', error);
+        res.status(500).send({ message: 'Something went wrong' });
       }
     }
   )
-)
+);
+
 
 SaleRouter.patch('/status/:id', expressAsyncHandler(async (req, res) => {
   const { status } = req.body
