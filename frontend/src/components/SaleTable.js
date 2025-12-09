@@ -24,27 +24,15 @@ const SaleTable = () => {
   const [name, setCustomerName] = useState(null); // Changed to null
   const [phone, setPhoneNumber] = useState(null); // Changed to null
   const [preparedBy, setPreparedBy] = useState('');
-  const [deliveredTo, setdeliveredTo] = useState('');
-  const [free, setFree] = useState(false);
-  const [driver, setDriver] = useState('');
-  const [orderedBy, setorderedBy] = useState('');
   const [discount, setDiscount] = useState(0);
-  const [recievedBy, setrecievedBy] = useState('');
-  const [product, setProduct] = useState({
-    name: null, // Changed to null
-    price: 0,
-    quantity: 0,
-    arrangement: null, // Changed to null
-    photo: "",
-    loading: false
-  })
+
 
   const time = new Date().toLocaleDateString('en-GB');
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const { userInfoToken } = state;
 
   const handleAddRow = () => {
-    setProducts((prev) => [...prev, { ...product }]);
+    setProducts((prev) => [...prev, {name: null, price: 0, quantity: 1, arrangement: null, photo:'', loading: false }]);
   };
 
   const handleRemove = (idx) => {
@@ -176,19 +164,14 @@ const SaleTable = () => {
           products: submitProducts, 
           discount, 
           paidBy, 
-          driver, 
           service, 
-          recievedBy,
           name: name?.value || name, 
-          deliveredTo, 
           phone: phone?.value || phone, 
-          orderedBy, 
           preparedBy, 
           total,
           time, 
           subTotal, 
           vat, 
-          free,
         },
           { responseType: "blob", headers: { 'Accept': 'application/pdf' } }
         ).then((response) => {
@@ -226,6 +209,7 @@ const SaleTable = () => {
             <option>Select...</option>
             <option>Card</option>
             <option>Cash</option>
+            <option>Credit</option>
             <option>TapLink</option>
             <option>Bank Transfer</option>
             <option>F.O.C</option>
@@ -248,11 +232,9 @@ const SaleTable = () => {
           <Form.Select onChange={(e) => setPreparedBy(e.target.value)} required>
             <option>Choose...</option>
             <option>Joe</option>
+            <option>Almira</option>
             <option>Allan</option>
-            <option>Adel</option>
             <option>Mahel</option>
-            <option>Ahmed</option>
-            <option>MJ</option>
           </Form.Select>
         </Col>
 
