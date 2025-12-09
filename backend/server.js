@@ -64,12 +64,12 @@ mongoose.connect(process.env.MONGO_URI)
     app.listen(process.env.PORT, () => {
       console.log(`app running on ${PORT}`)
 
-      migrateDates()
+      //migrateDates()
     })
 
   }).catch((err) => console.log(err))
 
-
+/* 
 const migrateDates = async () => {
   try {
     console.log('Starting date migration...');
@@ -182,4 +182,4 @@ const migrateDates = async () => {
     console.log('Database connection closed');
     process.exit(0);
   }
-};
+}; */
