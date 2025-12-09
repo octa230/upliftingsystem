@@ -64,7 +64,7 @@ mongoose.connect(process.env.MONGO_URI)
     app.listen(process.env.PORT, () => {
       console.log(`app running on ${PORT}`)
 
-      //migrateDates()
+      migrateDates()
     })
 
   }).catch((err) => console.log(err))
