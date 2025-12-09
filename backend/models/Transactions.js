@@ -65,7 +65,7 @@ const SaleSchema = new mongoose.Schema({
     total:{type: Number, required: true, default: 0, min: 0},
     itemsTotal:{type: Number, required: true, default: 0, min: 0 },
     subTotal:{type: Number, required: true},
-    date:{type: String, required: true},
+    date:{type: Date, required: true},
     name:{type: String, required: true},
     paidBy: {type: String, required: true},
     phone: {type: String, required: true},

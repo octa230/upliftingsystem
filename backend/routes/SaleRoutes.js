@@ -399,22 +399,26 @@ SaleRouter.get(
 SaleRouter.get(
   '/for',
   expressAsyncHandler(async (req, res) => {
-    //console.log(req.query);
     const { startDate, endDate, limit } = req.query;
+    
     let dateFilter = {};
-
+    
     if (startDate || endDate) {
-      dateFilter.createdAt = {};
+      dateFilter.date = {};
       if (startDate) {
-        dateFilter.createdAt.$gte = new Date(startDate);
+        // Set to start of day
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        dateFilter.date.$gte = start;
       }
       if (endDate) {
+        // Set to end of day
         const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999); // include full day
-        dateFilter.createdAt.$lte = end;
+        end.setHours(23, 59, 59, 999);
+        dateFilter.date.$lte = end;
       }
     }
-
+    
     try {
       const sales = await Sale.aggregate([
         { $match: dateFilter },
@@ -422,7 +426,7 @@ SaleRouter.get(
           $facet: {
             sales: [
               { $match: {} },
-              { $sort: { createdAt: -1 } },
+              { $sort: { date: -1 } },
               { $limit: parseInt(limit) || 50 }
             ],
             totalCount: [{ $count: 'count' }],
@@ -461,12 +465,12 @@ SaleRouter.get(
           }
         }
       ]);
-
+      
       const totalCount = sales[0].totalCount[0]?.count || 0;
       const totalValue = sales[0].totalValue[0]?.total || 0;
       const focSales = sales[0].focSales[0]?.total || 0;
       const paymentTotals = sales[0].paymentTotals || [];
-
+      
       res.status(200).send({
         sales: sales[0].sales,
         totalCount,
@@ -508,11 +512,13 @@ SaleRouter.put(
       try {
         const sale = await Sale.findById(req.params.id)
         if (sale) {
-          sale.date = req.body.time || sale.date,
+          sale.date = req.body.date || sale.date,
             sale.service = req.body.service || sale.service,
             sale.paidBy = req.body.paidBy || sale.paidBy
           await sale.save()
         }
+
+        res.send(sale)
       } catch (error) {
         res.send(error)
       }
