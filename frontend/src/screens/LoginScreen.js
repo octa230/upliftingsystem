@@ -42,7 +42,11 @@ export default function LoginScreen() {
 
       <Form.Group className='mb-3' controlId='password'>
         <Form.Label>Password</Form.Label>
-        <Form.Control placeholder='password' onChange={(e)=> setPassword(e.target.value)}/>
+        <Form.Control 
+          placeholder='password' 
+          type='password'
+          onChange={(e)=> setPassword(e.target.value)}
+        />
       </Form.Group>
       <Button type='submit' variant='warning' className='w-100'>
         login

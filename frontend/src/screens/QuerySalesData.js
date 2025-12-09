@@ -3,13 +3,13 @@ import { Row, Col, Table, Form, Button, Alert, Card, Modal, ListGroup } from 're
 import axios from 'axios';
 import { getError } from '../utils/getError';
 import { toast } from 'react-toastify';
-import { BsCheck2, BsXLg, BsDashCircleFill } from 'react-icons/bs';
+import { BsXLg, BsDashCircleFill } from 'react-icons/bs';
 import SaleDetailsModal from '../components/SaleDetailsModal';
 import { Store } from '../utils/Store';
 import XlsExportBtn from '../components/XlsExportBtn';
 import { useCallback } from 'react';
 import debounce from 'lodash.debounce'
-import { LuPenLine, LuPlusCircle, LuPrinter } from 'react-icons/lu';
+import { LuCheckCircle2, LuPenLine, LuPlusCircle, LuPrinter } from 'react-icons/lu';
 
 export default function QuerySalesData() {
   const { state } = useContext(Store);
@@ -19,7 +19,7 @@ export default function QuerySalesData() {
   const [query, setQuery] = useState({
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
-    foc: true
+    //foc: true
   });
 
   // State to store sales data
@@ -37,12 +37,7 @@ export default function QuerySalesData() {
 
   // State for editing
   const [editingSale, setEditingSale] = useState(null);
-  const [paidBy, setPaidBy] = useState('');
-  const [service, setService] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
-
-  // Function to fetch sales data based on query parameters
 
   // Function to handle viewing sale details
   const handleViewSale = async (saleId) => {
@@ -55,24 +50,24 @@ export default function QuerySalesData() {
     }
   };
 
-  const handlePrint=async(saleId)=>{
-    if(window.confirm('print Invoice?')){
+  const handlePrint = async (saleId) => {
+    if (window.confirm('print Invoice?')) {
       toast.promise(
         axios.post(`/api/sale/print-sale/${saleId}`, {},
           {
-            responseType:"blob",
-            headers: {'Accept': 'application/pdf'}
+            responseType: "blob",
+            headers: { 'Accept': 'application/pdf' }
           }
-        ).then((response)=> {
-        const blob = new Blob([response.data], {type:"application/pdf"});
-        const url = window.URL.createObjectURL(blob)
-        window.open(url, '_blank')
-      }),
-      {
-        pending:"...please wait",
-        success:"...done!",
-        error:"Oops! try again"
-      }
+        ).then((response) => {
+          const blob = new Blob([response.data], { type: "application/pdf" });
+          const url = window.URL.createObjectURL(blob)
+          window.open(url, '_blank')
+        }),
+        {
+          pending: "...please wait",
+          success: "...done!",
+          error: "Oops! try again"
+        }
       )
     }
   }
@@ -83,7 +78,9 @@ export default function QuerySalesData() {
       toast.error('YOUR ACCOUNT CAN\'T COMPLETE THIS ACTION')
       return
     }
-    setEditingSale(sale);
+    setEditingSale({
+      ...sale,
+    });
   };
 
   const handleChangeStatus = async (str) => {
@@ -98,17 +95,26 @@ export default function QuerySalesData() {
   // Function to update sale details
   const updateSale = async () => {
     try {
-      await axios.put(`/api/sale/edit/${editingSale._id}`, {
-        time: date.toLocaleDateString(),
-        service: service,
-        paidBy: paidBy
+      const { data } = await axios.put(`/api/sale/edit/${editingSale._id}`, {
+        date: editingSale?.date,
+        service: editingSale?.service,
+        paidBy: editingSale?.paidBy
       });
-      toast.success('Done')
+      if (data) {
+        toast.success('Done')
+        setSales(prevSales =>
+          prevSales.map(sale =>
+            sale._id === data._id ? { ...sale, ...data } : sale
+          )
+        );
+
+      }
       console.log('Sale updated successfully');
     } catch (error) {
       console.error('Error updating sale:', error);
+    } finally {
+      setEditingSale(null); // Reset editing state
     }
-    setEditingSale(null); // Reset editing state
   };
 
   useEffect(() => {
@@ -137,7 +143,7 @@ export default function QuerySalesData() {
     fetchSales()
 
 
-  }, [query.startDate, query.endDate, userInfoToken, editingSale, searchText]);
+  }, [query.startDate, query.endDate, userInfoToken, editingSale?._id, searchText]);
 
 
   const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100;
@@ -278,16 +284,29 @@ export default function QuerySalesData() {
                       </td>
                       <td>
                         {editingSale && editingSale._id === sale._id ? (
-                          <Form.Control type='date' onChange={(e) => setDate(e.target.value)} value={date} />
+                          <Form.Control
+                            type='date'
+                            onChange={(e) => {
+                              setEditingSale(({ ...editingSale, date: e.target.value }));
+                            }}
+                            value={editingSale?.date ? editingSale.date.split('T')[0] : ''}
+                          />
                         ) : (
-                          sale.date
+                          new Date(sale.date).toLocaleDateString()
                         )}
                       </td>
                       <td>{sale.name}</td>
-                      <td style={{ backgroundColor: sale.free ? '#FF9999' : 'transparent' }}>{sale.free === true ? 'F.O.C' : 'PAID'}</td>
+                      <td style={{ backgroundColor: sale.free ? '#FF9999' : 'transparent' }}>
+                        {sale.free === true ? 'F.O.C' : 'PAID'}
+                      </td>
                       <td>
                         {editingSale && editingSale._id === sale._id ? (
-                          <Form.Select onChange={(e) => setService(e.target.value)}>
+                          <Form.Select
+                            onChange={(e) => {
+                              setEditingSale(({ ...editingSale, service: e.target.value }));
+                            }}
+                            value={editingSale?.service || ''}
+                          >
                             <option>Select...</option>
                             <option>Delivery</option>
                             <option>Store Pick Up</option>
@@ -302,25 +321,32 @@ export default function QuerySalesData() {
                       </td>
                       <td>
                         {editingSale && editingSale._id === sale._id ? (
-                          <Form.Select onChange={(e) => setPaidBy(e.target.value)}>
+                          <Form.Select
+                            onChange={(e) => {
+                              setEditingSale(({ ...editingSale, paidBy: e.target.value }));
+                            }}
+                            value={editingSale?.paidBy || ''}
+                          >
                             <option>Select...</option>
                             <option>Card</option>
                             <option>Cash</option>
+                            <option>Credit</option>
                             <option>TapLink</option>
                             <option>Bank Transfer</option>
+                            <option>F.O.C</option>
                           </Form.Select>
                         ) : (
                           sale.paidBy
                         )}
                       </td>
                       <td>{sale.total}</td>
-                      <td className='d-flex justify-content-around'>
+                      <td className='d-flex gap-3 justify-content-center'>
                         {!editingSale || editingSale._id !== sale._id ? (
                           <LuPenLine size={22} onClick={() => handleEdit(sale)} />
                         ) : (
-                          <div className='d-flex p-1 justify-content-between'>
-                            <BsCheck2 size={22} onClick={() => updateSale()} />
-                            <BsXLg size={22} />
+                          <div className='d-flex gap-3 justify-items-between'>
+                            <LuCheckCircle2 size={22} onClick={() => updateSale()} />
+                            <BsXLg size={22} onClick={() => setEditingSale(null)} /> {/* Cancel Editing */}
                           </div>
                         )}
                         <LuPlusCircle size={22} onClick={() => addSale(sale._id)} />
@@ -329,15 +355,20 @@ export default function QuerySalesData() {
                       </td>
                     </tr>
                   ))}
+                  {/* Modal for status change */}
                   <Modal show={statusModal} onHide={() => setStatusModal(false)}>
                     <Modal.Header closeButton>
                       <h3>CHANGE SALE STATUS</h3>
                     </Modal.Header>
                     <Modal.Body>
                       <ListGroup>
-                        {['completed', 'pending', 'cancelled'].map(status => (
+                        {['completed', 'pending', 'cancelled'].map((status) => (
                           <ListGroup.Item key={status}>
-                            <Button className='btn btn-sm' variant='warning' onClick={() => handleChangeStatus(status)}>
+                            <Button
+                              className='btn btn-sm'
+                              variant='warning'
+                              onClick={() => handleChangeStatus(status)}
+                            >
                               {status}
                             </Button>
                           </ListGroup.Item>
@@ -347,6 +378,7 @@ export default function QuerySalesData() {
                   </Modal>
                 </tbody>
               </Table>
+
               <SaleDetailsModal show={showModal} onHide={() => setShowModal(false)} selectedSale={selectedSale} />
             </div>
           ) : (
