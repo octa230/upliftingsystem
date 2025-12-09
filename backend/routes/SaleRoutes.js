@@ -139,7 +139,6 @@ SaleRouter.post(
         })),
         InvoiceCode: `UPLDXB_${invNumber}`,
         total: itemsTotal,
-        date: req.body.time,
         ...req.body,
         free: req.body.paidBy === 'F.O.C'
       });

@@ -169,7 +169,6 @@ const SaleTable = () => {
           phone: phone?.value || phone, 
           preparedBy, 
           total,
-          time, 
           subTotal, 
           vat, 
         },
