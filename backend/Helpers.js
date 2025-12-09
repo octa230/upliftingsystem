@@ -175,5 +175,10 @@ Handlebars.registerHelper('formatCurrency', function(number) {
   return (number || 0).toFixed(2)
 })
 
+// Register the 'eq' helper to check if two values are equal
+Handlebars.registerHelper('eq', function(a, b) {
+  return a === b;
+});
+
 
 export const generateId = async()=> uuidv4().slice(0, 8).toString()
