@@ -8,13 +8,30 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv'
 import Handlebars from 'handlebars';
 import {ToWords} from 'to-words'
-
-
+import fs from 'fs';
 
 dotenv.config()
 
-const upload = multer();
+// Create photos directory if it doesn't exist
+const photosDir = 'uploads/photos';
+if (!fs.existsSync(photosDir)) {
+  fs.mkdirSync(photosDir, { recursive: true });
+}
 
+// Disk storage for photos
+const photoStorage = multer.diskStorage({
+  destination: function(req, file, cb){
+    cb(null, 'uploads/photos')
+  },
+  filename: function(req, file, cb){
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+})
+
+const photoUpload = multer({storage: photoStorage})
+
+// Disk storage for bills
 const storage = multer.diskStorage({
   destination: function(req, file, cb){
     cb(null, 'uploads/bills')
@@ -30,38 +47,24 @@ const dskUploads = multer({storage: storage})
 
 export const UploadRouter = express.Router();
 
-
+// Photo upload to disk (no Cloudinary)
 UploadRouter.post(
   '/',
-  upload.single('file'),
+  photoUpload.single('file'),
   async (req, res) => {
     try {
-      // Cloudinary configuration
-      cloudinary.config({
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_API_SECRET,
+      if (!req.file) {
+        return res.status(400).send({ message: 'No file uploaded' });
+      }
+
+      // Send back file info
+      res.status(200).send({
+        success: true,
+        message: 'Photo uploaded successfully',
+        filePath: req.file.path,
+        fileName: req.file.filename,
+        secure_url: `/uploads/photos/${req.file.filename}`
       });
-
-      // Stream upload function
-      const streamUpload = (req) => {
-        return new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream((error, result) => {
-            if (result) {
-              resolve(result);
-            } else {
-              reject(error);
-            }
-          });
-          streamifier.createReadStream(req.file.buffer).pipe(stream);
-        });
-      };
-
-      // Upload the file to Cloudinary
-      const result = await streamUpload(req);
-
-      // Send the result back to the client
-      res.status(200).send(result);
     } catch (error) {
       console.error(error);
       res.status(500).send({ message: 'Error uploading the file' });
@@ -69,8 +72,7 @@ UploadRouter.post(
   }
 );
 
-
-
+// Bill upload to disk
 UploadRouter.post('/bill', dskUploads.single('file'), (req, res)=>{
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
