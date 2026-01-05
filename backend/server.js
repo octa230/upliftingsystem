@@ -15,6 +15,7 @@ import SaleRouter from './routes/SaleRoutes.js';
 import expenseRouter from './routes/expenseRoutes.js';
 import settingsRouter from './routes/settingRoutes.js';
 import letterheadRouter from './routes/letterHead.js';
+import customerRouter from './routes/customerRoutes.js';
 
 const app = express();
 dotenv.config()
@@ -34,6 +35,7 @@ app.use(bodyParser.json())
 //routes middleware
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/product', ProductRouter)
+app.use('/api/customers', customerRouter)
 app.use('/api/user', userRouter)
 app.use('/api/sale', SaleRouter)
 app.use('/api/upload', UploadRouter)

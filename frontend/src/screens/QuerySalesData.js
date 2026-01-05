@@ -19,7 +19,8 @@ export default function QuerySalesData() {
   const [query, setQuery] = useState({
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
-    //foc: true
+    paymentMethod: '', // New filter
+    paymentStatus: '' // New filter: 'free', 'paid', or ''
   });
 
   // State to store sales data
@@ -38,6 +39,8 @@ export default function QuerySalesData() {
   // State for editing
   const [editingSale, setEditingSale] = useState(null);
 
+  // Available payment methods
+  const paymentMethods = ['Card', 'Cash', 'Credit', 'TapLink', 'Bank Transfer', 'F.O.C'];
 
   // Function to handle viewing sale details
   const handleViewSale = async (saleId) => {
@@ -117,33 +120,54 @@ export default function QuerySalesData() {
     }
   };
 
+  // Function to clear filters
+  const clearFilters = () => {
+    setQuery({
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date().toISOString().split('T')[0],
+      paymentMethod: '',
+      paymentStatus: ''
+    });
+    setSearchText('');
+  };
+
   useEffect(() => {
-
-
     const fetchSales = async () => {
-
       if (searchText) {
         handleSearch(searchText)
+        return;
       }
 
       if (query) {
         try {
-          const { data } = await axios.get(`/api/sale/for?startDate=${query.startDate}&endDate=${query.endDate}&foc=${query.foc}`)
+          // Build query string
+          const params = new URLSearchParams({
+            startDate: query.startDate,
+            endDate: query.endDate
+          });
+
+          if (query.paymentMethod) {
+            params.append('paymentMethod', query.paymentMethod);
+          }
+
+          if (query.paymentStatus) {
+            params.append('paymentStatus', query.paymentStatus);
+          }
+
+          const { data } = await axios.get(`/api/sale/for?${params.toString()}`)
           setSales(data.sales)
           setTotalCount(data.totalCount)
           setTotalValue(data.totalValue);
           setFocSales(data.focSales);
           setPaymentTotals(data.paymentTotals)
         } catch (error) {
-          toast.error(error)
+          toast.error(getError(error))
           console.log(error)
         }
       }
     };
     fetchSales()
-
-
-  }, [query.startDate, query.endDate, userInfoToken, editingSale?._id, searchText]);
+  }, [query.startDate, query.endDate, query.paymentMethod, query.paymentStatus, userInfoToken, editingSale?._id, searchText]);
 
 
   const round2 = (num) => Math.round(num * 100 + Number.EPSILON) / 100;
@@ -164,7 +188,6 @@ export default function QuerySalesData() {
       localStorage.setItem('selectedSale', JSON.stringify(data))
       toast.success('successfully attached')
     }
-
   }
 
   const cancelSale = async ({ _id }) => {
@@ -172,40 +195,82 @@ export default function QuerySalesData() {
     setStatusModal(true)
   }
 
-
   const statusColors = {
     cancelled: "tomato",
     pending: "orange",
     completed: "white",
   };
 
-
   return (
     <div>
-      <div className="mb-3 d-flex flex-direction-row justify-content-between p-3">
-        <div className='d-flex'>
+      <div className="mb-3 p-3">
+        {/* Filter Section */}
+        <div className='d-flex flex-wrap gap-3 mb-3 align-items-end'>
           <Form.Group>
             <Form.Label>STARTING</Form.Label>
-            <Form.Control type='date' value={query.startDate} onChange={(e) => setQuery(prev => ({ ...prev, startDate: e.target.value }))} />
+            <Form.Control 
+              type='date' 
+              value={query.startDate} 
+              onChange={(e) => setQuery(prev => ({ ...prev, startDate: e.target.value }))} 
+            />
           </Form.Group>
-          <Form.Group className='mx-2'>
+          
+          <Form.Group>
             <Form.Label>END</Form.Label>
-            <Form.Control type='date' value={query.endDate} onChange={(e) => setQuery(prev => ({ ...prev, endDate: e.target.value }))} />
+            <Form.Control 
+              type='date' 
+              value={query.endDate} 
+              onChange={(e) => setQuery(prev => ({ ...prev, endDate: e.target.value }))} 
+            />
           </Form.Group>
+
+          <Form.Group>
+            <Form.Label>PAYMENT METHOD</Form.Label>
+            <Form.Select
+              value={query.paymentMethod}
+              onChange={(e) => setQuery(prev => ({ ...prev, paymentMethod: e.target.value }))}
+            >
+              <option value="">All Methods</option>
+              {paymentMethods.map((method) => (
+                <option key={method} value={method}>{method}</option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+
+          <Form.Group>
+            <Form.Label>PAYMENT STATUS</Form.Label>
+            <Form.Select
+              value={query.paymentStatus}
+              onChange={(e) => setQuery(prev => ({ ...prev, paymentStatus: e.target.value }))}
+            >
+              <option value="">All</option>
+              <option value="paid">Paid Only</option>
+              <option value="free">F.O.C Only</option>
+            </Form.Select>
+          </Form.Group>
+          
           <Form.Group>
             <Form.Label>SEARCH SALE</Form.Label>
-            <Form.Control type='text'
+            <Form.Control 
+              type='text'
               value={searchText}
               placeholder='name, phone or invoice number'
               onChange={(e) => setSearchText(e.target.value)}
             />
           </Form.Group>
+
+          <Button variant="secondary" onClick={clearFilters}>
+            Clear Filters
+          </Button>
         </div>
-        <div>
+
+        {/* Export Buttons */}
+        <div className='d-flex justify-content-end gap-2'>
           <XlsExportBtn data={sales} />
-          <Button className='mx-3'>PDF</Button>
+          <Button className='mx-1'>PDF</Button>
         </div>
       </div>
+
       <Row>
         <Col>
           {sales !== null ? (
@@ -328,12 +393,9 @@ export default function QuerySalesData() {
                             value={editingSale?.paidBy || ''}
                           >
                             <option>Select...</option>
-                            <option>Card</option>
-                            <option>Cash</option>
-                            <option>Credit</option>
-                            <option>TapLink</option>
-                            <option>Bank Transfer</option>
-                            <option>F.O.C</option>
+                            {paymentMethods.map((method) => (
+                              <option key={method} value={method}>{method}</option>
+                            ))}
                           </Form.Select>
                         ) : (
                           sale.paidBy

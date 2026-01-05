@@ -18,6 +18,7 @@ import {
     LuPower,
     LuComponent,
     LuFile,
+    LuUmbrella,
 } from "react-icons/lu";
 import InventoryScreen from './screens/Inventory';
 import SaleTable from './components/SaleTable';
@@ -33,6 +34,7 @@ import Default from './screens/Default';
 import { toast, ToastContainer } from 'react-toastify';
 import LoginScreen from './screens/LoginScreen';
 import axios from 'axios';
+import Customers from './screens/Customers';
 
 
 export default function App() {
@@ -75,6 +77,8 @@ export default function App() {
                 return <FilingScreen />;
             case 'sales-data':
                 return <QuerySalesData />;
+            case 'customers':
+                return <Customers />;
             case 'purchase-data':
                 return <PurchaseScreen />;
             case 'txns-screen':
@@ -120,6 +124,11 @@ export default function App() {
                         <Nav.Item>
                             <Nav.Link eventKey="sale-screen">
                                 <LuAppWindow style={{ marginRight: '4px' }} size={33} />
+                            </Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item>
+                            <Nav.Link eventKey="customers">
+                                <LuUmbrella style={{ marginRight: '4px' }} size={33} />
                             </Nav.Link>
                         </Nav.Item>
                         <Nav.Item className='position-relative'>
