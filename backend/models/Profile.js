@@ -1,12 +1,6 @@
 import mongoose from "mongoose";
 
 
-const CustomerSchema = new mongoose.Schema({
-    Name: String,
-    Phone: String,
-})
-
-
 const EmployeeSchema = new mongoose.Schema({
     name: {type: String, required: true, unique: true, sparse: true},
     Nationality: String,
@@ -20,6 +14,5 @@ const EmployeeSchema = new mongoose.Schema({
 
 
 
-export const Customer = mongoose.model('Customer', CustomerSchema)
 export const Employee = mongoose.model('Employee', EmployeeSchema)
 

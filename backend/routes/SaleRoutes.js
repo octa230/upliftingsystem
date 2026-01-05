@@ -395,13 +395,15 @@ SaleRouter.get(
   }
 )
 
+// Improved SaleRouter.get('/for') endpoint with proper limit handling
+
 SaleRouter.get(
   '/for',
   expressAsyncHandler(async (req, res) => {
-    const { startDate, endDate, limit } = req.query;
+    const { startDate, endDate, limit, paymentMethod, paymentStatus } = req.query;
     
+    // Build date filter
     let dateFilter = {};
-    
     if (startDate || endDate) {
       dateFilter.date = {};
       if (startDate) {
@@ -417,17 +419,40 @@ SaleRouter.get(
         dateFilter.date.$lte = end;
       }
     }
-    
+
+    // Build complete match filter
+    const matchFilter = { ...dateFilter };
+
+    // Add payment method filter
+    if (paymentMethod) {
+      matchFilter.paidBy = paymentMethod;
+    }
+
+    // Add payment status filter (free/paid)
+    if (paymentStatus) {
+      if (paymentStatus === 'free') {
+        matchFilter.free = true;
+      } else if (paymentStatus === 'paid') {
+        matchFilter.free = { $ne: true }; // Not free or explicitly false
+      }
+    }
+
     try {
+      // Build sales pipeline - only add $limit if limit is specified
+      const salesPipeline = [
+        { $sort: { date: -1 } }
+      ];
+      
+      // Only apply limit if explicitly provided
+      if (limit) {
+        salesPipeline.push({ $limit: parseInt(limit) });
+      }
+
       const sales = await Sale.aggregate([
-        { $match: dateFilter },
+        { $match: matchFilter }, // Apply all filters at once
         {
           $facet: {
-            sales: [
-              { $match: {} },
-              { $sort: { date: -1 } },
-              { $limit: parseInt(limit) || 50 }
-            ],
+            sales: salesPipeline, // Use dynamic pipeline
             totalCount: [{ $count: 'count' }],
             totalValue: [
               {
@@ -459,23 +484,30 @@ SaleRouter.get(
                   paymentMethod: '$_id',
                   total: 1
                 }
-              }
+              },
+              { $sort: { total: -1 } } // Sort by total descending
             ]
           }
         }
       ]);
-      
+
       const totalCount = sales[0].totalCount[0]?.count || 0;
       const totalValue = sales[0].totalValue[0]?.total || 0;
       const focSales = sales[0].focSales[0]?.total || 0;
       const paymentTotals = sales[0].paymentTotals || [];
-      
+
       res.status(200).send({
         sales: sales[0].sales,
         totalCount,
         totalValue,
         focSales,
-        paymentTotals
+        paymentTotals,
+        // Add metadata to show if results were limited
+        metadata: {
+          limited: !!limit,
+          limit: limit ? parseInt(limit) : null,
+          returned: sales[0].sales.length
+        }
       });
     } catch (error) {
       console.error(error);
