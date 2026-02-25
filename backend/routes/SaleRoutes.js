@@ -3,6 +3,7 @@ import { Transaction, Product } from '../models/product.js';
 import express from 'express';
 import { Sale } from '../models/Transactions.js';
 import Company from '../models/company.js'
+import Customer from '../models/customer.js';
 import Handlebars from 'handlebars';
 import fs from 'fs'
 import puppeteer, { executablePath } from 'puppeteer';
@@ -121,40 +122,56 @@ SaleRouter.post(
   expressAsyncHandler(async (req, res) => {
     let browser = null;
     try {
+      // ── Invoice number ──────────────────────────────────────
       const lastSale = await Sale.findOne({}).sort({ createdAt: -1 });
-      const invNumber = parseInt(lastSale.InvoiceCode.match(/\d+/)?.[0] || '0') + 1;
-      const itemsTotal = req.body.products.reduce((total, item) => {
-        return total + (item.quantity * item.price);
-      }, 0);
-      
+      const lastNum = parseInt(lastSale?.InvoiceCode?.match(/\d+/)?.[0] || '0');
+      const invNumber = lastNum + 1;
+
+      console.log(req.body)
+
+      // ── Build & save sale ───────────────────────────────────
       const newSale = new Sale({
         saleItems: req.body.products.map((x) => ({
-          ...x,
-          quantity: x.quantity,
           productName: x.name,
-          total: Number(x.quantity * x.price).toFixed(2),
+          quantity: x.quantity,
           price: x.price,
+          total: Number(x.quantity * x.price).toFixed(2),
           arrangement: x.arrangement,
           photo: x.photo,
         })),
         InvoiceCode: `UPLDXB_${invNumber}`,
-        total: itemsTotal,
-        ...req.body,
-        free: req.body.paidBy === 'F.O.C'
+        // Use totals calculated by the frontend (already VAT-aware)
+        subTotal: req.body.subTotal,
+        vat: req.body.vat,
+        total: req.body.total,
+        discount: req.body.discount || 0,
+        paidBy: req.body.paidBy,
+        service: req.body.service,
+        preparedBy: req.body.preparedBy,
+        name: req.body.name,
+        phone: req.body.phone,
+        free: req.body.paidBy === 'F.O.C',
+        // Company sale fields
+        companyId: req.body.companyId,
       });
 
       const sale = (await newSale.save()).toObject();
-      const company = await Company.findOne().lean();
 
-      if (!sale || !company) {
-        return res.status(404).json({ error: 'Sale or Company not found' });
-      }
+      // ── Fetch seller company (your own company record) ──────
+      const [company, billedTo] = await Promise.all([
+        Company.findOne().lean(),                          // your own company (seller)
+        req.body.companyId
+          ? Customer.findById(req.body.companyId).lean()   // the customer being billed
+          : Promise.resolve(null),
+      ]);
 
+      // ── Render HTML via Handlebars ──────────────────────────
       const templatePath = path.join(process.cwd(), 'templates', 'Invoice.hbs');
       const templateSource = fs.readFileSync(templatePath, 'utf8');
       const template = Handlebars.compile(templateSource);
-      const htmlContent = template({ company, sale });
+      const htmlContent = template({ company, sale, billedTo });
 
+      // ── Generate PDF via Puppeteer ──────────────────────────
       browser = await puppeteer.launch({
         headless: 'new',
         args: [
@@ -166,64 +183,34 @@ SaleRouter.post(
         ],
       });
 
-      console.log('Browser launched, creating page...');
       const page = await browser.newPage();
-
-      // Set viewport
       await page.setViewport({ width: 1200, height: 1600 });
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0', timeout: 30000 });
 
-      console.log('Setting content...');
-      await page.setContent(htmlContent, {
-        waitUntil: 'networkidle0',
-        timeout: 30000,
-      });
-
-      console.log('Generating PDF...');
-      // Generate PDF without path option
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
         preferCSSPageSize: false,
-        margin: {
-          top: '20px',
-          right: '20px',
-          bottom: '20px',
-          left: '20px',
-        },
+        margin: { top: '20px', right: '20px', bottom: '60px', left: '20px' },
       });
 
       await browser.close();
       browser = null;
 
-      // Verify buffer is not empty
       if (!pdfBuffer || pdfBuffer.length === 0) {
         throw new Error('Generated PDF buffer is empty');
       }
 
-      // Set response headers and send the PDF
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader(
-        'Content-Disposition',
-        `inline; filename="invoice-${sale.InvoiceCode || sale._id}.pdf"`
-      );
+      res.setHeader('Content-Disposition', `inline; filename="invoice-${sale.InvoiceCode}.pdf"`);
       res.setHeader('Content-Length', pdfBuffer.length);
-
-      // Send the PDF buffer as the response
       res.end(pdfBuffer, 'binary');
+
     } catch (error) {
-      console.error('PDF Generation Error:', error);
-      console.error('Error stack:', error.stack);
-
-      // Close browser if it's still open
+      console.error('PDF Generation Error:', error.message);
       if (browser) {
-        try {
-          await browser.close();
-        } catch (closeError) {
-          console.error('Error closing browser:', closeError);
-        }
+        try { await browser.close(); } catch (_) { }
       }
-
-      // Send error response
       if (!res.headersSent) {
         res.status(500).json({
           error: 'Failed to generate PDF',
@@ -401,7 +388,7 @@ SaleRouter.get(
   '/for',
   expressAsyncHandler(async (req, res) => {
     const { startDate, endDate, limit, paymentMethod, paymentStatus } = req.query;
-    
+
     // Build date filter
     let dateFilter = {};
     if (startDate || endDate) {
@@ -442,7 +429,7 @@ SaleRouter.get(
       const salesPipeline = [
         { $sort: { date: -1 } }
       ];
-      
+
       // Only apply limit if explicitly provided
       if (limit) {
         salesPipeline.push({ $limit: parseInt(limit) });

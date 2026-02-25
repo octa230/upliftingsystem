@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form } from 'react-bootstrap';
+import {toast} from 'react-toastify'
+import {BsFillBackspaceFill} from 'react-icons/bs'
 import axios from 'axios';
 
 const Customers = () => {
@@ -26,7 +28,7 @@ const Customers = () => {
 
   const fetchCustomers = async () => {
     try {
-      const { data } = await axios.get('/api/customers'); // adjust API endpoint
+      const { data } = await axios.get('/api/customers');
       setCustomers(data);
     } catch (err) {
       console.error(err);
@@ -34,25 +36,30 @@ const Customers = () => {
   };
 
   const handleCreate = async () => {
-    try {
-      await axios.post('/api/customers', formData);
-      setShowCreateModal(false);
-      setFormData({
-        name: '',
-        logo: '',
-        poBox: '',
-        taxRegNumber: '',
-        address: '',
-        phone: '',
-        email: '',
-        paidAmount: 0,
-        pendingBalance: 0
-      });
-      fetchCustomers();
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  try {
+    const { data } = await axios.post('/api/customers', formData);
+
+    setCustomers(prev => [...prev, data]); // ✅ use prev
+
+    setFormData({
+      name: '',
+      logo: '',
+      poBox: '',
+      taxRegNumber: '',
+      address: '',
+      phone: '',
+      email: '',
+      paidAmount: 0,
+      pendingBalance: 0
+    });
+
+    setShowCreateModal(false);
+    toast.success("Customer created successfully");
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to create customer");
+  }
+};
 
   const handlePaymentUpdate = async () => {
     try {
@@ -66,12 +73,27 @@ const Customers = () => {
     }
   };
 
+  const deleteCustomer = async (customerId) => {
+  setSelectedCustomer(customerId)
+  if (!window.confirm("Delete Customer?")) return;
+
+  try {
+    await axios.delete(`/api/customers/${customerId}`);
+    setShowPaymentModal(false);
+    toast.success("Deleted Successfully");
+    fetchCustomers();
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to delete customer");
+  }
+};
+
   return (
     <div className="container mt-4">
       <h2>Customer Management</h2>
       <Button className="mb-3" onClick={() => setShowCreateModal(true)}>Add Customer</Button>
 
-      <Table striped bordered hover responsive>
+      <Table striped bordered hover responsive fluid>
         <thead>
           <tr>
             <th>Name</th>
@@ -96,9 +118,9 @@ const Customers = () => {
               <td>{customer.address || '-'}</td>
               <td>{customer.phone || '-'}</td>
               <td>{customer.email || '-'}</td>
-              <td>${customer.paidAmount || 0}</td>
-              <td>${customer.pendingBalance || 0}</td>
-              <td>
+              <td>{customer.paidAmount?.toFixed(2) || 0}</td>
+              <td>{customer.pendingBalance?.toFixed(2) || 0}</td>
+              <td className='gap-3'>
                 <Button 
                   variant="primary" 
                   size="sm" 
@@ -109,6 +131,7 @@ const Customers = () => {
                 >
                   Update Payment
                 </Button>
+                <BsFillBackspaceFill color='tomato' size={22} onClick={()=> deleteCustomer(customer._id)}/>
               </td>
             </tr>
           ))}
@@ -151,6 +174,7 @@ const Customers = () => {
               <Form.Control 
                 type="text" 
                 max={15}
+                min={15}
                 value={formData.taxRegNumber} 
                 onChange={e => setFormData({...formData, taxRegNumber: e.target.value})} 
               />

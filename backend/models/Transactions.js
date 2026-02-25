@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose, { Schema } from "mongoose"
 
 const DamageSchema = new mongoose.Schema({
     date:{type: String}, 
@@ -73,6 +73,7 @@ const SaleSchema = new mongoose.Schema({
         },
         required: true
     },
+    companyId:{type: Schema.Types.ObjectId, ref: "Customer" },
     name:{type: String, required: true},
     paidBy: {type: String, required: true},
     phone: {type: String, required: true},
