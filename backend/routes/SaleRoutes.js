@@ -13,109 +13,65 @@ import path from 'path';
 
 const SaleRouter = express.Router()
 
-SaleRouter.post('/print-sale/:id', expressAsyncHandler(async (req, res) => {
-  let browser = null;
+// POST /api/sale/print-sale/:id
+// Body: { companyId?: string }  — optional, overrides billedTo for reprint
+SaleRouter.post(
+  '/print-sale/:id',
+  expressAsyncHandler(async (req, res) => {
+    let browser = null;
+    try {
+      const sale = await Sale.findById(req.params.id).lean();
+      if (!sale) return res.status(404).json({ error: 'Sale not found' });
 
-  try {
-    console.log('Fetching sale and company data...');
+      const [company, billedTo] = await Promise.all([
+        Company.findOne().lean(),
+        // Use override companyId from body, fall back to the one saved on the sale
+        (req.body.companyId || sale.companyId)
+          ? Customer.findById(req.body.companyId || sale.companyId).lean()
+          : Promise.resolve(null),
+      ]);
 
-    // Fetch sale and company data
-    const [sale, company] = await Promise.all([
-      Sale.findById(req.params.id).lean(),
-      Company.findOne().lean()
-    ]);
+      if (!company) return res.status(404).json({ error: 'Company not found' });
 
-    if (!sale) {
-      return res.status(404).json({ error: 'Sale not found' });
-    }
+      const templatePath = path.join(process.cwd(), 'templates', 'Invoice.hbs');
+      const templateSource = fs.readFileSync(templatePath, 'utf8');
+      const template = Handlebars.compile(templateSource);
+      const htmlContent = template({ company, sale, billedTo });
 
-    if (!company) {
-      return res.status(404).json({ error: 'Company not found' });
-    }
-
-    // Read and compile template
-    const templatePath = path.join(process.cwd(), 'templates', 'Invoice.hbs');
-
-    const templateSource = fs.readFileSync(templatePath, 'utf8');
-    const template = Handlebars.compile(templateSource);
-
-    const htmlContent = template({ company, sale });
-
-    browser = await puppeteer.launch({
-      headless: 'new',
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu'
-      ]
-    });
-
-    console.log('Browser launched, creating page...');
-    const page = await browser.newPage();
-
-    // Set viewport
-    await page.setViewport({ width: 1200, height: 1600 });
-
-    console.log('Setting content...');
-    await page.setContent(htmlContent, {
-      waitUntil: 'networkidle0',
-      timeout: 30000
-    });
-
-    console.log('Generating PDF...');
-    // Generate PDF without path option
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      preferCSSPageSize: false,
-      margin: {
-        top: '20px',
-        right: '20px',
-        bottom: '20px',
-        left: '20px'
-      }
-    });
-
-    await browser.close();
-    browser = null;
-
-    // Verify buffer is not empty
-    if (!pdfBuffer || pdfBuffer.length === 0) {
-      throw new Error('Generated PDF buffer is empty');
-    }
-
-    // Set response headers
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="invoice-${sale.InvoiceCode || sale._id}.pdf"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
-
-    res.end(pdfBuffer, 'binary');
-
-  } catch (error) {
-    console.error('PDF Generation Error:', error);
-    console.error('Error stack:', error.stack);
-
-    // Close browser if it's still open
-    if (browser) {
-      try {
-        await browser.close();
-      } catch (closeError) {
-        console.error('Error closing browser:', closeError);
-      }
-    }
-
-    // Send error response
-    if (!res.headersSent) {
-      res.status(500).json({
-        error: 'Failed to generate PDF',
-        details: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      browser = await puppeteer.launch({
+        headless: 'new',
+        args: ['--no-sandbox', '--disable-setuid-sandbox',
+               '--disable-dev-shm-usage', '--disable-gpu'],
       });
+
+      const page = await browser.newPage();
+      await page.setViewport({ width: 1200, height: 1600 });
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0', timeout: 30000 });
+
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: { top: '20px', right: '20px', bottom: '60px', left: '20px' },
+      });
+
+      await browser.close();
+      browser = null;
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition',
+        `inline; filename="invoice-${sale.InvoiceCode}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      res.end(pdfBuffer, 'binary');
+
+    } catch (error) {
+      console.error('Print error:', error.message);
+      if (browser) try { await browser.close(); } catch (_) {}
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Failed to generate PDF', details: error.message });
+      }
     }
-  }
-}))
+  })
+);
 
 SaleRouter.post(
   '/new-sale',
