@@ -19,6 +19,7 @@ import {
     LuComponent,
     LuFile,
     LuUmbrella,
+    LuUsers2,
 } from "react-icons/lu";
 import InventoryScreen from './screens/Inventory';
 import SaleTable from './components/SaleTable';
@@ -128,7 +129,7 @@ export default function App() {
                         </Nav.Item>
                         <Nav.Item>
                             <Nav.Link eventKey="customers">
-                                <LuUmbrella style={{ marginRight: '4px' }} size={33} />
+                                <LuUsers2 style={{ marginRight: '4px' }} size={33} />
                             </Nav.Link>
                         </Nav.Item>
                         <Nav.Item className='position-relative'>

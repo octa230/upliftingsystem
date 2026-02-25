@@ -4,7 +4,7 @@ const customerSchema = new Schema({
     name: {type: String, lowercase: true, required: true},
     logo: String,
     poBox: String,
-    taxRegNumber: String,
+    taxRegNumber: {type: String, unique: true, sparse: true, default: null},
     address: String,
     phone: String,
     email: String,

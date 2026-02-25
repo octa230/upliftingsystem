@@ -1,169 +1,460 @@
 <html>
   <head>
-    <title>Tax Invoice</title>
+    <title>Tax Invoice — {{sale.InvoiceCode}}</title>
     <style>
-      :root { --primary-color: #333333; --secondary-color: #666666;
-      --border-color: #e0e0e0; --light-bg: #FFE066; } * { box-sizing:
-      border-box; margin: 0; padding: 0; font-family: 'Helvetica', 'Arial',
-      sans-serif; } body { padding: 40px; max-width: 900px; margin: 0 auto; } /*
-      Header */ .header { display: flex; justify-content: space-between;
-      align-items: center; margin-bottom: 30px; padding-bottom: 20px;
-      border-bottom: 1px solid var(--border-color); } .logo-container { width:
-      160px; } .logo { max-width: 100%; height: auto; max-height: 100px; }
-      .invoice-title { font-size: 24px; font-weight: bold; color:
-      var(--primary-color); } /* Info Section */ .info-container { display:
-      flex; justify-content: space-between; margin-bottom: 25px; } .info-column
-      { width: 48%; } .label { font-size: 10px; color: var(--secondary-color);
-      margin-bottom: 3px; font-weight: 500; text-transform: uppercase; } .value
-      { font-size: 10px; color: var(--primary-color); margin-bottom: 12px; }
-      .section-title { font-size: 14px; font-weight: bold; color:
-      var(--primary-color); margin-bottom: 10px; padding-bottom: 5px;
-      border-bottom: 1px solid var(--border-color); } /* Table */ .table {
-      width: 100%; margin-bottom: 30px; border-collapse: collapse; }
-      .table-header { background-color: var(--light-bg); //border-bottom: 1px
-      solid var(--border-color); } .table-header th { padding: 10px 8px;
-      font-size: 11px; font-weight: bold; text-transform: uppercase;
-      letter-spacing: 0.5px; border: #e0e0e0 0.5px solid } .table-row {
-      border-bottom: 1px solid #e0e0e0; } .table-row td { padding: 10px 8px;
-      font-size: 10px; vertical-align: middle; border: #e0e0e0 0.5px solid } /*
-      Column widths and alignment */ .item-cell { width: 45%; text-align: left;
-      } .quantity-cell { width: 15%; text-align: center; } .rate-cell { width:
-      20%; text-align: right; } .amount-cell { width: 20%; text-align: right; }
-      /* Totals */ .totals-container { margin-left: auto; width: 40%;
-      margin-top: 20px; } .total-row { display: flex; justify-content:
-      space-between; margin-bottom: 5px; } .total-label { font-size: 10px;
-      color: var(--secondary-color); } .total-value { font-size: 10px;
-      font-weight: bold; } .grand-total { border-top: 1px solid
-      var(--primary-color); padding-top: 5px; margin-top: 5px; } .grand-total
-      .total-label, .grand-total .total-value { font-size: 11px; font-weight:
-      bold; } /* Footer */ .footer { position: fixed; bottom: 30px; left: 40px;
-      right: 40px; font-size: 8px; color: #999999; text-align: center;
-      border-top: 1px solid var(--border-color); padding-top: 10px; } .footer p
-      { margin: 3px 0; } /* Watermark */ .watermark { position: fixed; bottom:
-      30%; border: #5F904D 1px dotted; left: 0; right: 0; text-align: center;
-      color: #5F904D; font-size: 60px; font-weight: bold; opacity: 0.2;
-      transform: rotate(-30deg); z-index: -1; } @media print { body { padding:
-      20px; } .footer { position: fixed; bottom: 0; } }
+      :root {
+        --accent: #FFE066;
+        --dark:   #1a1a1a;
+        --mid:    #555555;
+        --light:  #888888;
+        --border: #e0e0e0;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+        font-size: 10px;
+        color: var(--dark);
+        background: #fff;
+        padding: 0 0 100px;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      /* ═══════════════════════════════════════════════
+         BANNER HEADER — full width, two-tone
+      ═══════════════════════════════════════════════ */
+      .banner {
+        display: table;
+        width: 100%;
+        background: var(--dark);
+      }
+      .banner-logo-cell {
+        display: table-cell;
+        width: 220px;
+        background: var(--accent);
+        padding: 22px 24px;
+        vertical-align: middle;
+      }
+      .banner-logo-cell img {
+        display: block;
+        max-width: 160px;
+        max-height: 70px;
+      }
+      .banner-title-cell {
+        display: table-cell;
+        vertical-align: middle;
+        padding: 22px 28px;
+        text-align: right;
+      }
+      .banner-title {
+        font-size: 28px;
+        font-weight: 900;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: #fff;
+        line-height: 1;
+      }
+      .banner-subtitle {
+        font-size: 9px;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-top: 5px;
+      }
+
+      /* ── SELLER STRIP ─────────────────────────────── */
+      .seller-strip {
+        display: table;
+        width: 100%;
+        background: #f7f7f7;
+        border-bottom: 1px solid var(--border);
+      }
+      .seller-strip-left {
+        display: table-cell;
+        width: 55%;
+        padding: 14px 24px;
+        vertical-align: middle;
+      }
+      .seller-strip-right {
+        display: table-cell;
+        width: 45%;
+        padding: 14px 24px;
+        vertical-align: middle;
+        text-align: right;
+        border-left: 1px solid var(--border);
+      }
+      .seller-name {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 3px;
+      }
+      .seller-detail {
+        font-size: 9px;
+        color: var(--mid);
+        line-height: 1.7;
+      }
+      .trn-badge {
+        display: inline-block;
+        background: var(--accent);
+        color: var(--dark);
+        font-size: 8.5px;
+        font-weight: 700;
+        letter-spacing: .5px;
+        padding: 2px 8px;
+        border-radius: 2px;
+        margin-top: 5px;
+      }
+
+      /* ── INVOICE META TABLE ───────────────────────── */
+      .meta-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .meta-table td {
+        font-size: 9px;
+        padding: 2px 0;
+        line-height: 1.6;
+      }
+      .meta-label {
+        color: var(--light);
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        font-size: 8px;
+        width: 80px;
+        text-align: left;
+      }
+      .meta-value {
+        font-weight: 600;
+        color: var(--dark);
+        text-align: right;
+      }
+      .meta-value.invoice-num {
+        font-size: 13px;
+        font-weight: 900;
+        color: var(--dark);
+      }
+
+      /* ── BODY PADDING ─────────────────────────────── */
+      .body-wrap { padding: 24px 44px; }
+
+      /* ── BILL TO ──────────────────────────────────── */
+      .bill-row {
+        display: table;
+        width: 100%;
+        margin-bottom: 20px;
+      }
+      .bill-col {
+        display: table-cell;
+        width: 50%;
+        vertical-align: top;
+        padding-right: 24px;
+      }
+      .bill-col:last-child { padding-right: 0; }
+      .section-label {
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--light);
+        margin-bottom: 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--border);
+      }
+      .bill-name {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 4px;
+      }
+      .bill-field {
+        font-size: 9.5px;
+        color: var(--mid);
+        line-height: 1.8;
+      }
+      .bill-trn {
+        display: inline-block;
+        background: #f0f0f0;
+        color: var(--dark);
+        font-size: 8.5px;
+        font-weight: 700;
+        letter-spacing: .5px;
+        padding: 2px 8px;
+        border-radius: 2px;
+        margin-top: 5px;
+        border: 1px solid var(--border);
+      }
+
+      /* ── ITEMS TABLE ──────────────────────────────── */
+      .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 24px;
+      }
+      .items-table thead tr { background: var(--accent); }
+      .items-table th {
+        padding: 9px 10px;
+        font-size: 8.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .8px;
+        color: var(--dark);
+        text-align: left;
+      }
+      .items-table th.r { text-align: right; }
+      .items-table th.c { text-align: center; }
+
+      .items-table tbody tr { border-bottom: 1px solid var(--border); }
+      .items-table tbody tr:last-child { border-bottom: 2px solid var(--dark); }
+      .items-table td {
+        padding: 9px 10px;
+        font-size: 10px;
+        vertical-align: middle;
+      }
+      .item-sub {
+        font-size: 8.5px;
+        color: var(--light);
+        margin-top: 2px;
+      }
+      .col-item   { width: 42%; }
+      .col-qty    { width: 8%;  text-align: center; }
+      .col-rate   { width: 20%; text-align: right; }
+      .col-amount { width: 20%; text-align: right; font-weight: 600; }
+      .col-photo  { width: 10%; text-align: center; }
+      .product-thumb {
+        width: 38px; height: 38px;
+        object-fit: cover;
+        border-radius: 3px;
+        display: block;
+        margin: 0 auto;
+      }
+
+      /* ── TOTALS ───────────────────────────────────── */
+      .totals-wrap { display: table; width: 100%; }
+      .totals-spacer { display: table-cell; width: 55%; }
+      .totals-box { display: table-cell; width: 45%; vertical-align: top; }
+
+      .totals-inner {
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .t-row {
+        display: table;
+        width: 100%;
+        border-bottom: 1px solid var(--border);
+      }
+      .t-row:last-child { border-bottom: none; }
+      .t-lbl {
+        display: table-cell;
+        padding: 7px 12px;
+        font-size: 9px;
+        color: var(--mid);
+        width: 55%;
+      }
+      .t-val {
+        display: table-cell;
+        padding: 7px 12px;
+        font-size: 9px;
+        font-weight: 600;
+        text-align: right;
+        background: #fafafa;
+        width: 45%;
+      }
+      .t-grand { background: var(--dark); }
+      .t-grand .t-lbl {
+        font-size: 10px;
+        font-weight: 700;
+        color: #ccc;
+      }
+      .t-grand .t-val {
+        font-size: 13px;
+        font-weight: 900;
+        color: var(--accent);
+        background: var(--dark);
+      }
+
+      /* ── WATERMARK ────────────────────────────────── */
+      .watermark {
+        position: fixed;
+        top: 36%;
+        left: 0; right: 0;
+        text-align: center;
+        font-size: 72px;
+        font-weight: 900;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        opacity: 0.05;
+        transform: rotate(-28deg);
+        z-index: -1;
+        color: #000;
+      }
+
+      /* ── FOOTER ───────────────────────────────────── */
+      .footer {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: #fff;
+        border-top: 2px solid var(--accent);
+        padding: 8px 44px 12px;
+        font-size: 8px;
+        color: var(--light);
+        text-align: center;
+        line-height: 1.9;
+      }
+
+      @media print {
+        body { padding-bottom: 80px; }
+        .footer { bottom: 0; }
+      }
     </style>
   </head>
   <body>
+
     <!-- Watermark -->
     <div class="watermark">
-      {{#if sale.free}}
-        NOT PAID
-      {{else if sale.paidBy}}
-        {{#if (eq sale.paidBy "Credit")}}
-          CREDIT SALE
-        {{else}}
-          PAID
-        {{/if}}
-      {{else}}
-        PAID
-      {{/if}}
+      {{#if sale.free}}NOT PAID
+      {{else if sale.paidBy}}{{#if (eq sale.paidBy "Credit")}}CREDIT SALE{{else}}PAID{{/if}}
+      {{else}}PAID{{/if}}
     </div>
 
-    <!-- Header with logo and invoice title -->
-    <div class="header">
-      <div class="logo-container">
-        <img class="logo" src="{{company.logo}}" alt="Company Logo" />
+    <!-- ══ BANNER ══ -->
+    <div class="banner">
+      <div class="banner-logo-cell">
+        <img src="{{company.logo}}" alt="{{company.name}}" />
       </div>
-      <div class="invoice-title">TAX INVOICE</div>
-    </div>
-
-    <!-- Company and invoice info -->
-    <div class="info-container">
-      <div class="info-column">
-        <div class="label">{{company.name}}</div>
-        <div class="value">{{company.address}}</div>
-        <div class="value">TRN: {{company.trn}}</div>
-      </div>
-      <div class="info-column">
-        <div class="label">Invoice #</div>
-        <div class="value">{{sale.InvoiceCode}}</div>
-
-        <div class="label">Date</div>
-        <div class="value">{{formatDate sale.date}}</div>
-        <div class="label">Prepared By</div>
-        <div class="value">{{sale.preparedBy}}</div>
+      <div class="banner-title-cell">
+        <div class="banner-title">Tax Invoice</div>
+        <div class="banner-subtitle">Original &nbsp;·&nbsp; VAT Invoice</div>
       </div>
     </div>
 
-    <!-- Billing info -->
-    <div class="section-title">BILL TO</div>
-    <div class="info-container">
-      <div class="info-column">
-        <div class="value">{{#if sale.name}}{{sale.name}}{{else}}Not provided{{/if}}</div>
-        <div class="value">{{#if sale.phone}}{{sale.phone}}{{else}}Not provided{{/if}}</div>
+    <!-- ══ SELLER STRIP ══ -->
+    <div class="seller-strip">
+      <div class="seller-strip-left">
+        <div class="seller-name">{{company.name}}</div>
+        <div class="seller-detail">
+          {{company.address}}{{#if company.region}}, {{company.region}}{{/if}}<br/>
+          {{#if company.phone}}Tel: {{company.phone}}{{/if}}
+          {{#if company.email}}&nbsp;·&nbsp;{{company.email}}{{/if}}
+          {{#if company.website}}&nbsp;·&nbsp;{{company.website}}{{/if}}
+        </div>
+        <span class="trn-badge">TRN: {{company.trn}}</span>
       </div>
-      <div class="info-column">
-        <div class="value">{{#if sale.email}}{{sale.email}}{{else}}Not provided{{/if}}</div>
-        <div class="value">{{#if sale.paidBy}}{{sale.paidBy}}{{else}}Not
-            provided{{/if}}</div>
-      </div>
-    </div>
-
-    <!-- Items table -->
-    <table class="table">
-      <thead class="table-header">
-        <tr>
-          <th class="item-cell">ITEM</th>
-          <th class="quantity-cell">QTY</th>
-          <th class="rate-cell">RATE</th>
-          <th class="amount-cell">AMOUNT</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each sale.saleItems}}
-          <tr class="table-row">
-            <td class="item-cell">{{productName}}</td>
-            <td class="quantity-cell">{{quantity}}</td>
-            <td class="rate-cell">AED {{formatCurrency price}}</td>
-            <td class="amount-cell">AED {{formatCurrency total}}</td>
+      <div class="seller-strip-right">
+        <table class="meta-table">
+          <tr>
+            <td class="meta-label">Invoice #</td>
+            <td class="meta-value invoice-num">{{sale.InvoiceCode}}</td>
           </tr>
-        {{/each}}
-      </tbody>
-    </table>
-
-    <!-- Totals -->
-    <div class="totals-container">
-      <div class="total-row">
-        <div class="total-label">Subtotal:</div>
-        <div class="total-value">AED {{formatCurrency sale.subTotal}}</div>
-      </div>
-      <div class="total-row">
-        <div class="total-label">Discount:</div>
-        <div class="total-value">- AED {{formatCurrency sale.discount}}</div>
-      </div>
-      <div class="total-row">
-        <div class="total-label">Taxable Amount:</div>
-        <div class="total-value">AED {{formatCurrency sale.subTotal}}</div>
-      </div>
-      <div class="total-row">
-        <div class="total-label">VAT (5%):</div>
-        <div class="total-value">AED {{formatCurrency sale.vat}}</div>
-      </div>
-      <div class="total-row grand-total">
-        <div class="total-label">TOTAL DUE:</div>
-        <div class="total-value">AED {{formatCurrency sale.total}}</div>
+          <tr>
+            <td class="meta-label">Date</td>
+            <td class="meta-value">{{formatDate sale.date}}</td>
+          </tr>
+          <tr>
+            <td class="meta-label">Service</td>
+            <td class="meta-value">{{sale.service}}</td>
+          </tr>
+          <tr>
+            <td class="meta-label">Prepared By</td>
+            <td class="meta-value">{{sale.preparedBy}}</td>
+          </tr>
+          <tr>
+            <td class="meta-label">Payment</td>
+            <td class="meta-value">{{#if sale.paidBy}}{{sale.paidBy}}{{else}}—{{/if}}</td>
+          </tr>
+        </table>
       </div>
     </div>
 
-    <!-- Footer -->
+    <div class="body-wrap">
+
+      <!-- ══ BILL TO ══ -->
+<div class="bill-row">
+  {{#if billedTo}}
+    <div class="bill-col">
+      <div class="section-label">Bill To</div>
+      <div class="bill-name">{{billedTo.name}}</div>
+      {{#if billedTo.address}}<div class="bill-field">{{billedTo.address}}</div>{{/if}}
+      {{#if billedTo.poBox}}<div class="bill-field">PO Box: {{billedTo.poBox}}</div>{{/if}}
+      {{#if billedTo.phone}}<div class="bill-field">{{billedTo.phone}}</div>{{/if}}
+      {{#if billedTo.taxRegNumber}}<span class="bill-trn">TRN: {{billedTo.taxRegNumber}}</span>{{/if}}
+    </div>
+  {{else}}
+    <div class="bill-col">
+      <div class="section-label">Bill To</div>
+      <div class="bill-name">{{#if sale.name}}{{sale.name}}{{else}}Walk-in Customer{{/if}}</div>
+      {{#if sale.phone}}<div class="bill-field">{{sale.phone}}</div>{{/if}}
+    </div>
+  {{/if}}
+</div>
+
+      <!-- ══ ITEMS TABLE ══ -->
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th class="col-item">Item / Description</th>
+            <th class="col-qty c">Qty</th>
+            <th class="col-rate r">Unit Price</th>
+            <th class="col-amount r">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each sale.saleItems}}
+          <tr>
+            <td class="col-item">
+              {{productName}}
+              {{#if arrangement}}<div class="item-sub">{{arrangement}}</div>{{/if}}
+            </td>
+            <td class="col-qty">{{quantity}}</td>
+            <td class="col-rate">AED {{formatCurrency price}}</td>
+            <td class="col-amount">AED {{formatCurrency total}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+
+      <!-- ══ TOTALS ══ -->
+      <div class="totals-wrap">
+        <div class="totals-spacer"></div>
+        <div class="totals-box">
+          <div class="totals-inner">
+            <div class="t-row">
+              <div class="t-lbl">Net Amount (excl. VAT)</div>
+              <div class="t-val">AED {{formatCurrency sale.subTotal}}</div>
+            </div>
+            {{#if sale.discount}}
+            <div class="t-row">
+              <div class="t-lbl">Discount</div>
+              <div class="t-val">− AED {{formatCurrency sale.discount}}</div>
+            </div>
+            {{/if}}
+            <div class="t-row">
+              <div class="t-lbl">VAT (5%)</div>
+              <div class="t-val">AED {{formatCurrency sale.vat}}</div>
+            </div>
+            <div class="t-row t-grand">
+              <div class="t-lbl">Total Due</div>
+              <div class="t-val">AED {{formatCurrency sale.total}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /body-wrap -->
+
+    <!-- ══ FOOTER ══ -->
     <div class="footer">
-      <p>{{company.name}}
-        |
-        {{company.address}},
-        {{company.region}}
-        | TRN:
-        {{company.trn}}</p>
-      <p>Website:
-        {{company.website}}
-        | Phone:
-        {{company.phone}}
-        | Email:
-        {{company.email}}</p>
-      <p style="margin-top: 5px;">This is a computer generated invoice and does
-        not require a signature</p>
+      <p>{{company.name}} &nbsp;|&nbsp; {{company.address}}{{#if company.region}}, {{company.region}}{{/if}} &nbsp;|&nbsp; TRN: {{company.trn}}</p>
+      <p>
+        {{#if company.website}}{{company.website}}{{/if}}
+        {{#if company.phone}}&nbsp;·&nbsp;Tel: {{company.phone}}{{/if}}
+        {{#if company.email}}&nbsp;·&nbsp;{{company.email}}{{/if}}
+      </p>
+      <p style="margin-top:3px; font-style:italic;">This is a computer-generated invoice and does not require a signature.</p>
     </div>
+
   </body>
 </html>

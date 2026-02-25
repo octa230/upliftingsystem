@@ -8,6 +8,7 @@ customerRouter.post('/', asyncHandler(async(req, res)=>{
     const customer = await Customer.create(req.body)
 
     await customer.save()
+    res.send(customer)
 }))
 
 customerRouter.get('/', asyncHandler(async(req, res)=>{
@@ -26,6 +27,16 @@ customerRouter.put('/:id', asyncHandler(async(req, res)=>{
     customer.save()
 
     res.json({ status: 'success', data: customer });
+}))
+
+customerRouter.delete('/:id', asyncHandler(async(req, res)=>{
+    const customer = await Customer.findById(req.params.id)
+    if(!customer){
+        return res.json({status: 404, message:"customer not found"})
+    }
+
+    await customer.remove()
+    res.send({message: 'Deleted Successfully'})
 }))
 
 
