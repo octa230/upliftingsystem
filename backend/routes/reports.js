@@ -70,9 +70,21 @@ ReportRouter.get('/daily/pdf', expressAsyncHandler(async (req, res) => {
   const targetDate = date ? new Date(date) : new Date();
   targetDate.setHours(0, 0, 0, 0);
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isToday = targetDate.getTime() === today.getTime();
+
   // Try saved report first, fall back to live aggregation
-  let report = await DailyReport.findOne({ date: targetDate }).lean();
-  if (!report) report = await getDailySummary({ date: targetDate });
+  //let report = await DailyReport.findOne({ date: targetDate }).lean();
+  //if (!report) report = await getDailySummary({ date: targetDate });
+
+  let report;
+  if (isToday) {
+    report = await getDailySummary({ date: targetDate });
+  } else {
+    report = await DailyReport.findOne({ date: targetDate }).lean();
+    if (!report) report = await getDailySummary({ date: targetDate });
+  }
 
   const html = await buildReportHTML(report);
 
