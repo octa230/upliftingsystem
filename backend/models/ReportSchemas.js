@@ -30,7 +30,7 @@ const DailyReportSchema = new mongoose.Schema({
   purchases: {
     totalSpent: { type: Number, default: 0 },
     totalItems: { type: Number, default: 0 },
-    bySupplier: [{
+    byDeliveryNote: [{
       supplier:      String,
       totalSpent:    Number,
       totalItems:    Number,
