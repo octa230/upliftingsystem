@@ -77,80 +77,80 @@ const FilingScreen = () => {
     }
   }
 
-  // FIX: Properly map selectedItems array
   const selectedProducts = selectedItems?.map(item => ({
     product: item._id,
     productName: item.name,
     purchasePrice: item.purchasePrice,
     quantity: itemQuantities[item._id] || 0
   }))
-  
+
   const calculateTotal = (products) => {
     return products.reduce((total, product) => {
       return total + (product.quantity * product.purchasePrice)
     }, 0)
   }
 
+  const clearAll = () => {
+    ctxDispatch({ type: 'CLEAR_SELECTED_ITEMS' })
+    setItemQuantities({})
+    setdeliveryNote('')
+    setArrangement('')
+    setPurchase({})
+    setNewTotal(0)
+    setSelectedSale({})
+    localStorage.removeItem('selectedSale')
+    localStorage.removeItem('selectedItems')
+  }
+
   const handleSubmit = async () => {
     if (loading) return
-    
     setLoading(true)
     try {
       switch (recordType) {
-        case "purchase":
+        case 'purchase':
           const total = calculateTotal(selectedProducts)
           if (!deliveryNote) {
             toast.error('Add delivery note number')
             setLoading(false)
             return
           }
-          await axios.post('/api/transactions/purchase', {
-            selectedProducts,
-            deliveryNote,
-            total
-          })
+          await axios.post('/api/transactions/purchase', { selectedProducts, deliveryNote, total })
           toast.success('Done')
+          clearAll()
           break
 
-        case "sale":
+        case 'sale':
           await axios.post(`/api/sale/${selectedSale._id}/add-units`, {
             selectedProducts,
             unitName: arrangement
           })
-          localStorage.removeItem('selectedSale')
           toast.success('Done')
+          clearAll()
           break
 
-        case "damage":
-          await axios.post('/api/transactions/damages', {
-            selectedProducts
-          })
+        case 'damage':
+          await axios.post('/api/transactions/damages', { selectedProducts })
           toast.success('Done')
+          clearAll()
           break
 
-        case "hotel":
+        case 'hotel':
           toast.error('still building')
           break
 
-        case "returned":
+        case 'returned':
           if (purchase.Items && deliveryNote) {
-            await axios.put(`/api/transactions/${deliveryNote}`, {
-              purchase,
-              total: newTotal,
-              type: recordType
-            })
+            await axios.put(`/api/transactions/${deliveryNote}`, { purchase, total: newTotal, type: recordType })
             toast.success('Done')
+            clearAll()
           }
           break
 
-        case "purchase_order":
+        case 'purchase_order':
           if (purchase.Items && deliveryNote) {
-            await axios.put(`/api/transactions/${deliveryNote}`, {
-              purchase,
-              total: newTotal,
-              type: recordType
-            })
+            await axios.put(`/api/transactions/${deliveryNote}`, { purchase, total: newTotal, type: recordType })
             toast.success('Done')
+            clearAll()
           }
           break
 
@@ -167,20 +167,13 @@ const FilingScreen = () => {
   }
 
   const removeItemHandler = (item) => {
-    const newselectedItems = selectedItems.filter((x) => x._id !== item._id)
-    ctxDispatch({ type: "REMOVE_SELECTED_ITEM", payload: newselectedItems })
+    ctxDispatch({ type: 'REMOVE_SELECTED_ITEM', payload: selectedItems.filter((x) => x._id !== item._id) })
   }
 
   const removePurchaseItem = (item) => {
     const newItems = purchase?.Items.filter((x) => x.product !== item.product)
     const total = newItems.reduce((acc, item) => acc + (item.quantity * item.purchasePrice), 0)
-
-    setPurchase(prevState => ({
-      ...prevState,
-      Items: newItems,
-      total: total
-    }))
-
+    setPurchase(prevState => ({ ...prevState, Items: newItems, total }))
     setNewTotal(total)
   }
 
@@ -190,13 +183,8 @@ const FilingScreen = () => {
         item.product === productId ? { ...item, quantity: parseInt(newQuantity) } : item
       )
       const updatedTotal = updatedItems.reduce((acc, item) => acc + (item.quantity * item.purchasePrice), 0)
-
       setNewTotal(updatedTotal)
-      return {
-        ...prevState,
-        Items: updatedItems,
-        total: updatedTotal
-      }
+      return { ...prevState, Items: updatedItems, total: updatedTotal }
     })
   }
 
@@ -209,11 +197,6 @@ const FilingScreen = () => {
     } catch (error) {
       toast.error(getError(error))
     }
-  }
-
-  const clearSelectedItems = () => {
-    ctxDispatch({ type: "CLEAR_SELECTED_ITEMS" })
-    setItemQuantities({})
   }
 
   return (
@@ -232,7 +215,7 @@ const FilingScreen = () => {
         <div>
           {(() => {
             switch (recordType) {
-              case "purchase":
+              case 'purchase':
                 return (
                   <Form.Group>
                     <Form.Label>Delivery Note Number</Form.Label>
@@ -245,7 +228,7 @@ const FilingScreen = () => {
                   </Form.Group>
                 )
 
-              case "returned":
+              case 'returned':
                 return (
                   <Form.Group>
                     <Form.Label>Delivery Note Number</Form.Label>
@@ -259,7 +242,7 @@ const FilingScreen = () => {
                   </Form.Group>
                 )
 
-              case "purchase_order":
+              case 'purchase_order':
                 return (
                   <Form.Group>
                     <Form.Label>Send Purchase Order To</Form.Label>
@@ -271,14 +254,14 @@ const FilingScreen = () => {
                   </Form.Group>
                 )
 
-              case "damage":
+              case 'damage':
                 return <div>File Selected Items As Damage</div>
 
-              case "sale":
+              case 'sale':
                 return selectedSale && (
                   <div>
-                    <Alert variant="success">
-                      {selectedSale.InvoiceCode || "No Invoice"}
+                    <Alert variant='success'>
+                      {selectedSale.InvoiceCode || 'No Invoice'}
                     </Alert>
                     <Form.Group>
                       <Form.Label>Arrangement</Form.Label>
@@ -304,28 +287,23 @@ const FilingScreen = () => {
 
         <div>
           <Stack className='gap-3'>
-            <Button
-              className='btn-sm'
-              onClick={clearSelectedItems}
-              variant='warning'>
+            <Button className='btn-sm' onClick={clearAll} variant='warning'>
               Clear <LuTrash2 size={22} color='red' />
             </Button>
             <Button onClick={handleSubmit} variant='danger' disabled={loading}>
-              {loading ? 'Submitting...' : 'Submit'} <LuCheckCircle2 size={22} color='#eaefef'/>
+              {loading ? 'Submitting...' : 'Submit'} <LuCheckCircle2 size={22} color='#eaefef' />
             </Button>
           </Stack>
         </div>
       </div>
 
       <ListGroup className='my-3'>
-        {/* FIX: Check if selectedItems exists and has length */}
         {selectedItems && selectedItems.length > 0 && selectedItems.map((item) => (
           <ListGroup.Item key={item._id} className='d-flex my-1 justify-content-between'>
             <Col>{item.name}</Col>
-            {/* FIX: Corrected condition - was using || instead of === */}
             {(recordType === 'purchase' || recordType === 'purchase_order') ? (
               <Col>
-                <Form.Control 
+                <Form.Control
                   type='number'
                   value={itemQuantities[item._id] || ''}
                   onChange={(e) => handleQuantityChange(item._id, e.target.value)}
@@ -334,8 +312,8 @@ const FilingScreen = () => {
               </Col>
             ) : (
               <Col>
-                <Form.Control 
-                  as="select"
+                <Form.Control
+                  as='select'
                   value={itemQuantities[item._id] || ''}
                   onChange={(e) => handleQuantityChange(item._id, e.target.value)}>
                   <option>--select--</option>
@@ -355,14 +333,12 @@ const FilingScreen = () => {
       </ListGroup>
 
       <div className='my-3'>
-        {recordType === "sale" ? (
+        {recordType === 'sale' ? (
           <ListGroup className='my-3'>
             {invoices?.map((invoice) => (
               <ListGroup.Item className='d-flex justify-content-between' key={invoice?.InvoiceCode}>
                 <Button onClick={() => handleViewSale(invoice._id)} className='bg-primary border'>
-                  <span className='px-1'>
-                    <FaEye />
-                  </span>
+                  <span className='px-1'><FaEye /></span>
                   {invoice?.InvoiceCode}
                 </Button>
                 <div>
@@ -385,8 +361,8 @@ const FilingScreen = () => {
             <ListGroup.Item key={item.product} className='d-flex my-1 justify-content-between'>
               <Col>{item.productName}</Col>
               <Col>
-                <Form.Control 
-                  as="select"
+                <Form.Control
+                  as='select'
                   value={itemQuantities[item.product] || item.quantity}
                   onChange={(e) => handleReturnChange(item.product, e.target.value)}>
                   <option>--select--</option>
