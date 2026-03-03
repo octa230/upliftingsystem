@@ -34,7 +34,6 @@ const DailyReportSchema = new mongoose.Schema({
       supplier:      String,
       totalSpent:    Number,
       totalItems:    Number,
-      deliveryNotes: [String],
       breakdown: [{
         productName:   String,
         quantity:      Number,
