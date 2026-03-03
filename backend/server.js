@@ -16,6 +16,7 @@ import expenseRouter from './routes/expenseRoutes.js';
 import settingsRouter from './routes/settingRoutes.js';
 import letterheadRouter from './routes/letterHead.js';
 import customerRouter from './routes/customerRoutes.js';
+import ReportRouter from './routes/reports.js';
 
 const app = express();
 dotenv.config()
@@ -36,6 +37,7 @@ app.use(bodyParser.json())
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/product', ProductRouter)
 app.use('/api/customers', customerRouter)
+app.use('/api/reports', ReportRouter)
 app.use('/api/user', userRouter)
 app.use('/api/sale', SaleRouter)
 app.use('/api/upload', UploadRouter)
