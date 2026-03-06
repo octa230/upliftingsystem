@@ -79,7 +79,10 @@ ReportRouter.get('/daily/pdf', expressAsyncHandler(async (req, res) => {
   //if (!report) report = await getDailySummary({ date: targetDate });
 
   let report;
-  if (isToday) {
+
+  const now = new Date()
+  const isPastCutOff = now.getHours() > 23
+  if (isToday && !isPastCutOff) {
     report = await getDailySummary({ date: targetDate });
   } else {
     report = await DailyReport.findOne({ date: targetDate }).lean();

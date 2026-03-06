@@ -50,11 +50,11 @@ const resetWasteValues = async () => {
 const backgroundTasks = {
   start: () => {
     // Nightly reset — midnight
-    cronJob.schedule('10 0 * * *', async () => {
+    cronJob.schedule('0 23 * * *', async () => {
       console.log('[CRON] Running nightly reset...');
       try {
-        await getDailySummary({ save: true });
         await resetWasteValues();
+        await getDailySummary({ save: true });
         console.log('[CRON] Nightly reset complete');
       } catch (err) {
         console.error('[CRON] Nightly reset failed:', err.message);
@@ -65,7 +65,7 @@ const backgroundTasks = {
     cronJob.schedule('*/5 * * * *', async () => {
       try {
         await getDailySummary({ save: true });
-        console.log('[CRON] Report snapshot updated:', new Date().toLocaleTimeString());
+        //console.log('[CRON] Report snapshot updated:', new Date().toLocaleTimeString());
       } catch (err) {
         console.error('[CRON] Snapshot failed:', err.message);
       }
