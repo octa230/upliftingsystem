@@ -36,13 +36,16 @@ export const getDailySummary = async ({ date, save = false } = {}) => {
         ]),
 
         // DAMAGES
+        // DAMAGES
         Damages.aggregate([
             { $match: { createdAt: { $gte: target, $lt: nextDay } } },
             { $unwind: '$Items' },
             {
                 $group: {
                     _id: null,
-                    totalDamageValue: { $sum: '$total' },
+                    totalDamageValue: {
+                        $sum: { $multiply: ['$Items.quantity', '$Items.purchasePrice'] }  // ← fix
+                    },
                     totalItemsDamaged: { $sum: '$Items.quantity' },
                     breakdown: {
                         $push: {
